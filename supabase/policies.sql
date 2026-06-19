@@ -27,13 +27,25 @@ grant select on table public.schedules to anon, authenticated;
 grant select on table public.business_images to anon, authenticated;
 grant select on table public.contact_info to anon, authenticated;
 
--- Remove public write privileges defensively, even if they were never granted.
-revoke insert, update, delete on table public.categories from anon, authenticated;
-revoke insert, update, delete on table public.businesses from anon, authenticated;
-revoke insert, update, delete on table public.locations from anon, authenticated;
-revoke insert, update, delete on table public.schedules from anon, authenticated;
-revoke insert, update, delete on table public.business_images from anon, authenticated;
-revoke insert, update, delete on table public.contact_info from anon, authenticated;
+-- Remove public write and table-management privileges defensively, even if they were never granted.
+revoke insert, update, delete, truncate, references, trigger
+  on table public.categories
+  from anon, authenticated;
+revoke insert, update, delete, truncate, references, trigger
+  on table public.businesses
+  from anon, authenticated;
+revoke insert, update, delete, truncate, references, trigger
+  on table public.locations
+  from anon, authenticated;
+revoke insert, update, delete, truncate, references, trigger
+  on table public.schedules
+  from anon, authenticated;
+revoke insert, update, delete, truncate, references, trigger
+  on table public.business_images
+  from anon, authenticated;
+revoke insert, update, delete, truncate, references, trigger
+  on table public.contact_info
+  from anon, authenticated;
 
 -- Helper used by related-table policies. It exposes only a boolean visibility check.
 create or replace function public.is_public_business(target_business_id uuid)
