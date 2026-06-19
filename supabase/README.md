@@ -6,6 +6,8 @@ This folder contains the Sprint 0 baseline SQL for the Garemo MVP.
 
 - `schema.sql`: initial PostgreSQL schema, constraints, indexes, comments, and RLS enabled.
 - `seed.sql`: initial category seed data.
+- `policies.sql`: safe public read RLS policies for active categories and visible businesses.
+- `rls-verification.sql`: read-only checks for RLS, public reads, private tables, and write grants.
 
 ## Create the Supabase Project
 
@@ -31,6 +33,29 @@ Important: Sprint 0 enables RLS but does not create open policies. Public reads 
 2. Copy the contents of `supabase/seed.sql`.
 3. Run the SQL after `schema.sql`.
 4. Confirm the categories table contains the initial categories.
+
+## RLS Policies
+
+Run `supabase/policies.sql` only after `schema.sql` and `seed.sql`.
+
+This script allows controlled public `SELECT` access for:
+
+- active categories
+- active businesses in active categories
+- locations attached to visible businesses
+- schedules attached to visible businesses
+- images attached to visible businesses
+- contact info attached to visible businesses
+
+It does not create public `INSERT`, `UPDATE`, or `DELETE` policies. It also does not open private tables such as `users_profile`, `favorites`, or `reports`.
+
+After running `policies.sql`, run `supabase/rls-verification.sql` in the SQL Editor and confirm:
+
+- RLS is enabled on application tables.
+- Public read policies exist only for the intended directory tables.
+- Private tables do not have public policies.
+- Browser roles do not have write grants.
+- Active categories are readable as the `anon` role.
 
 ## Environment Variables
 
