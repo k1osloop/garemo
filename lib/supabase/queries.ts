@@ -170,7 +170,7 @@ export async function getActiveBusinesses(): Promise<
   }
 
   return {
-    data: normalizeBusinesses(data as RelatedBusinessRow[] | null),
+    data: normalizeBusinesses(data as unknown as RelatedBusinessRow[] | null),
     error: null,
   };
 }
@@ -209,7 +209,7 @@ export async function getBusinessesByCategory(
   }
 
   return {
-    data: normalizeBusinesses(data as RelatedBusinessRow[] | null),
+    data: normalizeBusinesses(data as unknown as RelatedBusinessRow[] | null),
     error: null,
   };
 }
@@ -287,7 +287,7 @@ export async function getBusinessById(
   }
 
   return {
-    data: data ? normalizeBusiness(data as RelatedBusinessRow) : null,
+    data: data ? normalizeBusiness(data as unknown as RelatedBusinessRow) : null,
     error: null,
   };
 }
@@ -308,7 +308,7 @@ export async function getBusinessBySlug(
   }
 
   return {
-    data: data ? normalizeBusiness(data as RelatedBusinessRow) : null,
+    data: data ? normalizeBusiness(data as unknown as RelatedBusinessRow) : null,
     error: null,
   };
 }

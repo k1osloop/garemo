@@ -196,7 +196,7 @@ export function VendorDashboardClient() {
       return;
     }
 
-    const rows = (data ?? []) as RelatedBusinessRow[];
+    const rows = (data ?? []) as unknown as RelatedBusinessRow[];
     setBusiness(rows[0] ? normalizeBusiness(rows[0]) : null);
     setIsLoading(false);
   }, [router, supabase]);

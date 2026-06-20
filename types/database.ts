@@ -56,6 +56,8 @@ export type Database = {
           status_message: string | null;
           opens_at: string | null;
           closes_at: string | null;
+          reviewed_at: string | null;
+          review_notes: string | null;
           created_at: string;
           updated_at: string;
         };
@@ -72,6 +74,8 @@ export type Database = {
           status_message?: string | null;
           opens_at?: string | null;
           closes_at?: string | null;
+          reviewed_at?: string | null;
+          review_notes?: string | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -88,6 +92,8 @@ export type Database = {
           status_message?: string | null;
           opens_at?: string | null;
           closes_at?: string | null;
+          reviewed_at?: string | null;
+          review_notes?: string | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -266,7 +272,25 @@ export type Database = {
       };
     };
     Views: Record<string, never>;
-    Functions: Record<string, never>;
+    Functions: {
+      admin_review_business: {
+        Args: {
+          target_business_id: string;
+          next_status: Database["public"]["Enums"]["business_status"];
+          next_is_verified?: boolean;
+          notes?: string | null;
+        };
+        Returns: Database["public"]["Tables"]["businesses"]["Row"];
+      };
+      current_app_role: {
+        Args: Record<string, never>;
+        Returns: Database["public"]["Enums"]["user_role"] | null;
+      };
+      is_admin_user: {
+        Args: Record<string, never>;
+        Returns: boolean;
+      };
+    };
     Enums: {
       business_status:
         | "draft"
