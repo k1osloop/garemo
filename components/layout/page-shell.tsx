@@ -11,7 +11,7 @@ export function PageShell({ children, title }: PageShellProps) {
   return (
     <div className="min-h-screen">
       <AppHeader />
-      <main className="mx-auto w-full max-w-md px-4 py-6">
+      <main className="mx-auto w-full max-w-5xl px-4 py-6 sm:py-8">
         {title ? (
           <h1 className="mb-4 text-2xl font-semibold tracking-tight">
             {title}

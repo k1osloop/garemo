@@ -17,7 +17,7 @@ export function BusinessGrid({ businesses }: BusinessGridProps) {
   }
 
   return (
-    <div className="grid gap-3">
+    <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
       {businesses.map((business) => (
         <BusinessCard business={business} key={business.id} />
       ))}

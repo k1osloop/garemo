@@ -27,7 +27,7 @@ export function LeafletMapCanvas({ businesses }: LeafletMapCanvasProps) {
   return (
     <MapContainer
       center={getMapCenter(businesses)}
-      className="h-full min-h-80 w-full"
+      className="h-full min-h-96 w-full"
       scrollWheelZoom={false}
       zoom={businesses.length > 0 ? 16 : 13}
     >

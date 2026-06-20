@@ -13,13 +13,13 @@ export function CategoryFilter({
   selectedCategory,
 }: CategoryFilterProps) {
   return (
-    <div className="flex gap-2 overflow-x-auto pb-1">
+    <div className="flex flex-wrap gap-2">
       <Link
         className={cn(
-          "shrink-0 rounded-full border px-3 py-2 text-sm font-medium",
+          "shrink-0 rounded-full border px-3 py-2 text-sm font-medium transition-colors",
           !selectedCategory
             ? "border-brand bg-brand text-brand-foreground"
-            : "border-border bg-surface text-muted",
+            : "border-border bg-surface text-muted hover:border-brand hover:text-foreground",
         )}
         href="/businesses"
       >
@@ -28,10 +28,10 @@ export function CategoryFilter({
       {categories.map((category) => (
         <Link
           className={cn(
-            "shrink-0 rounded-full border px-3 py-2 text-sm font-medium",
+            "shrink-0 rounded-full border px-3 py-2 text-sm font-medium transition-colors",
             selectedCategory === category.slug
               ? "border-brand bg-brand text-brand-foreground"
-              : "border-border bg-surface text-muted",
+              : "border-border bg-surface text-muted hover:border-brand hover:text-foreground",
           )}
           href={`/businesses?category=${category.slug}`}
           key={category.id}

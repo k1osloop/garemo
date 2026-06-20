@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { MapPin, MessageCircle, Tag } from "lucide-react";
+import { ArrowRight, MapPin, MessageCircle, Tag } from "lucide-react";
 
 import { Card } from "@/components/ui/card";
 import type { PublicBusiness } from "@/types/database";
@@ -16,8 +16,8 @@ export function BusinessCard({ business }: BusinessCardProps) {
   const hasWhatsApp = Boolean(business.contact_info?.whatsapp_number);
 
   return (
-    <Link href={`/businesses/${business.id}`}>
-      <Card className="space-y-3 transition-colors hover:border-brand">
+    <Link className="block" href={`/businesses/${business.id}`}>
+      <Card className="h-full space-y-4 transition-colors hover:border-brand hover:shadow-sm">
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0 space-y-1">
             <p className="flex items-center gap-1 text-xs font-medium uppercase text-brand">
@@ -42,6 +42,10 @@ export function BusinessCard({ business }: BusinessCardProps) {
         <p className="flex items-center gap-1 text-sm text-muted">
           <MapPin className="h-4 w-4 shrink-0" />
           <span className="truncate">{zone}</span>
+        </p>
+        <p className="inline-flex items-center gap-1 text-sm font-medium text-brand">
+          Ver perfil
+          <ArrowRight className="h-4 w-4" />
         </p>
       </Card>
     </Link>

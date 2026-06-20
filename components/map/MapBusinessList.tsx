@@ -17,7 +17,7 @@ export function MapBusinessList({ businesses, title }: MapBusinessListProps) {
   return (
     <section className="space-y-3">
       <h2 className="text-base font-semibold">{title}</h2>
-      <div className="grid gap-3">
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {businesses.map((business) => {
           const locationText =
             business.location?.campus_zone ??
@@ -25,8 +25,12 @@ export function MapBusinessList({ businesses, title }: MapBusinessListProps) {
             "Ubicacion por confirmar";
 
           return (
-            <Link href={`/businesses/${business.id}`} key={business.id}>
-              <Card className="space-y-2 transition-colors hover:border-brand">
+            <Link
+              className="block"
+              href={`/businesses/${business.id}`}
+              key={business.id}
+            >
+              <Card className="h-full space-y-2 transition-colors hover:border-brand hover:shadow-sm">
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0">
                     <h3 className="truncate text-sm font-semibold">

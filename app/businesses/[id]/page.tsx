@@ -109,7 +109,7 @@ export default async function BusinessDetailPage({
 
   return (
     <PageShell>
-      <div className="space-y-5">
+      <div className="mx-auto max-w-2xl space-y-5">
         <Link
           className="inline-flex items-center gap-2 text-sm font-medium text-muted"
           href="/businesses"
