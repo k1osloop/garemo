@@ -21,7 +21,10 @@ export type VendorProductFormValues = Pick<
 
 type VendorProductFormProps = {
   isSaving: boolean;
-  onSave: (values: VendorProductFormValues, productId?: string) => Promise<void>;
+  onSave: (
+    values: VendorProductFormValues,
+    productId?: string,
+  ) => Promise<boolean>;
   product?: Product;
 };
 
@@ -52,7 +55,10 @@ export function VendorProductForm({
   onSave,
   product,
 }: VendorProductFormProps) {
-  const [message, setMessage] = useState<string | null>(null);
+  const [message, setMessage] = useState<{
+    type: "error" | "success";
+    text: string;
+  } | null>(null);
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -60,38 +66,57 @@ export function VendorProductForm({
 
     const formData = new FormData(event.currentTarget);
 
-    await onSave(
-      {
-        name: String(formData.get("name") ?? "").trim(),
-        description: nullableText(formData.get("description")),
-        price: nullableNumber(formData.get("price")),
-        offer_price: nullableNumber(formData.get("offer_price")),
-        image_url: nullableText(formData.get("image_url")),
-        is_available: formData.get("is_available") === "on",
-        stock_label: nullableText(formData.get("stock_label")),
-      },
-      product?.id,
-    );
+    const values = {
+      name: String(formData.get("name") ?? "").trim(),
+      description: nullableText(formData.get("description")),
+      price: nullableNumber(formData.get("price")),
+      offer_price: nullableNumber(formData.get("offer_price")),
+      image_url: nullableText(formData.get("image_url")),
+      is_available: formData.get("is_available") === "on",
+      stock_label: nullableText(formData.get("stock_label")),
+    };
 
-    setMessage(product ? "Producto actualizado." : "Producto creado.");
+    const validationError = validateProductValues(values);
 
-    if (!product) {
+    if (validationError) {
+      setMessage({ type: "error", text: validationError });
+      return;
+    }
+
+    const saved = await onSave(values, product?.id);
+
+    if (saved) {
+      setMessage({
+        type: "success",
+        text: product ? "Producto actualizado." : "Producto creado.",
+      });
+    }
+
+    if (saved && !product) {
       event.currentTarget.reset();
     }
   }
 
   return (
     <Card className="space-y-4">
-      <div className="flex items-center gap-2">
-        <Package className="h-5 w-5 text-brand" />
-        <h3 className="text-base font-semibold">
-          {product ? product.name : "Nuevo producto"}
-        </h3>
+      <div className="space-y-2">
+        <div className="flex items-center gap-2">
+          <Package className="h-5 w-5 text-brand" />
+          <h3 className="text-base font-semibold">
+            {product ? product.name : "Nuevo producto"}
+          </h3>
+        </div>
+        <p className="text-xs leading-5 text-muted">
+          Producto visible para compradores. No cambies datos de otro negocio:
+          RLS lo bloquea y el formulario solo envia campos permitidos.
+        </p>
       </div>
       <form className="space-y-4" onSubmit={handleSubmit}>
         <Input
           defaultValue={product?.name ?? ""}
           label="Nombre"
+          maxLength={90}
+          minLength={2}
           name="name"
           required
         />
@@ -125,6 +150,7 @@ export function VendorProductForm({
         <Input
           defaultValue={product?.stock_label ?? ""}
           label="Estado de stock"
+          maxLength={80}
           name="stock_label"
           placeholder="Disponible hoy"
         />
@@ -148,9 +174,55 @@ export function VendorProductForm({
           <Button disabled={isSaving} type="submit">
             {isSaving ? "Guardando..." : product ? "Guardar producto" : "Crear producto"}
           </Button>
-          {message ? <p className="text-sm text-brand">{message}</p> : null}
+          {message ? (
+            <p
+              className={
+                message.type === "error"
+                  ? "text-sm text-red-600"
+                  : "text-sm text-brand"
+              }
+            >
+              {message.text}
+            </p>
+          ) : null}
         </div>
       </form>
     </Card>
   );
+}
+
+function validateProductValues(values: VendorProductFormValues) {
+  if (values.name.length < 2) {
+    return "El producto debe tener al menos 2 caracteres.";
+  }
+
+  if (values.price !== null && values.price < 0) {
+    return "El precio no puede ser negativo.";
+  }
+
+  if (values.offer_price !== null && values.offer_price < 0) {
+    return "El precio oferta no puede ser negativo.";
+  }
+
+  if (
+    values.price !== null &&
+    values.offer_price !== null &&
+    values.offer_price > values.price
+  ) {
+    return "El precio oferta no debe ser mayor al precio normal.";
+  }
+
+  if (values.image_url) {
+    try {
+      const url = new URL(values.image_url);
+
+      if (!["http:", "https:"].includes(url.protocol)) {
+        return "La imagen debe usar una URL http o https.";
+      }
+    } catch {
+      return "La URL de imagen no es valida.";
+    }
+  }
+
+  return null;
 }

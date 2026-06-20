@@ -28,7 +28,7 @@ export type VendorBusinessFormValues = {
 type VendorBusinessFormProps = {
   business: PublicBusiness;
   isSaving: boolean;
-  onSave: (values: VendorBusinessFormValues) => Promise<void>;
+  onSave: (values: VendorBusinessFormValues) => Promise<boolean>;
 };
 
 function timeValue(value: string | null) {
@@ -62,7 +62,10 @@ export function VendorBusinessForm({
   isSaving,
   onSave,
 }: VendorBusinessFormProps) {
-  const [message, setMessage] = useState<string | null>(null);
+  const [message, setMessage] = useState<{
+    type: "error" | "success";
+    text: string;
+  } | null>(null);
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -70,7 +73,7 @@ export function VendorBusinessForm({
 
     const formData = new FormData(event.currentTarget);
 
-    await onSave({
+    const values = {
       business: {
         name: String(formData.get("name") ?? "").trim(),
         description: String(formData.get("description") ?? "").trim(),
@@ -88,23 +91,42 @@ export function VendorBusinessForm({
         latitude: nullableNumber(formData.get("latitude")),
         longitude: nullableNumber(formData.get("longitude")),
       },
-    });
+    };
 
-    setMessage("Datos guardados.");
+    const validationError = validateBusinessValues(values);
+
+    if (validationError) {
+      setMessage({ type: "error", text: validationError });
+      return;
+    }
+
+    const saved = await onSave(values);
+
+    if (saved) {
+      setMessage({ type: "success", text: "Datos guardados." });
+    }
   }
 
   return (
     <Card>
       <form className="space-y-5" onSubmit={handleSubmit}>
-        <div className="flex items-center gap-2">
-          <Store className="h-5 w-5 text-brand" />
-          <h2 className="text-lg font-semibold">Datos del negocio</h2>
+        <div className="space-y-2">
+          <div className="flex items-center gap-2">
+            <Store className="h-5 w-5 text-brand" />
+            <h2 className="text-lg font-semibold">Datos del negocio</h2>
+          </div>
+          <p className="text-sm leading-6 text-muted">
+            Edita solo informacion publica. La verificacion, el owner y el
+            estado de aprobacion se gestionan manualmente por seguridad.
+          </p>
         </div>
 
         <div className="grid gap-4 sm:grid-cols-2">
           <Input
             defaultValue={business.name}
             label="Nombre"
+            maxLength={90}
+            minLength={2}
             name="name"
             required
           />
@@ -122,9 +144,13 @@ export function VendorBusinessForm({
             className="min-h-28 rounded-lg border border-border bg-surface px-3 py-2 text-base outline-none placeholder:text-muted focus:border-brand focus:ring-2 focus:ring-brand/20"
             defaultValue={business.description}
             maxLength={500}
+            minLength={12}
             name="description"
             required
           />
+          <span className="text-xs font-normal text-muted">
+            Minimo 12 caracteres. Explica que vendes y donde estas.
+          </span>
         </label>
 
         <Input
@@ -158,8 +184,11 @@ export function VendorBusinessForm({
           <Input
             defaultValue={business.contact_info?.whatsapp_number ?? ""}
             label="WhatsApp"
+            maxLength={24}
             name="whatsapp_number"
+            placeholder="+59170000000"
             required
+            type="tel"
           />
         </div>
 
@@ -201,9 +230,64 @@ export function VendorBusinessForm({
           <Button disabled={isSaving} type="submit">
             {isSaving ? "Guardando..." : "Guardar negocio"}
           </Button>
-          {message ? <p className="text-sm text-brand">{message}</p> : null}
+          {message ? (
+            <p
+              className={
+                message.type === "error"
+                  ? "text-sm text-red-600"
+                  : "text-sm text-brand"
+              }
+            >
+              {message.text}
+            </p>
+          ) : null}
         </div>
       </form>
     </Card>
   );
+}
+
+function validateBusinessValues(values: VendorBusinessFormValues) {
+  if (values.business.name.length < 2) {
+    return "El nombre debe tener al menos 2 caracteres.";
+  }
+
+  if (values.business.description.length < 12) {
+    return "La descripcion debe tener al menos 12 caracteres.";
+  }
+
+  if (!/^\+?[0-9\s-]{8,24}$/.test(values.contact.whatsapp_number)) {
+    return "WhatsApp debe tener solo numeros, espacios, guiones o +.";
+  }
+
+  if (
+    values.location.latitude !== null &&
+    (values.location.latitude < -90 || values.location.latitude > 90)
+  ) {
+    return "La latitud debe estar entre -90 y 90.";
+  }
+
+  if (
+    values.location.longitude !== null &&
+    (values.location.longitude < -180 || values.location.longitude > 180)
+  ) {
+    return "La longitud debe estar entre -180 y 180.";
+  }
+
+  if (
+    (values.location.latitude === null) !==
+    (values.location.longitude === null)
+  ) {
+    return "Completa latitud y longitud juntas, o deja ambas vacias.";
+  }
+
+  if (
+    values.business.opens_at &&
+    values.business.closes_at &&
+    values.business.opens_at >= values.business.closes_at
+  ) {
+    return "La hora de cierre debe ser posterior a la hora de apertura.";
+  }
+
+  return null;
 }

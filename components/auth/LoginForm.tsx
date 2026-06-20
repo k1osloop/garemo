@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { LogIn } from "lucide-react";
 
@@ -13,7 +13,7 @@ export function LoginForm() {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const supabase = createSupabaseBrowserClient();
+  const supabase = useMemo(() => createSupabaseBrowserClient(), []);
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
@@ -29,8 +29,14 @@ export function LoginForm() {
     setIsLoading(true);
 
     const formData = new FormData(event.currentTarget);
-    const email = String(formData.get("email") ?? "").trim();
+    const email = String(formData.get("email") ?? "").trim().toLowerCase();
     const password = String(formData.get("password") ?? "");
+
+    if (!email || !password) {
+      setError("Completa email y contrasena.");
+      setIsLoading(false);
+      return;
+    }
 
     const { error: signInError } = await supabase.auth.signInWithPassword({
       email,
@@ -38,7 +44,7 @@ export function LoginForm() {
     });
 
     if (signInError) {
-      setError("No pudimos iniciar sesion. Revisa email y contrasena.");
+      setError(getAuthErrorMessage(signInError.message));
       setIsLoading(false);
       return;
     }
@@ -56,8 +62,9 @@ export function LoginForm() {
           Inicia sesion
         </h1>
         <p className="text-sm leading-6 text-muted">
-          Usa tu usuario de Supabase Auth. El panel solo puede editar datos
-          propios por RLS.
+          Usa tu acceso emprendedor. El panel solo puede editar datos propios
+          por RLS y no permite cambiar campos sensibles como verificacion u
+          owner.
         </p>
       </div>
       <form className="space-y-4" onSubmit={handleSubmit}>
@@ -85,4 +92,22 @@ export function LoginForm() {
       </form>
     </Card>
   );
+}
+
+function getAuthErrorMessage(message: string) {
+  const lower = message.toLowerCase();
+
+  if (lower.includes("invalid login credentials")) {
+    return "Email o contrasena incorrectos.";
+  }
+
+  if (lower.includes("email not confirmed")) {
+    return "Debes confirmar tu email antes de entrar.";
+  }
+
+  if (lower.includes("rate limit")) {
+    return "Demasiados intentos. Espera un momento y vuelve a probar.";
+  }
+
+  return "No pudimos iniciar sesion. Revisa tus datos e intenta de nuevo.";
 }

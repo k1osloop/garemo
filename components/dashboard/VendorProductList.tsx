@@ -5,7 +5,10 @@ import type { Product } from "@/types/database";
 
 type VendorProductListProps = {
   isSaving: boolean;
-  onSave: (values: VendorProductFormValues, productId?: string) => Promise<void>;
+  onSave: (
+    values: VendorProductFormValues,
+    productId?: string,
+  ) => Promise<boolean>;
   products: Product[];
 };
 

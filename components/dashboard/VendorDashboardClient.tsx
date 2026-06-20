@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
+import { CheckCircle2, Circle, ShieldCheck } from "lucide-react";
 
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
 import {
@@ -185,13 +186,19 @@ export function VendorDashboardClient() {
   }, [loadDashboard]);
 
   async function signOut() {
-    await supabase.auth.signOut();
+    const { error: signOutError } = await supabase.auth.signOut();
+
+    if (signOutError) {
+      setError("No pudimos cerrar sesion. Intenta de nuevo.");
+      return;
+    }
+
     router.replace("/login");
   }
 
   async function saveBusiness(values: VendorBusinessFormValues) {
     if (!business) {
-      return;
+      return false;
     }
 
     setIsSaving(true);
@@ -208,7 +215,7 @@ export function VendorDashboardClient() {
     if (businessError) {
       setError("No pudimos guardar el negocio. RLS solo permite datos propios.");
       setIsSaving(false);
-      return;
+      return false;
     }
 
     const { error: locationError } = await supabase.from("locations").upsert(
@@ -223,7 +230,7 @@ export function VendorDashboardClient() {
     if (locationError) {
       setError("No pudimos guardar la ubicacion.");
       setIsSaving(false);
-      return;
+      return false;
     }
 
     const { error: contactError } = await supabase
@@ -240,11 +247,12 @@ export function VendorDashboardClient() {
     if (contactError) {
       setError("No pudimos guardar WhatsApp.");
       setIsSaving(false);
-      return;
+      return false;
     }
 
     await loadDashboard();
     setIsSaving(false);
+    return true;
   }
 
   async function saveProduct(
@@ -252,7 +260,7 @@ export function VendorDashboardClient() {
     productId?: string,
   ) {
     if (!business) {
-      return;
+      return false;
     }
 
     setIsSaving(true);
@@ -273,11 +281,12 @@ export function VendorDashboardClient() {
     if (productError) {
       setError("No pudimos guardar el producto. Solo puedes editar productos propios.");
       setIsSaving(false);
-      return;
+      return false;
     }
 
     await loadDashboard();
     setIsSaving(false);
+    return true;
   }
 
   if (isLoading) {
@@ -296,14 +305,42 @@ export function VendorDashboardClient() {
 
       {business ? (
         <div className="space-y-5">
-          <Card className="space-y-2">
-            <p className="text-sm font-medium text-brand">
-              Estado: {business.status}
-            </p>
-            <p className="text-sm leading-6 text-muted">
-              Tus cambios se guardan con tu sesion y RLS owner-only. El badge
-              verificado sigue siendo manual y no se edita desde este panel.
-            </p>
+          <Card className="grid gap-4 lg:grid-cols-[1.1fr_0.9fr]">
+            <div className="space-y-3">
+              <div className="flex items-center gap-2">
+                <ShieldCheck className="h-5 w-5 text-brand" />
+                <p className="text-sm font-medium text-brand">
+                  Estado: {business.status}
+                </p>
+              </div>
+              <p className="text-sm leading-6 text-muted">
+                Puedes editar datos publicos de tu negocio, ubicacion, WhatsApp
+                y productos. El badge verificado, el owner y el estado de
+                aprobacion son campos protegidos y no se editan desde este
+                panel.
+              </p>
+              <p className="text-xs leading-5 text-muted">
+                Los cambios quedan sujetos a RLS owner-only: Garemo solo acepta
+                edicion autenticada sobre datos propios.
+              </p>
+            </div>
+            <div className="rounded-lg border border-border bg-background p-3">
+              <h2 className="text-sm font-semibold">Checklist de perfil</h2>
+              <ul className="mt-3 space-y-2 text-sm">
+                {getProfileChecklist(business).map((item) => (
+                  <li className="flex items-center gap-2" key={item.label}>
+                    {item.done ? (
+                      <CheckCircle2 className="h-4 w-4 text-brand" />
+                    ) : (
+                      <Circle className="h-4 w-4 text-muted" />
+                    )}
+                    <span className={item.done ? "" : "text-muted"}>
+                      {item.label}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </div>
           </Card>
           <VendorBusinessForm
             business={business}
@@ -317,11 +354,50 @@ export function VendorDashboardClient() {
           />
         </div>
       ) : (
-        <EmptyState
-          title="Aun no tienes negocio asignado"
-          description="Para evitar datos peligrosos, Garemo no crea negocios automaticamente desde este panel. Pide a 2DevDogs que cree o asigne tu negocio inicial."
-        />
+        <div className="space-y-4">
+          <EmptyState
+            title="Aun no tienes negocio asignado"
+            description="Para evitar datos peligrosos, Garemo no crea negocios automaticamente desde este panel. Pide a 2DevDogs que cree o asigne tu negocio inicial."
+          />
+          <Card className="space-y-3">
+            <h2 className="text-lg font-semibold">Crear tu perfil</h2>
+            <p className="text-sm leading-6 text-muted">
+              Envia a 2DevDogs el nombre del negocio, categoria, WhatsApp,
+              referencia de ubicacion y 1 a 3 productos iniciales. Cuando el
+              negocio quede asignado a {userEmail}, podras editarlo aqui.
+            </p>
+            <p className="text-sm leading-6 text-muted">
+              No se habilita alta publica automatica todavia porque el piloto
+              necesita revision manual y moderacion basica.
+            </p>
+          </Card>
+        </div>
       )}
     </DashboardShell>
   );
+}
+
+function getProfileChecklist(business: PublicBusiness) {
+  return [
+    {
+      label: "Nombre y descripcion listos",
+      done: Boolean(business.name && business.description.length >= 12),
+    },
+    {
+      label: "WhatsApp de contacto agregado",
+      done: Boolean(business.contact_info?.whatsapp_number),
+    },
+    {
+      label: "Ubicacion o referencia visible",
+      done: Boolean(business.location?.address_text),
+    },
+    {
+      label: "Horario basico configurado",
+      done: Boolean(business.opens_at && business.closes_at),
+    },
+    {
+      label: "Al menos un producto visible",
+      done: business.products.some((product) => product.is_available),
+    },
+  ];
 }
