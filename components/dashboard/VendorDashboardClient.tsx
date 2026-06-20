@@ -10,6 +10,10 @@ import {
   type VendorBusinessFormValues,
 } from "@/components/dashboard/VendorBusinessForm";
 import {
+  VendorCreateBusinessForm,
+  type VendorCreateBusinessFormValues,
+} from "@/components/dashboard/VendorCreateBusinessForm";
+import {
   VendorProductList,
 } from "@/components/dashboard/VendorProductList";
 import type { VendorProductFormValues } from "@/components/dashboard/VendorProductForm";
@@ -143,6 +147,8 @@ export function VendorDashboardClient() {
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [userId, setUserId] = useState("");
   const [userEmail, setUserEmail] = useState("");
 
   const loadDashboard = useCallback(async () => {
@@ -158,6 +164,24 @@ export function VendorDashboardClient() {
     }
 
     setUserEmail(userResult.user.email ?? "Usuario autenticado");
+    setUserId(userResult.user.id);
+
+    const { data: categoryData, error: categoryError } = await supabase
+      .from("categories")
+      .select(
+        "id, name, slug, description, is_active, sort_order, created_at, updated_at",
+      )
+      .eq("is_active", true)
+      .order("sort_order", { ascending: true })
+      .order("name", { ascending: true });
+
+    if (categoryError) {
+      setError("No pudimos cargar categorias para el panel.");
+      setIsLoading(false);
+      return;
+    }
+
+    setCategories((categoryData ?? []) as Category[]);
 
     const { data, error: businessError } = await supabase
       .from("businesses")
@@ -246,6 +270,74 @@ export function VendorDashboardClient() {
 
     if (contactError) {
       setError("No pudimos guardar WhatsApp.");
+      setIsSaving(false);
+      return false;
+    }
+
+    await loadDashboard();
+    setIsSaving(false);
+    return true;
+  }
+
+  async function createBusiness(values: VendorCreateBusinessFormValues) {
+    if (!userId) {
+      setError("No pudimos confirmar tu usuario autenticado.");
+      return false;
+    }
+
+    setIsSaving(true);
+    setError(null);
+
+    const { data: createdBusiness, error: businessError } = await supabase
+      .from("businesses")
+      .insert({
+        owner_id: userId,
+        category_id: values.business.category_id,
+        name: values.business.name,
+        slug: createBusinessSlug(values.business.name),
+        description: values.business.description,
+        status: "pending_review",
+        status_message: values.business.status_message,
+        opens_at: values.business.opens_at,
+        closes_at: values.business.closes_at,
+      })
+      .select("id")
+      .single();
+
+    if (businessError || !createdBusiness) {
+      setError(
+        "No pudimos crear el negocio. Debes tener perfil owner activo y RLS solo permite crear negocios propios.",
+      );
+      setIsSaving(false);
+      return false;
+    }
+
+    const { error: locationError } = await supabase.from("locations").insert({
+      ...values.location,
+      business_id: createdBusiness.id,
+    });
+
+    if (locationError) {
+      setError(
+        "El negocio fue creado como pendiente, pero no pudimos guardar la ubicacion. Intenta completarla desde el panel.",
+      );
+      await loadDashboard();
+      setIsSaving(false);
+      return false;
+    }
+
+    const { error: contactError } = await supabase
+      .from("contact_info")
+      .insert({
+        ...values.contact,
+        business_id: createdBusiness.id,
+      });
+
+    if (contactError) {
+      setError(
+        "El negocio fue creado como pendiente, pero no pudimos guardar WhatsApp. Intenta completarlo desde el panel.",
+      );
+      await loadDashboard();
       setIsSaving(false);
       return false;
     }
@@ -357,24 +449,39 @@ export function VendorDashboardClient() {
         <div className="space-y-4">
           <EmptyState
             title="Aun no tienes negocio asignado"
-            description="Para evitar datos peligrosos, Garemo no crea negocios automaticamente desde este panel. Pide a 2DevDogs que cree o asigne tu negocio inicial."
+            description="Puedes crear tu primer negocio desde este panel. Nacera como pendiente de revision y no sera publico hasta la aprobacion manual."
+          />
+          <VendorCreateBusinessForm
+            categories={categories}
+            isSaving={isSaving}
+            onCreate={createBusiness}
           />
           <Card className="space-y-3">
-            <h2 className="text-lg font-semibold">Crear tu perfil</h2>
+            <h2 className="text-lg font-semibold">Revision manual</h2>
             <p className="text-sm leading-6 text-muted">
-              Envia a 2DevDogs el nombre del negocio, categoria, WhatsApp,
-              referencia de ubicacion y 1 a 3 productos iniciales. Cuando el
-              negocio quede asignado a {userEmail}, podras editarlo aqui.
-            </p>
-            <p className="text-sm leading-6 text-muted">
-              No se habilita alta publica automatica todavia porque el piloto
-              necesita revision manual y moderacion basica.
+              El negocio quedara asignado a {userEmail} y solo podras editar
+              tus propios datos. La verificacion, el estado publico y la
+              aprobacion siguen a cargo de 2DevDogs.
             </p>
           </Card>
         </div>
       )}
     </DashboardShell>
   );
+}
+
+function createBusinessSlug(name: string) {
+  const base = name
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 48);
+
+  const suffix = Date.now().toString(36).slice(-6);
+
+  return `${base || "negocio"}-${suffix}`;
 }
 
 function getProfileChecklist(business: PublicBusiness) {
