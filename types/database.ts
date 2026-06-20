@@ -51,6 +51,10 @@ export type Database = {
           description: string;
           status: Database["public"]["Enums"]["business_status"];
           price_range: string | null;
+          is_verified: boolean;
+          status_message: string | null;
+          opens_at: string | null;
+          closes_at: string | null;
           created_at: string;
           updated_at: string;
         };
@@ -63,6 +67,10 @@ export type Database = {
           description: string;
           status?: Database["public"]["Enums"]["business_status"];
           price_range?: string | null;
+          is_verified?: boolean;
+          status_message?: string | null;
+          opens_at?: string | null;
+          closes_at?: string | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -75,6 +83,51 @@ export type Database = {
           description?: string;
           status?: Database["public"]["Enums"]["business_status"];
           price_range?: string | null;
+          is_verified?: boolean;
+          status_message?: string | null;
+          opens_at?: string | null;
+          closes_at?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+      };
+      products: {
+        Row: {
+          id: string;
+          business_id: string;
+          name: string;
+          description: string | null;
+          price: number | null;
+          offer_price: number | null;
+          image_url: string | null;
+          is_available: boolean;
+          stock_label: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          business_id: string;
+          name: string;
+          description?: string | null;
+          price?: number | null;
+          offer_price?: number | null;
+          image_url?: string | null;
+          is_available?: boolean;
+          stock_label?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          business_id?: string;
+          name?: string;
+          description?: string | null;
+          price?: number | null;
+          offer_price?: number | null;
+          image_url?: string | null;
+          is_available?: boolean;
+          stock_label?: string | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -225,6 +278,7 @@ export type Database = {
 
 export type Category = Database["public"]["Tables"]["categories"]["Row"];
 export type Business = Database["public"]["Tables"]["businesses"]["Row"];
+export type Product = Database["public"]["Tables"]["products"]["Row"];
 export type Location = Database["public"]["Tables"]["locations"]["Row"];
 export type Schedule = Database["public"]["Tables"]["schedules"]["Row"];
 export type BusinessImage =
@@ -238,4 +292,5 @@ export type PublicBusiness = Business & {
   schedules: Schedule[];
   images: BusinessImage[];
   contact_info: ContactInfo | null;
+  products: Product[];
 };

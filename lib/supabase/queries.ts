@@ -4,6 +4,7 @@ import type {
   Category,
   ContactInfo,
   Location,
+  Product,
   PublicBusiness,
   Schedule,
 } from "@/types/database";
@@ -22,6 +23,7 @@ type RelatedBusinessRow = Omit<
   schedules?: Schedule[] | null;
   images?: BusinessImage[] | null;
   contact_info?: ContactInfo | ContactInfo[] | null;
+  products?: Product[] | null;
 };
 
 const publicBusinessSelect = `
@@ -33,6 +35,10 @@ const publicBusinessSelect = `
   description,
   status,
   price_range,
+  is_verified,
+  status_message,
+  opens_at,
+  closes_at,
   created_at,
   updated_at,
   category:categories (
@@ -83,6 +89,19 @@ const publicBusinessSelect = `
     website_url,
     created_at,
     updated_at
+  ),
+  products (
+    id,
+    business_id,
+    name,
+    description,
+    price,
+    offer_price,
+    image_url,
+    is_available,
+    stock_label,
+    created_at,
+    updated_at
   )
 `;
 
@@ -112,6 +131,7 @@ function normalizeBusiness(row: RelatedBusinessRow): PublicBusiness {
     schedules: row.schedules ?? [],
     images: row.images ?? [],
     contact_info: firstOrNull(row.contact_info),
+    products: row.products ?? [],
   };
 }
 
@@ -190,6 +210,59 @@ export async function getBusinessesByCategory(
 
   return {
     data: normalizeBusinesses(data as RelatedBusinessRow[] | null),
+    error: null,
+  };
+}
+
+function normalizeTerm(value: string) {
+  return value.trim().toLowerCase();
+}
+
+function businessMatchesQuery(business: PublicBusiness, query: string) {
+  const term = normalizeTerm(query);
+
+  if (!term) {
+    return true;
+  }
+
+  const haystack = [
+    business.name,
+    business.description,
+    business.price_range ?? "",
+    business.category?.name ?? "",
+    business.location?.address_text ?? "",
+    business.location?.campus_zone ?? "",
+    ...business.products.flatMap((product) => [
+      product.name,
+      product.description ?? "",
+      product.stock_label ?? "",
+    ]),
+  ]
+    .join(" ")
+    .toLowerCase();
+
+  return haystack.includes(term);
+}
+
+export async function searchVisibleBusinesses({
+  categorySlug,
+  query,
+}: {
+  categorySlug?: string;
+  query?: string;
+}): Promise<QueryResult<PublicBusiness[]>> {
+  const result = categorySlug
+    ? await getBusinessesByCategory(categorySlug)
+    : await getActiveBusinesses();
+
+  if (result.error) {
+    return result;
+  }
+
+  return {
+    data: result.data.filter((business) =>
+      query ? businessMatchesQuery(business, query) : true,
+    ),
     error: null,
   };
 }

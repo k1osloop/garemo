@@ -1,6 +1,8 @@
 import Link from "next/link";
+import Image from "next/image";
 import {
   ArrowLeft,
+  BadgeCheck,
   Clock,
   Image as ImageIcon,
   MapPin,
@@ -8,6 +10,11 @@ import {
   Tag,
 } from "lucide-react";
 
+import {
+  formatPrice,
+  getBusinessAvailability,
+  getProductImage,
+} from "@/lib/business-display";
 import { PageShell } from "@/components/layout/page-shell";
 import { Card } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/EmptyState";
@@ -57,7 +64,7 @@ function buildWhatsAppUrl(business: PublicBusiness) {
   }
 
   const message = encodeURIComponent(
-    `Hola, vi ${business.name} en Garemo y quiero hacer una consulta.`,
+    `Hola, vi ${business.name} en Garemo. Quiero consultar disponibilidad y precio.`,
   );
 
   return `https://wa.me/${number}?text=${message}`;
@@ -103,6 +110,7 @@ export default async function BusinessDetailPage({
   }
 
   const whatsappUrl = buildWhatsAppUrl(business);
+  const availability = getBusinessAvailability(business);
   const sortedSchedules = [...business.schedules].sort(
     (first, second) => first.day_of_week - second.day_of_week,
   );
@@ -119,23 +127,123 @@ export default async function BusinessDetailPage({
         </Link>
 
         <div className="space-y-3">
-          <p className="flex items-center gap-1 text-sm font-medium text-brand">
-            <Tag className="h-4 w-4" />
-            {business.category?.name ?? "Categoria"}
-          </p>
+          <div className="flex flex-wrap gap-2">
+            <span className="inline-flex items-center gap-1 rounded-full bg-brand/10 px-2.5 py-1 text-sm font-medium text-brand">
+              <Tag className="h-4 w-4" />
+              {business.category?.name ?? "Categoria"}
+            </span>
+            {business.is_verified ? (
+              <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-1 text-sm font-medium text-emerald-700">
+                <BadgeCheck className="h-4 w-4" />
+                Verificado por 2DevDogs
+              </span>
+            ) : null}
+          </div>
           <h1 className="text-2xl font-semibold tracking-tight">
             {business.name}
           </h1>
           <p className="text-sm leading-6 text-muted">
             {business.description}
           </p>
+          <p className="inline-flex items-center gap-2 rounded-lg border border-border bg-surface px-3 py-2 text-sm text-muted">
+            <Clock className="h-4 w-4 text-brand" />
+            {availability.label}
+          </p>
         </div>
 
-        <Card className="flex aspect-video items-center justify-center border-dashed text-muted">
-          <div className="flex flex-col items-center gap-2 text-sm">
-            <ImageIcon className="h-6 w-6" />
-            Imagenes del negocio pendientes
-          </div>
+        {business.products.length > 0 ? (
+          <section className="space-y-3">
+            <div>
+              <h2 className="text-base font-semibold">Productos destacados</h2>
+              <p className="text-sm leading-6 text-muted">
+                Datos DEV/manuales para validar busqueda, precio y confianza.
+              </p>
+            </div>
+            <div className="grid gap-3 sm:grid-cols-2">
+              {business.products.map((product) => {
+                const imageUrl = getProductImage(product);
+                const currentPrice = formatPrice(
+                  product.offer_price ?? product.price,
+                );
+                const originalPrice =
+                  product.offer_price && product.price
+                    ? formatPrice(product.price)
+                    : null;
+
+                return (
+                  <Card className="overflow-hidden p-0" key={product.id}>
+                    <div className="aspect-[4/3] bg-surface">
+                      {imageUrl ? (
+                        <Image
+                          alt={product.name}
+                          className="h-full w-full object-cover"
+                          height={300}
+                          src={imageUrl}
+                          width={400}
+                        />
+                      ) : (
+                        <div className="flex h-full items-center justify-center text-sm text-muted">
+                          <ImageIcon className="mr-2 h-4 w-4" />
+                          Imagen pendiente
+                        </div>
+                      )}
+                    </div>
+                    <div className="space-y-2 p-4">
+                      <div className="flex items-start justify-between gap-3">
+                        <h3 className="text-sm font-semibold">
+                          {product.name}
+                        </h3>
+                        <span className="shrink-0 rounded-full bg-brand/10 px-2 py-1 text-xs font-medium text-brand">
+                          {product.is_available ? "Disponible" : "Agotado"}
+                        </span>
+                      </div>
+                      {product.description ? (
+                        <p className="line-clamp-2 text-sm leading-6 text-muted">
+                          {product.description}
+                        </p>
+                      ) : null}
+                      <div className="flex flex-wrap items-center gap-2">
+                        {currentPrice ? (
+                          <span className="text-base font-semibold">
+                            {currentPrice}
+                          </span>
+                        ) : null}
+                        {originalPrice ? (
+                          <span className="text-sm text-muted line-through">
+                            {originalPrice}
+                          </span>
+                        ) : null}
+                        {product.stock_label ? (
+                          <span className="text-xs text-brand">
+                            {product.stock_label}
+                          </span>
+                        ) : null}
+                      </div>
+                    </div>
+                  </Card>
+                );
+              })}
+            </div>
+          </section>
+        ) : (
+          <Card className="flex aspect-video items-center justify-center border-dashed text-muted">
+            <div className="flex flex-col items-center gap-2 text-sm">
+              <ImageIcon className="h-6 w-6" />
+              Productos e imagenes pendientes
+            </div>
+          </Card>
+        )}
+
+        <Card className="space-y-2 border-emerald-100 bg-emerald-50 text-emerald-950">
+          <h2 className="flex items-center gap-2 text-base font-semibold">
+            <BadgeCheck className="h-4 w-4" />
+            Confianza
+          </h2>
+          <p className="text-sm leading-6">
+            {business.is_verified
+              ? "Vendedor verificado manualmente por 2DevDogs para el piloto. Aun asi, confirma detalles por WhatsApp antes de pagar o coordinar entrega."
+              : "Perfil aun no verificado. Contacta con cuidado y confirma datos antes de comprar."}
+          </p>
         </Card>
 
         <Card className="space-y-3">

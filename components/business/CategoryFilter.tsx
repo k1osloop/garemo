@@ -5,13 +5,31 @@ import type { Category } from "@/types/database";
 
 type CategoryFilterProps = {
   categories: Category[];
+  query?: string;
   selectedCategory?: string;
 };
 
 export function CategoryFilter({
   categories,
+  query,
   selectedCategory,
 }: CategoryFilterProps) {
+  function buildHref(categorySlug?: string) {
+    const params = new URLSearchParams();
+
+    if (categorySlug) {
+      params.set("category", categorySlug);
+    }
+
+    if (query) {
+      params.set("q", query);
+    }
+
+    const queryString = params.toString();
+
+    return queryString ? `/businesses?${queryString}` : "/businesses";
+  }
+
   return (
     <div className="flex flex-wrap gap-2">
       <Link
@@ -21,7 +39,7 @@ export function CategoryFilter({
             ? "border-brand bg-brand text-brand-foreground"
             : "border-border bg-surface text-muted hover:border-brand hover:text-foreground",
         )}
-        href="/businesses"
+        href={buildHref()}
       >
         Todos
       </Link>
@@ -33,7 +51,7 @@ export function CategoryFilter({
               ? "border-brand bg-brand text-brand-foreground"
               : "border-border bg-surface text-muted hover:border-brand hover:text-foreground",
           )}
-          href={`/businesses?category=${category.slug}`}
+          href={buildHref(category.slug)}
           key={category.id}
         >
           {category.name}

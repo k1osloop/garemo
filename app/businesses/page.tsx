@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { MapPinned } from "lucide-react";
+import { MapPinned, Search } from "lucide-react";
 
 import { BusinessGrid } from "@/components/business/BusinessGrid";
 import { CategoryFilter } from "@/components/business/CategoryFilter";
@@ -9,6 +9,7 @@ import {
   getActiveBusinesses,
   getBusinessesByCategory,
   getCategories,
+  searchVisibleBusinesses,
 } from "@/lib/supabase/queries";
 
 export const dynamic = "force-dynamic";
@@ -16,6 +17,7 @@ export const dynamic = "force-dynamic";
 type BusinessesPageProps = {
   searchParams?: Promise<{
     category?: string;
+    q?: string;
   }>;
 };
 
@@ -24,11 +26,14 @@ export default async function BusinessesPage({
 }: BusinessesPageProps) {
   const resolvedSearchParams = await searchParams;
   const selectedCategory = resolvedSearchParams?.category;
+  const query = resolvedSearchParams?.q?.trim() ?? "";
   const [categoriesResult, businessesResult] = await Promise.all([
     getCategories(),
-    selectedCategory
-      ? getBusinessesByCategory(selectedCategory)
-      : getActiveBusinesses(),
+    query
+      ? searchVisibleBusinesses({ categorySlug: selectedCategory, query })
+      : selectedCategory
+        ? getBusinessesByCategory(selectedCategory)
+        : getActiveBusinesses(),
   ]);
   const error = categoriesResult.error ?? businessesResult.error;
 
@@ -44,8 +49,8 @@ export default async function BusinessesPage({
               Negocios cerca del campus
             </h1>
             <p className="text-sm leading-6 text-muted">
-              Explora categorias y abre perfiles visibles. Solo aparecen
-              negocios activos segun las politicas RLS de Supabase.
+              Busca productos, servicios y negocios visibles. Solo aparecen
+              datos activos segun las politicas RLS de Supabase.
             </p>
           </div>
           <Link
@@ -57,8 +62,32 @@ export default async function BusinessesPage({
           </Link>
         </div>
 
+        <form
+          action="/businesses"
+          className="grid gap-3 rounded-lg border border-border bg-surface p-3 sm:grid-cols-[1fr_auto]"
+        >
+          {selectedCategory ? (
+            <input name="category" type="hidden" value={selectedCategory} />
+          ) : null}
+          <label className="grid gap-2 text-sm font-medium">
+            Buscar por producto o negocio
+            <input
+              className="min-h-11 rounded-lg border border-border bg-background px-3 text-base outline-none placeholder:text-muted focus:border-brand focus:ring-2 focus:ring-brand/20"
+              defaultValue={query}
+              name="q"
+              placeholder="Ej: auriculares, cafe, anillado"
+              type="search"
+            />
+          </label>
+          <button className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-brand px-4 text-sm font-medium text-brand-foreground transition-colors hover:bg-teal-800 sm:self-end">
+            <Search className="h-4 w-4" />
+            Buscar
+          </button>
+        </form>
+
         <CategoryFilter
           categories={categoriesResult.data}
+          query={query}
           selectedCategory={selectedCategory}
         />
 
@@ -68,7 +97,7 @@ export default async function BusinessesPage({
             description={error}
           />
         ) : (
-          <BusinessGrid businesses={businessesResult.data} />
+          <BusinessGrid businesses={businessesResult.data} query={query} />
         )}
       </div>
     </PageShell>

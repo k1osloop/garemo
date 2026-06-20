@@ -4,14 +4,23 @@ import type { PublicBusiness } from "@/types/database";
 
 type BusinessGridProps = {
   businesses: PublicBusiness[];
+  query?: string;
 };
 
-export function BusinessGrid({ businesses }: BusinessGridProps) {
+export function BusinessGrid({ businesses, query }: BusinessGridProps) {
   if (businesses.length === 0) {
     return (
       <EmptyState
-        title="Todavia no hay negocios visibles"
-        description="Cuando un negocio este activo y aprobado, aparecera en este directorio publico."
+        title={
+          query
+            ? "No encontramos resultados para tu busqueda"
+            : "Todavia no hay negocios visibles"
+        }
+        description={
+          query
+            ? "Prueba con otro producto, categoria o nombre de negocio."
+            : "Cuando un negocio este activo y aprobado, aparecera en este directorio publico."
+        }
       />
     );
   }
