@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@import "leaflet/dist/leaflet.css";
 
 :root {
   --background: #f8fafc;
@@ -31,4 +32,23 @@ button,
 a,
 input {
   -webkit-tap-highlight-color: transparent;
+}
+
+.leaflet-container {
+  font-family: inherit;
+}
+
+.garemo-map-marker {
+  align-items: center;
+  background: var(--brand);
+  border: 2px solid var(--brand-foreground);
+  border-radius: 9999px;
+  box-shadow: 0 8px 20px rgb(15 118 110 / 0.28);
+  color: var(--brand-foreground);
+  display: flex;
+  font-size: 12px;
+  font-weight: 700;
+  height: 30px;
+  justify-content: center;
+  width: 30px;
 }
