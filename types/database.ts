@@ -40,6 +40,7 @@ export type Database = {
           created_at?: string;
           updated_at?: string;
         };
+        Relationships: [];
       };
       businesses: {
         Row: {
@@ -90,6 +91,7 @@ export type Database = {
           created_at?: string;
           updated_at?: string;
         };
+        Relationships: [];
       };
       products: {
         Row: {
@@ -131,6 +133,7 @@ export type Database = {
           created_at?: string;
           updated_at?: string;
         };
+        Relationships: [];
       };
       locations: {
         Row: {
@@ -163,6 +166,7 @@ export type Database = {
           created_at?: string;
           updated_at?: string;
         };
+        Relationships: [];
       };
       schedules: {
         Row: {
@@ -195,6 +199,7 @@ export type Database = {
           created_at?: string;
           updated_at?: string;
         };
+        Relationships: [];
       };
       business_images: {
         Row: {
@@ -224,6 +229,7 @@ export type Database = {
           sort_order?: number;
           created_at?: string;
         };
+        Relationships: [];
       };
       contact_info: {
         Row: {
@@ -256,6 +262,7 @@ export type Database = {
           created_at?: string;
           updated_at?: string;
         };
+        Relationships: [];
       };
     };
     Views: Record<string, never>;
