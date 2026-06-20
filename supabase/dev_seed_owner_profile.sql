@@ -1,17 +1,17 @@
 -- DEV ONLY. Do not run in production without review.
 -- Creates or updates one DEV owner profile linked to an existing Supabase Auth user.
--- Replace '<AUTH_USER_ID_AQUI>' with the real UUID from Authentication > Users.
+-- DEV Auth user UUID used for this local test: 48d272c8-041d-4785-ab52-9f492641cdb8.
 -- Do not run this file while the placeholder is still present.
 
 begin;
 
 do $$
 declare
-  auth_user_id_text text := '<AUTH_USER_ID_AQUI>';
+  auth_user_id_text text := '48d272c8-041d-4785-ab52-9f492641cdb8';
   auth_user_id uuid;
 begin
-  if auth_user_id_text = '<AUTH_USER_ID_AQUI>' then
-    raise exception 'Replace <AUTH_USER_ID_AQUI> with a real Supabase Auth user UUID before running this seed.';
+  if auth_user_id_text like '<%' then
+    raise exception 'Replace the placeholder with a real Supabase Auth user UUID before running this seed.';
   end if;
 
   auth_user_id := auth_user_id_text::uuid;
