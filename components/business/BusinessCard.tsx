@@ -10,10 +10,12 @@ import {
 } from "lucide-react";
 
 import {
+  availabilityClassName,
   formatPrice,
   getBusinessAvailability,
   getProductImage,
 } from "@/lib/business-display";
+import { cn } from "@/lib/utils";
 import { Card } from "@/components/ui/card";
 import type { PublicBusiness } from "@/types/database";
 
@@ -90,9 +92,21 @@ export function BusinessCard({ business }: BusinessCardProps) {
           </p>
           {featuredProduct ? (
             <div className="rounded-lg border border-border bg-background p-3">
-              <p className="line-clamp-1 text-sm font-semibold">
-                {featuredProduct.name}
-              </p>
+              <div className="flex items-start justify-between gap-2">
+                <p className="line-clamp-1 text-sm font-semibold">
+                  {featuredProduct.name}
+                </p>
+                <span
+                  className={cn(
+                    "shrink-0 rounded-full px-2 py-0.5 text-xs font-medium",
+                    featuredProduct.is_available
+                      ? "bg-emerald-50 text-emerald-700"
+                      : "bg-slate-100 text-slate-600",
+                  )}
+                >
+                  {featuredProduct.is_available ? "Disponible" : "No disponible"}
+                </span>
+              </div>
               <div className="mt-1 flex flex-wrap items-center gap-2">
                 {price ? (
                   <span className="text-sm font-semibold text-foreground">
@@ -112,7 +126,12 @@ export function BusinessCard({ business }: BusinessCardProps) {
               </div>
             </div>
           ) : null}
-          <p className="flex items-center gap-1 text-sm text-muted">
+          <p
+            className={cn(
+              "inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-sm",
+              availabilityClassName(availability.tone),
+            )}
+          >
             <Clock3 className="h-4 w-4 shrink-0" />
             <span>{availability.label}</span>
           </p>

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Package } from "lucide-react";
+import { ImageIcon, Package } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -161,6 +161,10 @@ export function VendorProductForm({
           placeholder="https://..."
           type="url"
         />
+        <p className="text-xs leading-5 text-muted">
+          Usa una URL HTTPS publica. Supabase Storage queda diferido hasta tener
+          bucket y politicas owner-only revisadas.
+        </p>
         <label className="flex items-center gap-2 text-sm font-medium">
           <input
             className="h-4 w-4 accent-[var(--brand)]"
@@ -170,6 +174,12 @@ export function VendorProductForm({
           />
           Disponible
         </label>
+        {product?.image_url ? (
+          <p className="flex items-center gap-2 text-xs leading-5 text-muted">
+            <ImageIcon className="h-3.5 w-3.5 text-brand" />
+            La imagen se renderiza solo si la URL es HTTPS valida.
+          </p>
+        ) : null}
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
           <Button disabled={isSaving} type="submit">
             {isSaving ? "Guardando..." : product ? "Guardar producto" : "Crear producto"}

@@ -95,3 +95,19 @@ export function getProductImage(product: Product | null) {
     return null;
   }
 }
+
+export function availabilityClassName(tone: BusinessAvailability["tone"]) {
+  if (tone === "open") {
+    return "border-emerald-100 bg-emerald-50 text-emerald-700";
+  }
+
+  if (tone === "closing") {
+    return "border-amber-100 bg-amber-50 text-amber-700";
+  }
+
+  if (tone === "closed") {
+    return "border-slate-200 bg-slate-100 text-slate-600";
+  }
+
+  return "border-border bg-background text-muted";
+}

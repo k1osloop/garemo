@@ -11,10 +11,12 @@ import {
 } from "lucide-react";
 
 import {
+  availabilityClassName,
   formatPrice,
   getBusinessAvailability,
   getProductImage,
 } from "@/lib/business-display";
+import { cn } from "@/lib/utils";
 import { PageShell } from "@/components/layout/page-shell";
 import { Card } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/EmptyState";
@@ -145,7 +147,12 @@ export default async function BusinessDetailPage({
           <p className="text-sm leading-6 text-muted">
             {business.description}
           </p>
-          <p className="inline-flex items-center gap-2 rounded-lg border border-border bg-surface px-3 py-2 text-sm text-muted">
+          <p
+            className={cn(
+              "inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm",
+              availabilityClassName(availability.tone),
+            )}
+          >
             <Clock className="h-4 w-4 text-brand" />
             {availability.label}
           </p>
@@ -160,7 +167,12 @@ export default async function BusinessDetailPage({
               </p>
             </div>
             <div className="grid gap-3 sm:grid-cols-2">
-              {business.products.map((product) => {
+              {business.products
+                .slice()
+                .sort((first, second) =>
+                  Number(second.is_available) - Number(first.is_available),
+                )
+                .map((product) => {
                 const imageUrl = getProductImage(product);
                 const currentPrice = formatPrice(
                   product.offer_price ?? product.price,
@@ -193,7 +205,14 @@ export default async function BusinessDetailPage({
                         <h3 className="text-sm font-semibold">
                           {product.name}
                         </h3>
-                        <span className="shrink-0 rounded-full bg-brand/10 px-2 py-1 text-xs font-medium text-brand">
+                        <span
+                          className={cn(
+                            "shrink-0 rounded-full px-2 py-1 text-xs font-medium",
+                            product.is_available
+                              ? "bg-emerald-50 text-emerald-700"
+                              : "bg-slate-100 text-slate-600",
+                          )}
+                        >
                           {product.is_available ? "Disponible" : "Agotado"}
                         </span>
                       </div>
@@ -214,7 +233,7 @@ export default async function BusinessDetailPage({
                           </span>
                         ) : null}
                         {product.stock_label ? (
-                          <span className="text-xs text-brand">
+                          <span className="rounded-full bg-brand/10 px-2 py-1 text-xs text-brand">
                             {product.stock_label}
                           </span>
                         ) : null}

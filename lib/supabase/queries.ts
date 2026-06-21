@@ -230,6 +230,7 @@ function businessMatchesQuery(business: PublicBusiness, query: string) {
     business.description,
     business.price_range ?? "",
     business.category?.name ?? "",
+    business.category?.slug ?? "",
     business.location?.address_text ?? "",
     business.location?.campus_zone ?? "",
     ...business.products.flatMap((product) => [

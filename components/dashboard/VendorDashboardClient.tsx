@@ -434,6 +434,25 @@ export function VendorDashboardClient() {
               </ul>
             </div>
           </Card>
+          <nav
+            aria-label="Secciones del panel"
+            className="flex gap-2 overflow-x-auto rounded-lg border border-border bg-surface p-2 text-sm font-medium text-muted"
+          >
+            {[
+              ["Mi negocio", "#mi-negocio"],
+              ["Estado del dia", "#estado-del-dia"],
+              ["Horario y ubicacion", "#horario-y-ubicacion"],
+              ["Productos", "#productos"],
+            ].map(([label, href]) => (
+              <a
+                className="shrink-0 rounded-lg px-3 py-2 transition-colors hover:bg-background hover:text-foreground"
+                href={href}
+                key={href}
+              >
+                {label}
+              </a>
+            ))}
+          </nav>
           <VendorBusinessForm
             business={business}
             isSaving={isSaving}
