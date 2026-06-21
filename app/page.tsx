@@ -2,10 +2,17 @@ import Link from "next/link";
 import {
   ArrowRight,
   Building2,
+  CheckCircle2,
+  Clock3,
+  LogIn,
   MapPinned,
   MessageCircle,
   Search,
   ShieldCheck,
+  Sparkles,
+  Star,
+  Store,
+  UserPlus,
 } from "lucide-react";
 
 import { PageShell } from "@/components/layout/page-shell";
@@ -52,7 +59,7 @@ export default async function Home() {
                 href="/businesses"
               >
                 <Search className="h-4 w-4" />
-                Explorar directorio
+                Explorar negocios
               </Link>
               <Link
                 className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border border-border bg-surface px-4 text-sm font-medium text-foreground transition-colors hover:bg-background"
@@ -60,6 +67,30 @@ export default async function Home() {
               >
                 <MapPinned className="h-4 w-4" />
                 Ver mapa
+              </Link>
+              <Link
+                className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border border-border bg-surface px-4 text-sm font-medium text-foreground transition-colors hover:bg-background"
+                href="/login"
+              >
+                <LogIn className="h-4 w-4" />
+                Iniciar sesion
+              </Link>
+            </div>
+
+            <div className="grid gap-3 sm:grid-cols-2">
+              <Link
+                className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border border-border bg-surface px-4 text-sm font-medium text-foreground transition-colors hover:bg-background"
+                href="/login#crear-cuenta"
+              >
+                <UserPlus className="h-4 w-4" />
+                Crear cuenta
+              </Link>
+              <Link
+                className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border border-border bg-surface px-4 text-sm font-medium text-foreground transition-colors hover:bg-background"
+                href="/dashboard"
+              >
+                <Store className="h-4 w-4" />
+                Publicar mi negocio
               </Link>
             </div>
 
@@ -140,6 +171,103 @@ export default async function Home() {
           </Card>
         </section>
 
+        <section className="grid gap-3 lg:grid-cols-3">
+          <Card className="space-y-3">
+            <div className="flex items-center gap-2">
+              <Search className="h-5 w-5 text-brand" />
+              <h2 className="text-base font-semibold">Estudiantes</h2>
+            </div>
+            <p className="text-sm leading-6 text-muted">
+              Puedes explorar negocios, productos, precios, mapa y WhatsApp sin
+              crear cuenta. La cuenta de comprador queda para una version
+              posterior.
+            </p>
+            <Link
+              className="inline-flex min-h-10 items-center gap-2 rounded-lg border border-border px-3 text-sm font-medium hover:bg-background"
+              href="/businesses"
+            >
+              Explorar negocios
+              <ArrowRight className="h-4 w-4" />
+            </Link>
+          </Card>
+          <Card className="space-y-3">
+            <div className="flex items-center gap-2">
+              <Store className="h-5 w-5 text-brand" />
+              <h2 className="text-base font-semibold">Emprendedores</h2>
+            </div>
+            <p className="text-sm leading-6 text-muted">
+              Inicia sesion para crear o editar tu negocio. Los negocios nuevos
+              quedan en revision antes de aparecer publicamente.
+            </p>
+            <Link
+              className="inline-flex min-h-10 items-center gap-2 rounded-lg border border-border px-3 text-sm font-medium hover:bg-background"
+              href="/dashboard"
+            >
+              Publicar mi negocio
+              <ArrowRight className="h-4 w-4" />
+            </Link>
+          </Card>
+          <Card className="space-y-3">
+            <div className="flex items-center gap-2">
+              <ShieldCheck className="h-5 w-5 text-brand" />
+              <h2 className="text-base font-semibold">Admin Garemo</h2>
+            </div>
+            <p className="text-sm leading-6 text-muted">
+              Solo usuarios con rol admin activo pueden revisar negocios. Nadie
+              puede elegir admin desde la interfaz publica.
+            </p>
+            <Link
+              className="inline-flex min-h-10 items-center gap-2 rounded-lg border border-border px-3 text-sm font-medium hover:bg-background"
+              href="/admin"
+            >
+              Revisar pendientes
+              <ArrowRight className="h-4 w-4" />
+            </Link>
+          </Card>
+        </section>
+
+        <section className="space-y-4">
+          <div>
+            <p className="text-sm font-medium uppercase text-brand">
+              Confianza
+            </p>
+            <h2 className="text-2xl font-semibold tracking-tight">
+              Senales claras, sin prometer mas de lo que existe
+            </h2>
+          </div>
+          <div className="grid gap-3 sm:grid-cols-3">
+            <Card className="space-y-3">
+              <CheckCircle2 className="h-5 w-5 text-brand" />
+              <h3 className="text-base font-semibold">
+                Verificado por Garemo
+              </h3>
+              <p className="text-sm leading-6 text-muted">
+                Badge manual para negocios revisados. No reemplaza confirmar
+                detalles por WhatsApp antes de pagar.
+              </p>
+            </Card>
+            <Card className="space-y-3">
+              <Star className="h-5 w-5 text-brand" />
+              <h3 className="text-base font-semibold">
+                Calificaciones proximamente
+              </h3>
+              <p className="text-sm leading-6 text-muted">
+                Las reviews completas requieren moderacion y quedan fuera del
+                MVP actual.
+              </p>
+            </Card>
+            <Card className="space-y-3">
+              <Sparkles className="h-5 w-5 text-brand" />
+              <h3 className="text-base font-semibold">
+                Contactos generados proximamente
+              </h3>
+              <p className="text-sm leading-6 text-muted">
+                Mediremos interes sin guardar datos sensibles innecesarios.
+              </p>
+            </Card>
+          </div>
+        </section>
+
         <section className="space-y-4">
           <div className="flex items-end justify-between gap-4">
             <div>
@@ -182,14 +310,15 @@ export default async function Home() {
 
         <section className="rounded-lg border border-border bg-surface p-4">
           <div className="flex items-start gap-3">
-            <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-brand" />
+            <Clock3 className="mt-0.5 h-5 w-5 shrink-0 text-brand" />
             <div className="space-y-1">
               <h2 className="text-base font-semibold">
-                MVP publico listo para validar
+                Cuentas y roles en piloto
               </h2>
               <p className="text-sm leading-6 text-muted">
-                La lectura publica usa politicas RLS: solo categorias activas y
-                negocios visibles aparecen en el directorio y el mapa.
+                Compradores navegan sin cuenta. Vendedores autenticados pueden
+                crear/editar su negocio propio. Admin revisa negocios con RLS y
+                funciones seguras antes de publicar.
               </p>
             </div>
           </div>
