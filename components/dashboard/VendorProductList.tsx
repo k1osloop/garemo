@@ -10,7 +10,9 @@ import { Card } from "@/components/ui/card";
 import type { Product } from "@/types/database";
 
 type VendorProductListProps = {
+  businessId: string;
   isSaving: boolean;
+  onImageUpload: (productId: string, file: File) => Promise<string>;
   onSave: (
     values: VendorProductFormValues,
     productId?: string,
@@ -19,7 +21,9 @@ type VendorProductListProps = {
 };
 
 export function VendorProductList({
+  businessId,
   isSaving,
+  onImageUpload,
   onSave,
   products,
 }: VendorProductListProps) {
@@ -44,13 +48,20 @@ export function VendorProductList({
       <div className="grid gap-4 lg:grid-cols-2">
         {products.map((product) => (
           <VendorProductForm
+            businessId={businessId}
             isSaving={isSaving}
             key={product.id}
+            onImageUpload={onImageUpload}
             onSave={onSave}
             product={product}
           />
         ))}
-        <VendorProductForm isSaving={isSaving} onSave={onSave} />
+        <VendorProductForm
+          businessId={businessId}
+          isSaving={isSaving}
+          onImageUpload={onImageUpload}
+          onSave={onSave}
+        />
       </div>
     </section>
   );

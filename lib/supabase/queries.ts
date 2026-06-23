@@ -99,6 +99,7 @@ const publicBusinessSelect = `
     price,
     offer_price,
     image_url,
+    image_path,
     is_available,
     stock_label,
     created_at,

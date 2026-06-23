@@ -6,6 +6,7 @@ import { ImageIcon, Package } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { ImageUploadField } from "@/components/dashboard/ImageUploadField";
 import type { Product } from "@/types/database";
 
 export type VendorProductFormValues = Pick<
@@ -20,7 +21,9 @@ export type VendorProductFormValues = Pick<
 >;
 
 type VendorProductFormProps = {
+  businessId: string;
   isSaving: boolean;
+  onImageUpload: (productId: string, file: File) => Promise<string>;
   onSave: (
     values: VendorProductFormValues,
     productId?: string,
@@ -51,10 +54,13 @@ function numberValue(value: number | null) {
 }
 
 export function VendorProductForm({
+  businessId,
   isSaving,
+  onImageUpload,
   onSave,
   product,
 }: VendorProductFormProps) {
+  const [imageUrl, setImageUrl] = useState(product?.image_url ?? "");
   const [message, setMessage] = useState<{
     type: "error" | "success";
     text: string;
@@ -94,7 +100,19 @@ export function VendorProductForm({
 
     if (saved && !product) {
       event.currentTarget.reset();
+      setImageUrl("");
     }
+  }
+
+  async function uploadProductImage(file: File) {
+    if (!product) {
+      throw new Error("Crea el producto antes de subir una imagen.");
+    }
+
+    const publicUrl = await onImageUpload(product.id, file);
+    setImageUrl(publicUrl);
+
+    return publicUrl;
   }
 
   return (
@@ -154,16 +172,31 @@ export function VendorProductForm({
           name="stock_label"
           placeholder="Disponible hoy"
         />
+        {product ? (
+          <ImageUploadField
+            currentUrl={imageUrl}
+            description={`Ruta segura: businesses/${businessId}/products/${product.id}/...`}
+            disabled={isSaving}
+            label="Imagen del producto"
+            onUpload={uploadProductImage}
+          />
+        ) : (
+          <p className="rounded-lg border border-border bg-background p-3 text-xs leading-5 text-muted">
+            Crea el producto primero para habilitar subida segura a Supabase
+            Storage con una ruta asociada a su `product_id`.
+          </p>
+        )}
         <Input
-          defaultValue={product?.image_url ?? ""}
           label="URL de imagen"
           name="image_url"
+          onChange={(event) => setImageUrl(event.target.value)}
           placeholder="https://..."
           type="url"
+          value={imageUrl}
         />
         <p className="text-xs leading-5 text-muted">
-          Usa una URL HTTPS publica. Supabase Storage queda diferido hasta tener
-          bucket y politicas owner-only revisadas.
+          Puedes mantener una URL HTTPS publica o subir una imagen real con
+          Supabase Storage. SVG no esta permitido.
         </p>
         <label className="flex items-center gap-2 text-sm font-medium">
           <input

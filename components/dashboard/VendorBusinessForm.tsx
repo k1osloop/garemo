@@ -6,6 +6,8 @@ import { Clock3, MapPin, MessageCircle, Store } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { ImageUploadField } from "@/components/dashboard/ImageUploadField";
+import { getBusinessCoverImage } from "@/lib/business-display";
 import type { ContactInfo, Location, PublicBusiness } from "@/types/database";
 
 export type VendorBusinessFormValues = {
@@ -28,6 +30,7 @@ export type VendorBusinessFormValues = {
 type VendorBusinessFormProps = {
   business: PublicBusiness;
   isSaving: boolean;
+  onCoverUpload: (file: File) => Promise<string>;
   onSave: (values: VendorBusinessFormValues) => Promise<boolean>;
 };
 
@@ -60,6 +63,7 @@ function nullableNumber(value: FormDataEntryValue | null) {
 export function VendorBusinessForm({
   business,
   isSaving,
+  onCoverUpload,
   onSave,
 }: VendorBusinessFormProps) {
   const [message, setMessage] = useState<{
@@ -161,6 +165,14 @@ export function VendorBusinessForm({
             placeholder="+59170000000"
             required
             type="tel"
+          />
+
+          <ImageUploadField
+            currentUrl={getBusinessCoverImage(business)}
+            description="Imagen principal del negocio. Se sube a Supabase Storage bajo la carpeta segura de tu negocio."
+            disabled={isSaving}
+            label="Imagen del negocio"
+            onUpload={onCoverUpload}
           />
         </div>
       </Card>

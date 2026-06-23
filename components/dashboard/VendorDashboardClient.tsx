@@ -21,6 +21,11 @@ import { Card } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { ErrorState } from "@/components/ui/ErrorState";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
+import {
+  buildBusinessCoverPath,
+  buildProductImagePath,
+  uploadGaremoImage,
+} from "@/lib/storage-images";
 import type {
   Business,
   BusinessImage,
@@ -134,6 +139,7 @@ const vendorBusinessSelect = `
     price,
     offer_price,
     image_url,
+    image_path,
     is_available,
     stock_label,
     created_at,
@@ -382,6 +388,67 @@ export function VendorDashboardClient() {
     return true;
   }
 
+  async function uploadBusinessCover(file: File) {
+    if (!business) {
+      throw new Error("No pudimos confirmar tu negocio.");
+    }
+
+    const path = buildBusinessCoverPath(business.id, file);
+    const uploaded = await uploadGaremoImage(supabase, path, file);
+
+    const { error: imageError } = await supabase
+      .from("business_images")
+      .insert({
+        business_id: business.id,
+        storage_path: uploaded.path,
+        public_url: uploaded.publicUrl,
+        alt_text: `Imagen de ${business.name}`,
+        sort_order: 0,
+      });
+
+    if (imageError) {
+      await supabase.storage.from("garemo-images").remove([uploaded.path]);
+      throw new Error("La imagen subio, pero no pudimos guardar metadata.");
+    }
+
+    await loadDashboard();
+    return uploaded.publicUrl;
+  }
+
+  async function uploadProductImage(productId: string, file: File) {
+    if (!business) {
+      throw new Error("No pudimos confirmar tu negocio.");
+    }
+
+    const productBelongsToBusiness = business.products.some(
+      (product) => product.id === productId,
+    );
+
+    if (!productBelongsToBusiness) {
+      throw new Error("Solo puedes subir imagenes de productos propios.");
+    }
+
+    const path = buildProductImagePath(business.id, productId, file);
+    const uploaded = await uploadGaremoImage(supabase, path, file);
+
+    const { error: productError } = await supabase
+      .from("products")
+      .update({
+        image_path: uploaded.path,
+        image_url: uploaded.publicUrl,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", productId);
+
+    if (productError) {
+      await supabase.storage.from("garemo-images").remove([uploaded.path]);
+      throw new Error("La imagen subio, pero no pudimos guardar el producto.");
+    }
+
+    await loadDashboard();
+    return uploaded.publicUrl;
+  }
+
   if (isLoading) {
     return (
       <Card>
@@ -457,10 +524,13 @@ export function VendorDashboardClient() {
           <VendorBusinessForm
             business={business}
             isSaving={isSaving}
+            onCoverUpload={uploadBusinessCover}
             onSave={saveBusiness}
           />
           <VendorProductList
+            businessId={business.id}
             isSaving={isSaving}
+            onImageUpload={uploadProductImage}
             onSave={saveProduct}
             products={business.products}
           />

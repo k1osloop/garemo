@@ -13,8 +13,8 @@ import {
 import {
   availabilityClassName,
   formatPrice,
+  getBusinessDisplayImage,
   getBusinessAvailability,
-  getProductImage,
 } from "@/lib/business-display";
 import { cn } from "@/lib/utils";
 import { FavoriteButton } from "@/components/business/FavoriteButton";
@@ -35,7 +35,7 @@ export function BusinessCard({ business }: BusinessCardProps) {
   const featuredProduct = business.products.find(
     (product) => product.is_available,
   ) ?? business.products[0] ?? null;
-  const imageUrl = getProductImage(featuredProduct);
+  const imageUrl = getBusinessDisplayImage(business, featuredProduct);
   const price = featuredProduct
     ? formatPrice(featuredProduct.offer_price ?? featuredProduct.price)
     : null;

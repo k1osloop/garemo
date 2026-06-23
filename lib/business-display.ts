@@ -1,4 +1,4 @@
-import type { Product, PublicBusiness } from "@/types/database";
+import type { BusinessImage, Product, PublicBusiness } from "@/types/database";
 
 export type BusinessAvailability = {
   label: string;
@@ -83,17 +83,47 @@ export function getProductImage(product: Product | null) {
     return null;
   }
 
+  return safeHttpsUrl(product.image_url);
+}
+
+export function getBusinessCoverImage(business: PublicBusiness) {
+  const sortedImages = [...business.images].sort(compareBusinessImages);
+  const cover = sortedImages.find((image) => safeHttpsUrl(image.public_url));
+
+  return cover ? safeHttpsUrl(cover.public_url) : null;
+}
+
+export function getBusinessDisplayImage(
+  business: PublicBusiness,
+  product: Product | null,
+) {
+  return getBusinessCoverImage(business) ?? getProductImage(product);
+}
+
+function safeHttpsUrl(value: string | null) {
+  if (!value) {
+    return null;
+  }
+
   try {
-    const url = new URL(product.image_url);
+    const url = new URL(value);
 
     if (url.protocol !== "https:") {
       return null;
     }
 
-    return product.image_url;
+    return value;
   } catch {
     return null;
   }
+}
+
+function compareBusinessImages(first: BusinessImage, second: BusinessImage) {
+  if (first.sort_order !== second.sort_order) {
+    return first.sort_order - second.sort_order;
+  }
+
+  return second.created_at.localeCompare(first.created_at);
 }
 
 export function availabilityClassName(tone: BusinessAvailability["tone"]) {

@@ -141,6 +141,7 @@ export type Database = {
           price: number | null;
           offer_price: number | null;
           image_url: string | null;
+          image_path: string | null;
           is_available: boolean;
           stock_label: string | null;
           created_at: string;
@@ -154,6 +155,7 @@ export type Database = {
           price?: number | null;
           offer_price?: number | null;
           image_url?: string | null;
+          image_path?: string | null;
           is_available?: boolean;
           stock_label?: string | null;
           created_at?: string;
@@ -167,6 +169,7 @@ export type Database = {
           price?: number | null;
           offer_price?: number | null;
           image_url?: string | null;
+          image_path?: string | null;
           is_available?: boolean;
           stock_label?: string | null;
           created_at?: string;

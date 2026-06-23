@@ -13,6 +13,7 @@ import {
   availabilityClassName,
   formatPrice,
   getBusinessAvailability,
+  getBusinessCoverImage,
   getProductImage,
 } from "@/lib/business-display";
 import { cn } from "@/lib/utils";
@@ -116,6 +117,7 @@ export default async function BusinessDetailPage({
 
   const whatsappUrl = buildWhatsAppUrl(business);
   const availability = getBusinessAvailability(business);
+  const coverImageUrl = getBusinessCoverImage(business);
   const sortedSchedules = [...business.schedules].sort(
     (first, second) => first.day_of_week - second.day_of_week,
   );
@@ -162,6 +164,18 @@ export default async function BusinessDetailPage({
         </div>
 
         <TrustSummary business={business} />
+
+        {coverImageUrl ? (
+          <div className="overflow-hidden rounded-lg border border-border bg-surface">
+            <Image
+              alt={`Imagen de ${business.name}`}
+              className="aspect-[16/10] h-full w-full object-cover"
+              height={500}
+              src={coverImageUrl}
+              width={800}
+            />
+          </div>
+        ) : null}
 
         <Card className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div className="space-y-1">
