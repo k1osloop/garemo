@@ -111,3 +111,20 @@ export function availabilityClassName(tone: BusinessAvailability["tone"]) {
 
   return "border-border bg-background text-muted";
 }
+
+export function formatRating(value: number | null) {
+  if (value === null) {
+    return null;
+  }
+
+  return new Intl.NumberFormat("es-BO", {
+    maximumFractionDigits: 1,
+    minimumFractionDigits: 1,
+  }).format(value);
+}
+
+export function formatCount(value: number) {
+  return new Intl.NumberFormat("es-BO", {
+    maximumFractionDigits: 0,
+  }).format(value);
+}

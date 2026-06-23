@@ -270,6 +270,66 @@ export type Database = {
         };
         Relationships: [];
       };
+      business_reviews: {
+        Row: {
+          id: string;
+          business_id: string;
+          user_id: string;
+          rating: number;
+          comment: string | null;
+          status: string;
+          moderation_notes: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          business_id: string;
+          user_id: string;
+          rating: number;
+          comment?: string | null;
+          status?: string;
+          moderation_notes?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          business_id?: string;
+          user_id?: string;
+          rating?: number;
+          comment?: string | null;
+          status?: string;
+          moderation_notes?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      whatsapp_clicks: {
+        Row: {
+          id: string;
+          business_id: string;
+          product_id: string | null;
+          source: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          business_id: string;
+          product_id?: string | null;
+          source?: string;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          business_id?: string;
+          product_id?: string | null;
+          source?: string;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
     };
     Views: Record<string, never>;
     Functions: {
@@ -289,6 +349,23 @@ export type Database = {
       is_admin_user: {
         Args: Record<string, never>;
         Returns: boolean;
+      };
+      get_public_business_trust_summaries: {
+        Args: Record<string, never>;
+        Returns: {
+          business_id: string;
+          average_rating: number | string | null;
+          review_count: number;
+          whatsapp_click_count: number;
+        }[];
+      };
+      record_whatsapp_click: {
+        Args: {
+          target_business_id: string;
+          target_product_id?: string | null;
+          click_source?: string;
+        };
+        Returns: undefined;
       };
     };
     Enums: {
@@ -316,6 +393,17 @@ export type BusinessImage =
   Database["public"]["Tables"]["business_images"]["Row"];
 export type ContactInfo =
   Database["public"]["Tables"]["contact_info"]["Row"];
+export type BusinessReview =
+  Database["public"]["Tables"]["business_reviews"]["Row"];
+export type WhatsAppClick =
+  Database["public"]["Tables"]["whatsapp_clicks"]["Row"];
+
+export type BusinessTrustSummary = {
+  business_id: string;
+  average_rating: number | null;
+  review_count: number;
+  whatsapp_click_count: number;
+};
 
 export type PublicBusiness = Business & {
   category: Category | null;
@@ -324,4 +412,5 @@ export type PublicBusiness = Business & {
   images: BusinessImage[];
   contact_info: ContactInfo | null;
   products: Product[];
+  trust_summary: BusinessTrustSummary | null;
 };

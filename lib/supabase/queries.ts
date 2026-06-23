@@ -1,6 +1,7 @@
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import type {
   BusinessImage,
+  BusinessTrustSummary,
   Category,
   ContactInfo,
   Location,
@@ -132,11 +133,59 @@ function normalizeBusiness(row: RelatedBusinessRow): PublicBusiness {
     images: row.images ?? [],
     contact_info: firstOrNull(row.contact_info),
     products: row.products ?? [],
+    trust_summary: null,
   };
 }
 
 function normalizeBusinesses(rows: RelatedBusinessRow[] | null): PublicBusiness[] {
   return (rows ?? []).map(normalizeBusiness);
+}
+
+function normalizeTrustSummary(summary: {
+  business_id: string;
+  average_rating: number | string | null;
+  review_count: number;
+  whatsapp_click_count: number;
+}): BusinessTrustSummary {
+  const average =
+    summary.average_rating === null ? null : Number(summary.average_rating);
+
+  return {
+    business_id: summary.business_id,
+    average_rating: Number.isFinite(average) ? average : null,
+    review_count: summary.review_count ?? 0,
+    whatsapp_click_count: summary.whatsapp_click_count ?? 0,
+  };
+}
+
+async function withTrustSummaries(
+  businesses: PublicBusiness[],
+): Promise<PublicBusiness[]> {
+  if (businesses.length === 0) {
+    return businesses;
+  }
+
+  const supabase = createSupabaseBrowserClient();
+  const { data, error } = await supabase.rpc(
+    "get_public_business_trust_summaries",
+  );
+
+  if (error) {
+    return businesses;
+  }
+
+  const summaries = new Map(
+    (data ?? []).map((summary) => {
+      const normalized = normalizeTrustSummary(summary);
+
+      return [normalized.business_id, normalized];
+    }),
+  );
+
+  return businesses.map((business) => ({
+    ...business,
+    trust_summary: summaries.get(business.id) ?? null,
+  }));
 }
 
 export async function getCategories(): Promise<QueryResult<Category[]>> {
@@ -170,7 +219,9 @@ export async function getActiveBusinesses(): Promise<
   }
 
   return {
-    data: normalizeBusinesses(data as unknown as RelatedBusinessRow[] | null),
+    data: await withTrustSummaries(
+      normalizeBusinesses(data as unknown as RelatedBusinessRow[] | null),
+    ),
     error: null,
   };
 }
@@ -209,7 +260,9 @@ export async function getBusinessesByCategory(
   }
 
   return {
-    data: normalizeBusinesses(data as unknown as RelatedBusinessRow[] | null),
+    data: await withTrustSummaries(
+      normalizeBusinesses(data as unknown as RelatedBusinessRow[] | null),
+    ),
     error: null,
   };
 }
@@ -287,10 +340,13 @@ export async function getBusinessById(
     return safeError(null);
   }
 
-  return {
-    data: data ? normalizeBusiness(data as unknown as RelatedBusinessRow) : null,
-    error: null,
-  };
+  const businesses = data
+    ? await withTrustSummaries([
+        normalizeBusiness(data as unknown as RelatedBusinessRow),
+      ])
+    : [];
+
+  return { data: businesses[0] ?? null, error: null };
 }
 
 export async function getBusinessBySlug(
@@ -308,8 +364,11 @@ export async function getBusinessBySlug(
     return safeError(null);
   }
 
-  return {
-    data: data ? normalizeBusiness(data as unknown as RelatedBusinessRow) : null,
-    error: null,
-  };
+  const businesses = data
+    ? await withTrustSummaries([
+        normalizeBusiness(data as unknown as RelatedBusinessRow),
+      ])
+    : [];
+
+  return { data: businesses[0] ?? null, error: null };
 }

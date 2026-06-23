@@ -249,20 +249,21 @@ export default async function Home() {
             <Card className="space-y-3">
               <Star className="h-5 w-5 text-brand" />
               <h3 className="text-base font-semibold">
-                Calificaciones proximamente
+                Calificaciones iniciales
               </h3>
               <p className="text-sm leading-6 text-muted">
-                Las reviews completas requieren moderacion y quedan fuera del
-                MVP actual.
+                Usuarios autenticados pueden dejar una calificacion simple; los
+                comentarios abusivos pueden moderarse.
               </p>
             </Card>
             <Card className="space-y-3">
               <Sparkles className="h-5 w-5 text-brand" />
               <h3 className="text-base font-semibold">
-                Contactos generados proximamente
+                Contactos generados
               </h3>
               <p className="text-sm leading-6 text-muted">
-                Mediremos interes sin guardar datos sensibles innecesarios.
+                Contamos clics a WhatsApp como senal de interes. No son ventas
+                ni pagos procesados por Garemo.
               </p>
             </Card>
           </div>

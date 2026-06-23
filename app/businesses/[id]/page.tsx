@@ -6,7 +6,6 @@ import {
   Clock,
   Image as ImageIcon,
   MapPin,
-  MessageCircle,
   Tag,
 } from "lucide-react";
 
@@ -18,6 +17,9 @@ import {
 } from "@/lib/business-display";
 import { cn } from "@/lib/utils";
 import { PageShell } from "@/components/layout/page-shell";
+import { BusinessReviewForm } from "@/components/business/BusinessReviewForm";
+import { TrustSummary } from "@/components/business/TrustSummary";
+import { WhatsAppContactButton } from "@/components/business/WhatsAppContactButton";
 import { Card } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { ErrorState } from "@/components/ui/ErrorState";
@@ -137,7 +139,7 @@ export default async function BusinessDetailPage({
             {business.is_verified ? (
               <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-1 text-sm font-medium text-emerald-700">
                 <BadgeCheck className="h-4 w-4" />
-                Verificado por 2DevDogs
+                Verificado por Garemo
               </span>
             ) : null}
           </div>
@@ -157,6 +159,8 @@ export default async function BusinessDetailPage({
             {availability.label}
           </p>
         </div>
+
+        <TrustSummary business={business} />
 
         {business.products.length > 0 ? (
           <section className="space-y-3">
@@ -260,10 +264,12 @@ export default async function BusinessDetailPage({
           </h2>
           <p className="text-sm leading-6">
             {business.is_verified
-              ? "Vendedor verificado manualmente por 2DevDogs para el piloto. Aun asi, confirma detalles por WhatsApp antes de pagar o coordinar entrega."
+              ? "Vendedor verificado manualmente por Garemo para el piloto. Aun asi, confirma detalles por WhatsApp antes de pagar o coordinar entrega."
               : "Perfil aun no verificado. Contacta con cuidado y confirma datos antes de comprar."}
           </p>
         </Card>
+
+        <BusinessReviewForm businessId={business.id} ownerId={business.owner_id} />
 
         <Card className="space-y-3">
           <h2 className="flex items-center gap-2 text-base font-semibold">
@@ -307,15 +313,7 @@ export default async function BusinessDetailPage({
         </Card>
 
         {whatsappUrl ? (
-          <a
-            className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-lg bg-brand px-4 text-sm font-medium text-brand-foreground transition-colors hover:bg-teal-800"
-            href={whatsappUrl}
-            rel="noreferrer"
-            target="_blank"
-          >
-            <MessageCircle className="h-4 w-4" />
-            Contactar por WhatsApp
-          </a>
+          <WhatsAppContactButton businessId={business.id} href={whatsappUrl} />
         ) : (
           <EmptyState
             title="Contacto no disponible"

@@ -58,6 +58,7 @@ function normalizeBusiness(row: RelatedBusinessRow): PublicBusiness {
     location: firstOrNull(row.location),
     products: row.products ?? [],
     schedules: row.schedules ?? [],
+    trust_summary: null,
   };
 }
 

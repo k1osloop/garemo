@@ -6,6 +6,7 @@ import {
   Clock3,
   MapPin,
   MessageCircle,
+  Star,
   Tag,
 } from "lucide-react";
 
@@ -41,6 +42,7 @@ export function BusinessCard({ business }: BusinessCardProps) {
     featuredProduct?.offer_price && featuredProduct.price
       ? formatPrice(featuredProduct.price)
       : null;
+  const summary = business.trust_summary;
 
   return (
     <Link className="block" href={`/businesses/${business.id}`}>
@@ -73,7 +75,7 @@ export function BusinessCard({ business }: BusinessCardProps) {
                 {business.is_verified ? (
                   <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-1 text-xs font-medium text-emerald-700">
                     <BadgeCheck className="h-3.5 w-3.5" />
-                    Verificado
+                    Verificado por Garemo
                   </span>
                 ) : null}
               </div>
@@ -126,6 +128,22 @@ export function BusinessCard({ business }: BusinessCardProps) {
               </div>
             </div>
           ) : null}
+          <div className="grid gap-2 text-sm">
+            <p className="flex items-center gap-1 text-muted">
+              <Star className="h-4 w-4 shrink-0 text-brand" />
+              <span>
+                {summary?.average_rating
+                  ? `${summary.average_rating.toFixed(1)} (${summary.review_count})`
+                  : "Sin calificaciones todavia"}
+              </span>
+            </p>
+            <p className="flex items-center gap-1 text-muted">
+              <MessageCircle className="h-4 w-4 shrink-0 text-brand" />
+              <span>
+                {summary?.whatsapp_click_count ?? 0} contactos generados
+              </span>
+            </p>
+          </div>
           <p
             className={cn(
               "inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-sm",
