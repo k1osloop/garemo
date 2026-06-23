@@ -17,6 +17,7 @@ import {
   getProductImage,
 } from "@/lib/business-display";
 import { cn } from "@/lib/utils";
+import { FavoriteButton } from "@/components/business/FavoriteButton";
 import { Card } from "@/components/ui/card";
 import type { PublicBusiness } from "@/types/database";
 
@@ -45,25 +46,37 @@ export function BusinessCard({ business }: BusinessCardProps) {
   const summary = business.trust_summary;
 
   return (
-    <Link className="block" href={`/businesses/${business.id}`}>
-      <Card className="h-full overflow-hidden p-0 transition-colors hover:border-brand hover:shadow-sm">
-        <div className="aspect-[4/3] bg-surface">
-          {imageUrl ? (
-            // Product images are public DEV/manual URLs validated to HTTPS before render.
-            <Image
-              alt={featuredProduct?.name ?? business.name}
-              className="h-full w-full object-cover"
-              height={300}
-              src={imageUrl}
-              width={400}
-            />
-          ) : (
-            <div className="flex h-full items-center justify-center bg-surface text-sm text-muted">
-              Imagen pendiente
-            </div>
-          )}
-        </div>
+    <Card className="h-full overflow-hidden p-0 transition-colors hover:border-brand hover:shadow-sm">
+      <div className="relative">
+        <Link
+          aria-label={`Ver perfil de ${business.name}`}
+          href={`/businesses/${business.id}`}
+        >
+          <div className="aspect-[4/3] bg-surface">
+            {imageUrl ? (
+              // Product images are public DEV/manual URLs validated to HTTPS before render.
+              <Image
+                alt={featuredProduct?.name ?? business.name}
+                className="h-full w-full object-cover"
+                height={300}
+                src={imageUrl}
+                width={400}
+              />
+            ) : (
+              <div className="flex h-full items-center justify-center bg-surface text-sm text-muted">
+                Imagen pendiente
+              </div>
+            )}
+          </div>
+        </Link>
+        <FavoriteButton
+          businessId={business.id}
+          className="absolute right-3 top-3"
+          compact
+        />
+      </div>
 
+      <Link className="block" href={`/businesses/${business.id}`}>
         <div className="space-y-4 p-4">
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0 space-y-1">
@@ -162,7 +175,7 @@ export function BusinessCard({ business }: BusinessCardProps) {
             <ArrowRight className="h-4 w-4" />
           </p>
         </div>
-      </Card>
-    </Link>
+      </Link>
+    </Card>
   );
 }

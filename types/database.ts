@@ -9,6 +9,39 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      users_profile: {
+        Row: {
+          id: string;
+          email: string;
+          full_name: string | null;
+          role: Database["public"]["Enums"]["user_role"];
+          phone: string | null;
+          status: Database["public"]["Enums"]["user_status"];
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id: string;
+          email: string;
+          full_name?: string | null;
+          role?: Database["public"]["Enums"]["user_role"];
+          phone?: string | null;
+          status?: Database["public"]["Enums"]["user_status"];
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          email?: string;
+          full_name?: string | null;
+          role?: Database["public"]["Enums"]["user_role"];
+          phone?: string | null;
+          status?: Database["public"]["Enums"]["user_status"];
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
       categories: {
         Row: {
           id: string;
@@ -330,6 +363,30 @@ export type Database = {
         };
         Relationships: [];
       };
+      favorites: {
+        Row: {
+          id: string;
+          user_id: string;
+          business_id: string;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          business_id: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          business_id?: string;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
     };
     Views: Record<string, never>;
     Functions: {
@@ -384,6 +441,8 @@ export type Database = {
   };
 };
 
+export type UserProfile =
+  Database["public"]["Tables"]["users_profile"]["Row"];
 export type Category = Database["public"]["Tables"]["categories"]["Row"];
 export type Business = Database["public"]["Tables"]["businesses"]["Row"];
 export type Product = Database["public"]["Tables"]["products"]["Row"];
@@ -397,6 +456,7 @@ export type BusinessReview =
   Database["public"]["Tables"]["business_reviews"]["Row"];
 export type WhatsAppClick =
   Database["public"]["Tables"]["whatsapp_clicks"]["Row"];
+export type Favorite = Database["public"]["Tables"]["favorites"]["Row"];
 
 export type BusinessTrustSummary = {
   business_id: string;

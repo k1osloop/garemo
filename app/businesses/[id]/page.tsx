@@ -18,6 +18,7 @@ import {
 import { cn } from "@/lib/utils";
 import { PageShell } from "@/components/layout/page-shell";
 import { BusinessReviewForm } from "@/components/business/BusinessReviewForm";
+import { FavoriteButton } from "@/components/business/FavoriteButton";
 import { TrustSummary } from "@/components/business/TrustSummary";
 import { WhatsAppContactButton } from "@/components/business/WhatsAppContactButton";
 import { Card } from "@/components/ui/card";
@@ -161,6 +162,17 @@ export default async function BusinessDetailPage({
         </div>
 
         <TrustSummary business={business} />
+
+        <Card className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="space-y-1">
+            <h2 className="text-base font-semibold">Guardar negocio</h2>
+            <p className="text-sm leading-6 text-muted">
+              Guarda este negocio en tu cuenta para volver rapido despues.
+              Garemo no usa favoritos como ranking publico en este piloto.
+            </p>
+          </div>
+          <FavoriteButton businessId={business.id} />
+        </Card>
 
         {business.products.length > 0 ? (
           <section className="space-y-3">

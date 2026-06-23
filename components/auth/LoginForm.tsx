@@ -33,7 +33,7 @@ export function LoginForm() {
         return;
       }
 
-      router.replace("/businesses");
+      router.replace("/account");
     });
   }, [router, supabase]);
 
@@ -75,7 +75,7 @@ export function LoginForm() {
       return;
     }
 
-    router.replace("/businesses");
+    router.replace("/account");
   }
 
   return (
@@ -101,8 +101,8 @@ export function LoginForm() {
             <div className="space-y-1">
               <h2 className="text-sm font-semibold">Comprador o estudiante</h2>
               <p className="text-sm leading-6 text-muted">
-                No necesitas cuenta para explorar negocios, productos, mapa y
-                WhatsApp.
+                No necesitas cuenta para explorar. Si entras, puedes guardar
+                favoritos y ver tus calificaciones.
               </p>
             </div>
           </Card>
@@ -173,7 +173,7 @@ export function LoginForm() {
           </div>
           <div className="flex items-center gap-2">
             <Building2 className="h-4 w-4 text-brand" />
-            <span>Comprador: explora sin cuenta por ahora.</span>
+            <span>Comprador: guarda favoritos y revisa tus calificaciones.</span>
           </div>
         </div>
       </Card>

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { LogIn, MapPin, Search, Store, UserPlus } from "lucide-react";
+import { LogIn, MapPin, Search, Store, UserCircle, UserPlus } from "lucide-react";
 
 export function AppHeader() {
   return (
@@ -48,6 +48,13 @@ export function AppHeader() {
           >
             <LogIn className="hidden h-4 w-4 sm:block" />
             Entrar
+          </Link>
+          <Link
+            className="inline-flex items-center gap-1 rounded-lg px-2.5 py-2 transition-colors hover:bg-background hover:text-foreground"
+            href="/account"
+          >
+            <UserCircle className="hidden h-4 w-4 sm:block" />
+            Cuenta
           </Link>
           <Link
             className="inline-flex items-center gap-1 rounded-lg bg-brand px-2.5 py-2 text-brand-foreground transition-colors hover:bg-teal-800"
