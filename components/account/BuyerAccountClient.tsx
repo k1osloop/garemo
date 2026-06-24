@@ -18,6 +18,11 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { ErrorState } from "@/components/ui/ErrorState";
+import {
+  ensureInitialUserProfile,
+  getFullNameFromUser,
+  getRequestedRoleFromUser,
+} from "@/lib/auth-profiles";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import type { BusinessReview, Favorite, UserProfile } from "@/types/database";
 
@@ -177,7 +182,23 @@ export function BuyerAccountClient() {
       return;
     }
 
-    setRole(appRole);
+    let resolvedRole = appRole;
+
+    if (!resolvedRole) {
+      const requestedRole = getRequestedRoleFromUser(userResult.user);
+
+      if (requestedRole) {
+        const { data: createdProfile } = await ensureInitialUserProfile(
+          supabase,
+          requestedRole,
+          getFullNameFromUser(userResult.user),
+        );
+
+        resolvedRole = createdProfile?.role ?? null;
+      }
+    }
+
+    setRole(resolvedRole);
 
     const { data: profileData } = await supabase
       .from("users_profile")
@@ -187,7 +208,7 @@ export function BuyerAccountClient() {
 
     setProfile((profileData as UserProfile | null) ?? null);
 
-    if (appRole === "admin") {
+    if (resolvedRole === "admin") {
       setIsLoading(false);
       return;
     }

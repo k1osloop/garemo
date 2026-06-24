@@ -1,12 +1,19 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Building2, LogIn, Search, ShieldCheck, Store, UserPlus } from "lucide-react";
+import type { User } from "@supabase/supabase-js";
 
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import {
+  ensureInitialUserProfile,
+  getFullNameFromUser,
+  getRequestedRoleFromUser,
+  getRoleRedirect,
+} from "@/lib/auth-profiles";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 
 export function LoginForm() {
@@ -15,27 +22,39 @@ export function LoginForm() {
   const [isLoading, setIsLoading] = useState(false);
   const supabase = useMemo(() => createSupabaseBrowserClient(), []);
 
+  const redirectAuthenticatedUser = useCallback(async (user: User) => {
+    const { data: currentRole } = await supabase.rpc("current_app_role");
+
+    if (currentRole) {
+      router.replace(getRoleRedirect(currentRole));
+      return;
+    }
+
+    const requestedRole = getRequestedRoleFromUser(user);
+
+    if (requestedRole) {
+      const { data: profile } = await ensureInitialUserProfile(
+        supabase,
+        requestedRole,
+        getFullNameFromUser(user),
+      );
+
+      router.replace(getRoleRedirect(profile?.role ?? null));
+      return;
+    }
+
+    router.replace("/account");
+  }, [router, supabase]);
+
   useEffect(() => {
     supabase.auth.getUser().then(async ({ data }) => {
       if (!data.user) {
         return;
       }
 
-      const { data: role } = await supabase.rpc("current_app_role");
-
-      if (role === "admin") {
-        router.replace("/admin");
-        return;
-      }
-
-      if (role === "owner") {
-        router.replace("/dashboard");
-        return;
-      }
-
-      router.replace("/account");
+      await redirectAuthenticatedUser(data.user);
     });
-  }, [router, supabase]);
+  }, [redirectAuthenticatedUser, supabase]);
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -63,19 +82,15 @@ export function LoginForm() {
       return;
     }
 
-    const { data: role } = await supabase.rpc("current_app_role");
+    const { data: userResult } = await supabase.auth.getUser();
 
-    if (role === "admin") {
-      router.replace("/admin");
+    if (!userResult.user) {
+      setError("Entraste, pero no pudimos leer tu usuario.");
+      setIsLoading(false);
       return;
     }
 
-    if (role === "owner") {
-      router.replace("/dashboard");
-      return;
-    }
-
-    router.replace("/account");
+    await redirectAuthenticatedUser(userResult.user);
   }
 
   return (
@@ -110,9 +125,9 @@ export function LoginForm() {
             <UserPlus className="mt-0.5 h-5 w-5 shrink-0 text-brand" />
             <div className="space-y-1">
               <h2 className="text-sm font-semibold">Crear cuenta</h2>
-              <p className="text-sm leading-6 text-muted">
-                En el piloto, 2DevDogs habilita cuentas de vendedor. Despues de
-                entrar, puedes crear tu negocio y esperar aprobacion.
+          <p className="text-sm leading-6 text-muted">
+                Puedes crear una cuenta como comprador o vendedor. Admin no se
+                puede elegir desde la interfaz publica.
               </p>
             </div>
           </Card>
@@ -166,6 +181,12 @@ export function LoginForm() {
             {isLoading ? "Entrando..." : "Iniciar sesion"}
           </Button>
         </form>
+        <div className="rounded-lg border border-border bg-background p-3 text-sm text-muted">
+          ¿No tienes cuenta?{" "}
+          <a className="font-medium text-brand hover:underline" href="/signup">
+            Crear cuenta
+          </a>
+        </div>
         <div className="grid gap-2 rounded-lg border border-border bg-background p-3 text-sm text-muted">
           <div className="flex items-center gap-2">
             <Store className="h-4 w-4 text-brand" />

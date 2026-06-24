@@ -406,6 +406,13 @@ export type Database = {
         Args: Record<string, never>;
         Returns: Database["public"]["Enums"]["user_role"] | null;
       };
+      create_initial_user_profile: {
+        Args: {
+          requested_role: Database["public"]["Enums"]["user_role"];
+          requested_full_name?: string | null;
+        };
+        Returns: Database["public"]["Tables"]["users_profile"]["Row"];
+      };
       is_admin_user: {
         Args: Record<string, never>;
         Returns: boolean;

@@ -80,7 +80,7 @@ export default async function Home() {
             <div className="grid gap-3 sm:grid-cols-2">
               <Link
                 className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border border-border bg-surface px-4 text-sm font-medium text-foreground transition-colors hover:bg-background"
-                href="/login#crear-cuenta"
+                href="/signup"
               >
                 <UserPlus className="h-4 w-4" />
                 Crear cuenta
@@ -179,14 +179,14 @@ export default async function Home() {
             </div>
             <p className="text-sm leading-6 text-muted">
               Puedes explorar negocios, productos, precios, mapa y WhatsApp sin
-              crear cuenta. La cuenta de comprador queda para una version
-              posterior.
+              crear cuenta. Si te registras como comprador, puedes guardar
+              favoritos y calificar negocios.
             </p>
             <Link
               className="inline-flex min-h-10 items-center gap-2 rounded-lg border border-border px-3 text-sm font-medium hover:bg-background"
-              href="/businesses"
+              href="/signup"
             >
-              Explorar negocios
+              Crear cuenta comprador
               <ArrowRight className="h-4 w-4" />
             </Link>
           </Card>
@@ -196,12 +196,12 @@ export default async function Home() {
               <h2 className="text-base font-semibold">Emprendedores</h2>
             </div>
             <p className="text-sm leading-6 text-muted">
-              Inicia sesion para crear o editar tu negocio. Los negocios nuevos
-              quedan en revision antes de aparecer publicamente.
+              Crea cuenta como vendedor para crear o editar tu negocio. Los
+              negocios nuevos quedan en revision antes de aparecer publicamente.
             </p>
             <Link
               className="inline-flex min-h-10 items-center gap-2 rounded-lg border border-border px-3 text-sm font-medium hover:bg-background"
-              href="/dashboard"
+              href="/signup"
             >
               Publicar mi negocio
               <ArrowRight className="h-4 w-4" />
@@ -317,9 +317,10 @@ export default async function Home() {
                 Cuentas y roles en piloto
               </h2>
               <p className="text-sm leading-6 text-muted">
-                Compradores navegan sin cuenta. Vendedores autenticados pueden
-                crear/editar su negocio propio. Admin revisa negocios con RLS y
-                funciones seguras antes de publicar.
+                Compradores pueden crear cuenta para guardar favoritos.
+                Vendedores autenticados pueden crear/editar su negocio propio.
+                Admin revisa negocios con RLS y funciones seguras antes de
+                publicar.
               </p>
             </div>
           </div>

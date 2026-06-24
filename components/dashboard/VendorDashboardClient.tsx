@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { CheckCircle2, Circle, ShieldCheck } from "lucide-react";
@@ -20,6 +21,11 @@ import type { VendorProductFormValues } from "@/components/dashboard/VendorProdu
 import { Card } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { ErrorState } from "@/components/ui/ErrorState";
+import {
+  ensureInitialUserProfile,
+  getFullNameFromUser,
+  getRequestedRoleFromUser,
+} from "@/lib/auth-profiles";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import {
   buildBusinessCoverPath,
@@ -157,6 +163,9 @@ export function VendorDashboardClient() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [userId, setUserId] = useState("");
   const [userEmail, setUserEmail] = useState("");
+  const [accessState, setAccessState] = useState<
+    "allowed" | "missing_profile" | "not_owner"
+  >("allowed");
 
   const loadDashboard = useCallback(async () => {
     setIsLoading(true);
@@ -172,6 +181,45 @@ export function VendorDashboardClient() {
 
     setUserEmail(userResult.user.email ?? "Usuario autenticado");
     setUserId(userResult.user.id);
+
+    const { data: role, error: roleError } =
+      await supabase.rpc("current_app_role");
+
+    if (roleError) {
+      setError("No pudimos verificar tu rol de cuenta.");
+      setIsLoading(false);
+      return;
+    }
+
+    let resolvedRole = role;
+
+    if (!resolvedRole) {
+      const requestedRole = getRequestedRoleFromUser(userResult.user);
+
+      if (requestedRole) {
+        const { data: createdProfile } = await ensureInitialUserProfile(
+          supabase,
+          requestedRole,
+          getFullNameFromUser(userResult.user),
+        );
+
+        resolvedRole = createdProfile?.role ?? null;
+      }
+    }
+
+    if (!resolvedRole) {
+      setAccessState("missing_profile");
+      setIsLoading(false);
+      return;
+    }
+
+    if (resolvedRole !== "owner") {
+      setAccessState("not_owner");
+      setIsLoading(false);
+      return;
+    }
+
+    setAccessState("allowed");
 
     const { data: categoryData, error: categoryError } = await supabase
       .from("categories")
@@ -463,7 +511,40 @@ export function VendorDashboardClient() {
         <ErrorState title="No se pudo guardar" description={error} />
       ) : null}
 
-      {business ? (
+      {accessState === "missing_profile" ? (
+        <Card className="space-y-3">
+          <h2 className="text-lg font-semibold">Completa tu perfil primero</h2>
+          <p className="text-sm leading-6 text-muted">
+            Tu cuenta de Auth existe, pero aun no tiene perfil Garemo activo.
+            Crea una cuenta publica como comprador o vendedor para activar un
+            perfil sin permisos admin.
+          </p>
+          <Link
+            className="inline-flex min-h-10 items-center justify-center rounded-lg bg-brand px-3 text-sm font-medium text-brand-foreground hover:bg-teal-800"
+            href="/signup"
+          >
+            Crear perfil
+          </Link>
+        </Card>
+      ) : null}
+
+      {accessState === "not_owner" ? (
+        <Card className="space-y-3">
+          <h2 className="text-lg font-semibold">Panel solo para vendedores</h2>
+          <p className="text-sm leading-6 text-muted">
+            Esta cuenta no tiene rol vendedor. Puedes usar Garemo como
+            comprador desde tu cuenta, guardar favoritos y calificar negocios.
+          </p>
+          <Link
+            className="inline-flex min-h-10 items-center justify-center rounded-lg bg-brand px-3 text-sm font-medium text-brand-foreground hover:bg-teal-800"
+            href="/account"
+          >
+            Ir a mi cuenta
+          </Link>
+        </Card>
+      ) : null}
+
+      {accessState !== "allowed" ? null : business ? (
         <div className="space-y-5">
           <Card className="grid gap-4 lg:grid-cols-[1.1fr_0.9fr]">
             <div className="space-y-3">

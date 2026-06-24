@@ -37,7 +37,7 @@ export function AppHeader() {
           </Link>
           <Link
             className="inline-flex items-center gap-1 rounded-lg px-2.5 py-2 transition-colors hover:bg-background hover:text-foreground"
-            href="/login#crear-cuenta"
+            href="/signup"
           >
             <UserPlus className="hidden h-4 w-4 sm:block" />
             Crear cuenta
