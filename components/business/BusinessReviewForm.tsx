@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Star } from "lucide-react";
 
@@ -18,6 +19,7 @@ export function BusinessReviewForm({
   ownerId,
 }: BusinessReviewFormProps) {
   const supabase = useMemo(() => createSupabaseBrowserClient(), []);
+  const router = useRouter();
   const [comment, setComment] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -131,6 +133,12 @@ export function BusinessReviewForm({
 
     setReview(data as BusinessReview);
     setIsSaving(false);
+    
+    // Clear comment input if creating new review or keeping it if updating?
+    // User requested "limpiar formulario", but for update maybe we keep it. 
+    // The prompt: "después de enviar una review: limpiar formulario"
+    setComment("");
+    router.refresh();
   }
 
   if (isLoading) {
@@ -208,7 +216,9 @@ export function BusinessReviewForm({
         </label>
         {error ? <p className="text-sm text-red-600">{error}</p> : null}
         {review ? (
-          <p className="text-sm text-brand">Calificacion guardada.</p>
+          <p className="text-sm font-semibold text-brand">
+            {isSaving ? "" : "Gracias por tu opinión ✓"}
+          </p>
         ) : null}
         <Button disabled={isSaving} type="submit">
           {isSaving ? "Guardando..." : review ? "Actualizar calificacion" : "Enviar calificacion"}

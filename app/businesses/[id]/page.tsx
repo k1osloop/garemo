@@ -6,6 +6,7 @@ import {
   Clock,
   Image as ImageIcon,
   MapPin,
+  Star,
   Tag,
 } from "lucide-react";
 
@@ -27,7 +28,7 @@ import { StickyBottomBar } from "@/components/business/StickyBottomBar";
 import { Card } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { ErrorState } from "@/components/ui/ErrorState";
-import { getBusinessById, getBusinessBySlug } from "@/lib/supabase/queries";
+import { getBusinessById, getBusinessBySlug, getBusinessReviews } from "@/lib/supabase/queries";
 import type { PublicBusiness, Schedule } from "@/types/database";
 
 export const dynamic = "force-dynamic";
@@ -94,6 +95,9 @@ export default async function BusinessDetailPage({
   const { id } = await params;
   const result = await getVisibleBusiness(id);
   const business = result.data;
+  
+  const reviewsResult = business ? await getBusinessReviews(business.id) : { data: [] };
+  const reviews = reviewsResult.data ?? [];
 
   if (result.error) {
     return (
@@ -242,40 +246,40 @@ export default async function BusinessDetailPage({
                         </div>
                       )}
                     </div>
-                    <div className="space-y-2 p-4">
-                      <div className="flex items-start justify-between gap-3">
-                        <h3 className="text-sm font-semibold">
+                    <div className="flex flex-col flex-1 p-4">
+                      <div className="flex items-start justify-between gap-3 mb-2">
+                        <h3 className="text-sm font-semibold text-foreground">
                           {product.name}
                         </h3>
                         <span
                           className={cn(
-                            "shrink-0 rounded-full px-2 py-1 text-xs font-medium",
+                            "shrink-0 rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider",
                             product.is_available
-                              ? "bg-emerald-50 text-emerald-700"
-                              : "bg-slate-100 text-slate-600",
+                              ? "bg-green-100 text-green-700"
+                              : "bg-slate-200 text-slate-500",
                           )}
                         >
                           {product.is_available ? "Disponible" : "Agotado"}
                         </span>
                       </div>
                       {product.description ? (
-                        <p className="line-clamp-2 text-sm leading-6 text-muted">
+                        <p className="line-clamp-2 text-sm leading-relaxed text-muted-foreground mb-3 flex-1">
                           {product.description}
                         </p>
-                      ) : null}
-                      <div className="flex flex-wrap items-center gap-2">
+                      ) : <div className="flex-1" />}
+                      <div className="mt-auto flex flex-wrap items-center gap-2 pt-2">
                         {currentPrice ? (
-                          <span className="text-base font-semibold">
+                          <span className="text-base font-bold text-foreground">
                             {currentPrice}
                           </span>
                         ) : null}
                         {originalPrice ? (
-                          <span className="text-sm text-muted line-through">
+                          <span className="text-sm text-muted-foreground line-through">
                             {originalPrice}
                           </span>
                         ) : null}
                         {product.stock_label ? (
-                          <span className="rounded-full bg-brand/10 px-2 py-1 text-xs text-brand">
+                          <span className="rounded bg-brand/10 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-brand">
                             {product.stock_label}
                           </span>
                         ) : null}
@@ -369,6 +373,38 @@ export default async function BusinessDetailPage({
             </div>
           ) : (
             <p className="text-sm text-muted">Horarios por confirmar.</p>
+          )}
+        </Card>
+
+        <Card className="space-y-4">
+          <h2 className="text-base font-semibold">Comentarios recientes</h2>
+          {reviews.length > 0 ? (
+            <div className="space-y-4 divide-y divide-border">
+              {reviews.map((review) => (
+                <div key={review.id} className="pt-4 first:pt-0 space-y-2">
+                  <div className="flex items-center gap-2">
+                    <div className="flex text-amber-400">
+                      {Array.from({ length: 5 }).map((_, i) => (
+                        <Star key={i} className={cn("h-3.5 w-3.5", i < review.rating ? "fill-amber-400" : "fill-transparent text-slate-300")} />
+                      ))}
+                    </div>
+                    <span className="text-xs font-medium text-slate-700">
+                      {review.user?.first_name ?? "Usuario"}
+                    </span>
+                    <span className="text-xs text-muted-foreground">
+                      {new Date(review.created_at).toLocaleDateString("es-ES")}
+                    </span>
+                  </div>
+                  {review.comment && (
+                    <p className="text-sm leading-6 text-muted-foreground">
+                      {review.comment}
+                    </p>
+                  )}
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-sm text-muted">Aún no hay opiniones. Sé el primero en calificar.</p>
           )}
         </Card>
 

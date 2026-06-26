@@ -415,3 +415,34 @@ export async function getBusinessBySlug(
 
   return { data: businesses[0] ?? null, error: null };
 }
+
+export type BusinessReviewPreview = {
+  id: string;
+  rating: number;
+  comment: string | null;
+  created_at: string;
+  user: { first_name: string | null } | null;
+};
+
+export async function getBusinessReviews(
+  businessId: string,
+): Promise<QueryResult<BusinessReviewPreview[]>> {
+  if (!uuidPattern.test(businessId)) {
+    return { data: [], error: null };
+  }
+
+  const supabase = createSupabaseBrowserClient();
+  const { data, error } = await supabase
+    .from("business_reviews")
+    .select("id, rating, comment, created_at, user:users_profile(first_name)")
+    .eq("business_id", businessId)
+    .eq("status", "visible")
+    .order("created_at", { ascending: false })
+    .limit(10);
+
+  if (error) {
+    return { data: [], error: null };
+  }
+
+  return { data: data ?? [], error: null };
+}

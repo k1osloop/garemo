@@ -13,6 +13,7 @@ import type { Product } from "@/types/database";
 
 type VendorProductListProps = {
   businessId: string;
+  businessStatus: string;
   isSaving: boolean;
   onImageUpload: (productId: string, file: File) => Promise<string>;
   onSave: (values: VendorProductFormValues, productId?: string) => Promise<boolean>;
@@ -22,6 +23,7 @@ type VendorProductListProps = {
 
 export function VendorProductList({
   businessId,
+  businessStatus,
   isSaving,
   onImageUpload,
   onSave,
@@ -94,6 +96,7 @@ export function VendorProductList({
           </div>
           <VendorProductForm
             businessId={businessId}
+            businessStatus={businessStatus}
             isSaving={isSaving}
             onImageUpload={onImageUpload}
             onSave={handleSave}
@@ -109,6 +112,7 @@ export function VendorProductList({
           </div>
           <VendorProductForm
             businessId={businessId}
+            businessStatus={businessStatus}
             isSaving={isSaving}
             onImageUpload={onImageUpload}
             onSave={handleSave}

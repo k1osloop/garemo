@@ -136,13 +136,15 @@ export function VendorBusinessForm({
       setSaveStatus("success");
       setMessage({
         type: "success",
-        text: "Tu negocio se guardo correctamente.",
+        text: activeTab === "ubicacion" 
+          ? "Ubicación y horarios guardados ✓" 
+          : "Tu negocio se guardo correctamente.",
       });
     } else {
       setSaveStatus("error");
       setMessage({
         type: "error",
-        text: "No pudimos guardar este negocio. Verifica que estes usando la cuenta correcta.",
+        text: "No pudimos guardar. Intenta nuevamente.",
       });
     }
 
@@ -391,7 +393,7 @@ export function VendorBusinessForm({
       <div className="rounded-lg border border-border bg-surface p-4">
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
           <Button disabled={isSaving} type="submit">
-            {getSaveButtonText(saveStatus, isSaving)}
+            {getSaveButtonText(saveStatus, isSaving, activeTab)}
           </Button>
           {message ? (
             <p
@@ -418,20 +420,21 @@ export function VendorBusinessForm({
 function getSaveButtonText(
   saveStatus: "idle" | "saving" | "success" | "error",
   isSaving: boolean,
+  activeTab: string,
 ) {
   if (isSaving || saveStatus === "saving") {
     return "Guardando...";
   }
 
   if (saveStatus === "success") {
-    return "Negocio guardado ✓";
+    return activeTab === "ubicacion" ? "Ubicación y horarios guardados ✓" : "Negocio guardado ✓";
   }
 
   if (saveStatus === "error") {
     return "No se pudo guardar";
   }
 
-  return "Guardar cambios";
+  return activeTab === "ubicacion" ? "Guardar ubicación y horarios" : "Guardar cambios";
 }
 
 function validateBusinessValues(values: VendorBusinessFormValues) {

@@ -29,9 +29,9 @@ export function TrustSummary({ business, compact = false }: TrustSummaryProps) {
           <BadgeCheck className="h-4 w-4 text-brand" />
           {business.is_verified ? "Verificado por Garemo" : "No verificado"}
         </span>
-        <span className="inline-flex min-h-9 items-center gap-1.5 rounded-lg border border-border bg-background px-2.5 text-muted">
-          <Star className="h-4 w-4 text-brand" />
-          {rating ? `${rating} (${formatCount(reviewCount)})` : "Sin reseñas"}
+        <span className="inline-flex min-h-9 items-center gap-1.5 rounded-lg border border-border bg-background px-2.5 text-muted" title="Calificación de usuarios">
+          <Star className="h-4 w-4 text-amber-400 fill-amber-400" />
+          {rating ? `${rating} (${formatCount(reviewCount)} opiniones)` : "Aún no hay opiniones"}
         </span>
         <span className="inline-flex min-h-9 items-center gap-1.5 rounded-lg border border-border bg-background px-2.5 text-muted" title="Contactos de WhatsApp generados">
           <MessageCircle className="h-4 w-4 text-brand" />

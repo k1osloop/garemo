@@ -24,6 +24,7 @@ export type VendorProductFormValues = Pick<
 
 type VendorProductFormProps = {
   businessId: string;
+  businessStatus: string;
   isSaving: boolean;
   onImageUpload: (productId: string, file: File) => Promise<string>;
   onSave: (
@@ -51,6 +52,7 @@ function numberValue(value: number | null) {
 
 export function VendorProductForm({
   businessId,
+  businessStatus,
   isSaving,
   onImageUpload,
   onSave,
@@ -100,8 +102,10 @@ export function VendorProductForm({
       setMessage({
         type: "success",
         text: product
-          ? "Producto actualizado correctamente."
-          : "Producto creado correctamente.",
+          ? "Producto actualizado correctamente ✓"
+          : businessStatus === "active"
+            ? "Producto publicado ✓"
+            : "Producto guardado. Será visible cuando Garemo apruebe tu negocio.",
       });
       setPendingFile(null);
     } else {

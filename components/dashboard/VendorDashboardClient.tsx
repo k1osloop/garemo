@@ -782,6 +782,7 @@ export function VendorDashboardClient() {
               <div className={cn(activeTab !== "productos" && "hidden")}>
                 <VendorProductList
                   businessId={business.id}
+                  businessStatus={business.status}
                   isSaving={isSaving}
                   onImageUpload={uploadProductImage}
                   onSave={saveProduct}

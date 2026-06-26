@@ -15,6 +15,7 @@ import {
   formatPrice,
   getBusinessDisplayImage,
   getBusinessAvailability,
+  formatRating,
 } from "@/lib/business-display";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
@@ -158,8 +159,8 @@ export function BusinessCard({ business }: BusinessCardProps) {
               <p className="flex items-center gap-1.5 font-medium">
                 <Star className="h-4 w-4 shrink-0 text-amber-400 fill-amber-400" />
                 <span className="text-slate-700">
-                  {summary?.average_rating
-                    ? `${summary.average_rating.toFixed(1)}`
+                  {formatRating(summary?.average_rating ?? null)
+                    ? formatRating(summary?.average_rating ?? null)
                     : "Nuevo"}
                 </span>
                 <span className="text-muted-foreground">
