@@ -154,14 +154,13 @@ export function BusinessReviewForm({
       <Card className="space-y-2">
         <h2 className="text-base font-semibold">Califica este negocio</h2>
         <p className="text-sm leading-6 text-muted">
-          Inicia sesion para calificar. Esto ayuda a otros estudiantes sin
-          convertir Garemo en sistema de ventas.
+          Inicia sesión para calificar este negocio y ayudar a otros estudiantes.
         </p>
         <a
           className="inline-flex min-h-10 items-center justify-center rounded-lg border border-border px-3 text-sm font-medium hover:bg-background"
           href="/login"
         >
-          Inicia sesion para calificar
+          Iniciar sesión
         </a>
       </Card>
     );

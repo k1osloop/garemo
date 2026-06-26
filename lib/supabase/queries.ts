@@ -40,6 +40,9 @@ const publicBusinessSelect = `
   status_message,
   opens_at,
   closes_at,
+  delivery_available,
+  pickup_available,
+  delivery_notes,
   created_at,
   updated_at,
   category:categories (

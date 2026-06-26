@@ -323,11 +323,26 @@ export default async function BusinessDetailPage({
               Ubicacion
             </h2>
             {business.location ? (
-              <div className="space-y-1 text-sm leading-6 text-muted">
-                <p>{business.location.address_text}</p>
-                {business.location.campus_zone ? (
-                  <p>{business.location.campus_zone}</p>
-                ) : null}
+              <div className="space-y-3 text-sm leading-6 text-muted">
+                <div className="space-y-1">
+                  <p>{business.location.address_text}</p>
+                  {business.location.campus_zone ? (
+                    <p>{business.location.campus_zone}</p>
+                  ) : null}
+                </div>
+                {business.location.latitude && business.location.longitude ? (
+                  <a
+                    className="inline-flex min-h-9 items-center justify-center gap-2 rounded-lg bg-brand px-3 text-sm font-medium text-brand-foreground transition-colors hover:bg-brand/90"
+                    href={`https://www.google.com/maps/dir/?api=1&destination=${business.location.latitude},${business.location.longitude}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    <MapPin className="h-4 w-4" />
+                    Cómo llegar
+                  </a>
+                ) : (
+                  <p className="text-xs italic text-muted-foreground mt-2">Ubicación exacta no disponible</p>
+                )}
               </div>
             ) : (
               <p className="text-sm text-muted">Ubicacion por confirmar.</p>
@@ -339,20 +354,23 @@ export default async function BusinessDetailPage({
               Opciones de entrega
             </h2>
             <div className="space-y-2">
-              <div className="flex gap-2">
-                {business.delivery_available ? (
-                  <span className="inline-flex items-center rounded-md bg-brand/10 px-2 py-1 text-xs font-medium text-brand">Delivery</span>
-                ) : null}
-                {business.pickup_available ? (
-                  <span className="inline-flex items-center rounded-md bg-slate-100 px-2 py-1 text-xs font-medium text-slate-600">Recojo</span>
-                ) : null}
-                {!business.delivery_available && !business.pickup_available ? (
-                  <span className="text-sm text-muted">No especificado</span>
-                ) : null}
-              </div>
-              {business.delivery_notes ? (
-                <p className="text-sm leading-6 text-muted italic">&quot;{business.delivery_notes}&quot;</p>
-              ) : null}
+              {!business.delivery_available && !business.pickup_available && !business.delivery_notes ? (
+                <span className="text-sm text-muted">Opciones de entrega por confirmar.</span>
+              ) : (
+                <>
+                  <div className="flex gap-2">
+                    {business.delivery_available ? (
+                      <span className="inline-flex items-center rounded-md bg-brand/10 px-2 py-1 text-xs font-medium text-brand">Delivery disponible</span>
+                    ) : null}
+                    {business.pickup_available ? (
+                      <span className="inline-flex items-center rounded-md bg-slate-100 px-2 py-1 text-xs font-medium text-slate-600">Recojo en punto</span>
+                    ) : null}
+                  </div>
+                  {business.delivery_notes ? (
+                    <p className="text-sm leading-6 text-muted italic">&quot;{business.delivery_notes}&quot;</p>
+                  ) : null}
+                </>
+              )}
             </div>
           </Card>
         </div>

@@ -79,6 +79,7 @@ export function VendorBusinessForm({
   const [saveStatus, setSaveStatus] = useState<
     "idle" | "saving" | "success" | "error"
   >("idle");
+  const [geoStatus, setGeoStatus] = useState<"idle" | "detecting" | "success" | "error">("idle");
   const resetTimerRef = useRef<number | null>(null);
 
   function resetSaveStatusLater() {
@@ -293,24 +294,38 @@ export function VendorBusinessForm({
               </button>
             </div>
             
+            <p className="text-xs text-muted-foreground italic mb-2">
+              Esta ubicación será visible para compradores.
+            </p>
             <Button
               type="button"
               variant="secondary"
+              disabled={geoStatus === "detecting"}
               onClick={() => {
                 if (!navigator.geolocation) {
+                  setGeoStatus("error");
                   alert("Tu navegador no soporta geolocalización.");
                   return;
                 }
+                setGeoStatus("detecting");
                 navigator.geolocation.getCurrentPosition(
                   (position) => {
                     const latInput = document.getElementById("lat-input") as HTMLInputElement;
                     const lngInput = document.getElementById("lng-input") as HTMLInputElement;
                     if (latInput) latInput.value = position.coords.latitude.toString();
                     if (lngInput) lngInput.value = position.coords.longitude.toString();
-                    alert("Ubicación detectada correctamente.");
+                    setGeoStatus("success");
+                    
+                    // Show advanced location automatically so they can verify
+                    const el = document.getElementById("advanced-location");
+                    if (el) el.classList.remove("hidden");
+                    
+                    setTimeout(() => setGeoStatus("idle"), 3000);
                   },
                   () => {
+                    setGeoStatus("error");
                     alert("No pudimos obtener tu ubicación. Permite el acceso o ingrésala manualmente.");
+                    setTimeout(() => setGeoStatus("idle"), 3000);
                   },
                   { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
                 );
@@ -318,7 +333,7 @@ export function VendorBusinessForm({
               className="w-full sm:w-auto flex items-center gap-2"
             >
               <MapPin className="h-4 w-4" />
-              Usar mi ubicación actual
+              {geoStatus === "detecting" ? "Detectando..." : geoStatus === "success" ? "Ubicación detectada ✓" : "Usar mi ubicación actual"}
             </Button>
             
             <div id="advanced-location" className="hidden grid gap-4 sm:grid-cols-2 pt-2 border-t border-border mt-4">

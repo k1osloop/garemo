@@ -73,8 +73,8 @@ export function ReportModal({ targetId, targetType, isOpen, onClose }: ReportMod
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200">
-      <div className="bg-background w-full max-w-md rounded-xl shadow-xl overflow-hidden flex flex-col max-h-[90vh]">
-        <div className="flex items-center justify-between p-4 border-b border-border bg-slate-50/50">
+      <div className="bg-background w-full max-w-md rounded-xl shadow-xl flex flex-col max-h-[85vh]">
+        <div className="flex items-center justify-between p-4 border-b border-border bg-slate-50/50 shrink-0">
           <div className="flex items-center gap-2 font-semibold text-slate-800">
             <AlertCircle className="h-5 w-5 text-amber-500" />
             Reportar problema
@@ -87,7 +87,7 @@ export function ReportModal({ targetId, targetType, isOpen, onClose }: ReportMod
           </button>
         </div>
 
-        <div className="p-4 overflow-y-auto">
+        <div className="p-4 overflow-y-auto flex-1">
           {success ? (
             <div className="py-6 text-center space-y-3">
               <div className="inline-flex h-12 w-12 items-center justify-center rounded-full bg-green-100 text-green-600 mb-2">
@@ -137,7 +137,7 @@ export function ReportModal({ targetId, targetType, isOpen, onClose }: ReportMod
                 </div>
               )}
 
-              <div className="pt-2 flex justify-end gap-2">
+              <div className="pt-4 border-t border-border mt-4 flex justify-end gap-2 sticky bottom-0 bg-background pb-1">
                 <Button type="button" variant="outline" onClick={onClose} disabled={isSubmitting}>
                   Cancelar
                 </Button>
