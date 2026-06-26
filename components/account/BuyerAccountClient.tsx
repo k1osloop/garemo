@@ -159,6 +159,21 @@ export function BuyerAccountClient() {
   const [role, setRole] = useState<string | null>(null);
   const [userEmail, setUserEmail] = useState("");
   const [userId, setUserId] = useState("");
+  const [isBecomingOwner, setIsBecomingOwner] = useState(false);
+
+  const handleBecomeOwner = async () => {
+    setIsBecomingOwner(true);
+    setError(null);
+    const { error: rpcError } = await supabase.rpc("become_owner");
+    
+    if (rpcError) {
+      setError("Hubo un problema al cambiar tu cuenta. Intenta nuevamente.");
+      setIsBecomingOwner(false);
+      return;
+    }
+    
+    router.push("/dashboard");
+  };
 
   const loadAccount = useCallback(async () => {
     setIsLoading(true);
@@ -356,6 +371,27 @@ export function BuyerAccountClient() {
             Ir al dashboard
             <ExternalLink className="h-4 w-4" />
           </Link>
+        </Card>
+      ) : null}
+
+      {role === "buyer" ? (
+        <Card className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between bg-brand/5 border-brand/20">
+          <div className="space-y-1.5">
+            <h2 className="text-lg font-bold text-slate-800">
+              ¿Tienes un emprendimiento?
+            </h2>
+            <p className="text-sm leading-6 text-muted-foreground">
+              Convierte tu cuenta a Emprendedor y publica tu negocio gratis en el directorio.
+            </p>
+          </div>
+          <Button
+            className="inline-flex min-h-11 shrink-0 items-center justify-center gap-2 rounded-xl bg-brand px-6 text-sm font-semibold text-brand-foreground hover:bg-brand-hover shadow-sm transition-all"
+            disabled={isBecomingOwner}
+            onClick={handleBecomeOwner}
+          >
+            {isBecomingOwner ? "Actualizando..." : "Convertirme en Emprendedor"}
+            <Store className="h-4 w-4" />
+          </Button>
         </Card>
       ) : null}
 

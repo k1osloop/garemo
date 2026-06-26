@@ -23,6 +23,7 @@ import { FavoriteButton } from "@/components/business/FavoriteButton";
 import { TrustSummary } from "@/components/business/TrustSummary";
 import { WhatsAppContactButton } from "@/components/business/WhatsAppContactButton";
 import { BusinessActionButtons } from "@/components/business/BusinessActionButtons";
+import { StickyBottomBar } from "@/components/business/StickyBottomBar";
 import { Card } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { ErrorState } from "@/components/ui/ErrorState";
@@ -382,6 +383,13 @@ export default async function BusinessDetailPage({
           />
         )}
       </div>
+
+      <StickyBottomBar 
+        businessName={business.name}
+        whatsappUrl={whatsappUrl}
+        latitude={business.location?.latitude ?? null}
+        longitude={business.location?.longitude ?? null}
+      />
     </PageShell>
   );
 }

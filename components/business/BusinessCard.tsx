@@ -37,14 +37,17 @@ export function BusinessCard({ business }: BusinessCardProps) {
     (product) => product.is_available,
   ) ?? business.products[0] ?? null;
   const imageUrl = getBusinessDisplayImage(business, featuredProduct);
-  const price = featuredProduct
-    ? formatPrice(featuredProduct.offer_price ?? featuredProduct.price)
-    : null;
-  const originalPrice =
-    featuredProduct?.offer_price && featuredProduct.price
-      ? formatPrice(featuredProduct.price)
-      : null;
   const summary = business.trust_summary;
+
+  const lowestPrice = business.products
+    .filter(p => p.is_available && (p.price !== null || p.offer_price !== null))
+    .reduce((min, p) => {
+      const pPrice = p.offer_price !== null ? p.offer_price : p.price;
+      if (pPrice === null) return min;
+      return min === null ? pPrice : Math.min(min, pPrice);
+    }, null as number | null);
+
+  const priceLabel = lowestPrice !== null ? `Desde ${formatPrice(lowestPrice)}` : null;
 
   return (
     <Card className="group h-full overflow-hidden p-0 transition-all duration-300 hover:border-brand/50 hover:shadow-md flex flex-col">
@@ -136,14 +139,9 @@ export function BusinessCard({ business }: BusinessCardProps) {
                 </span>
               </div>
               <div className="mt-2 flex flex-wrap items-center gap-2">
-                {price ? (
+                {priceLabel ? (
                   <span className="text-base font-bold text-foreground">
-                    {price}
-                  </span>
-                ) : null}
-                {originalPrice ? (
-                  <span className="text-xs font-medium text-muted-foreground line-through decoration-slate-400">
-                    {originalPrice}
+                    {priceLabel}
                   </span>
                 ) : null}
                 {featuredProduct.stock_label ? (

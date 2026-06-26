@@ -444,14 +444,13 @@ export function VendorDashboardClient() {
 
     const { image_file, ...productValues } = values;
 
-    const payload = {
-      ...productValues,
-      updated_at: new Date().toISOString(),
-    };
-
     let targetProductId = productId;
 
     if (productId) {
+      const payload = {
+        ...productValues,
+        updated_at: new Date().toISOString(),
+      };
       const { error: productError } = await supabase
         .from("products")
         .update(payload)
@@ -464,12 +463,19 @@ export function VendorDashboardClient() {
         return false;
       }
     } else {
+      const insertPayload = {
+        business_id: business.id,
+        name: productValues.name,
+        description: productValues.description,
+        price: productValues.price,
+        offer_price: productValues.offer_price,
+        stock_label: productValues.stock_label,
+        is_available: productValues.is_available,
+      };
+
       const { data: newProduct, error: productError } = await supabase
         .from("products")
-        .insert({
-          ...payload,
-          business_id: business.id,
-        })
+        .insert(insertPayload)
         .select("id")
         .single();
 
@@ -698,8 +704,8 @@ export function VendorDashboardClient() {
       ) : (
         <div className="space-y-4">
           <EmptyState
-            title="Aun no tienes negocio asignado"
-            description="Puedes crear tu primer negocio desde este panel. Nacera como pendiente de revision y no sera publico hasta la aprobacion manual."
+            title="Crea tu negocio"
+            description="Puedes crear tu primer negocio desde este panel. Nacerá como pendiente de revisión y podrás añadir fotos, productos y delivery una vez guardes los datos básicos."
           />
           <VendorCreateBusinessForm
             categories={categories}

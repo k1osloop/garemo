@@ -526,6 +526,17 @@ export type Database = {
         };
         Returns: undefined;
       };
+      become_owner: {
+        Args: Record<string, never>;
+        Returns: undefined;
+      };
+      search_businesses: {
+        Args: {
+          p_query?: string;
+          p_category_slug?: string | null;
+        };
+        Returns: Database["public"]["Tables"]["businesses"]["Row"][];
+      };
     };
     Enums: {
       business_status:

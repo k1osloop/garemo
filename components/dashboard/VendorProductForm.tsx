@@ -245,6 +245,14 @@ function validateProductValues(values: VendorProductFormValues) {
     return "El producto debe tener al menos 2 caracteres.";
   }
 
+  if (values.description && values.description.length < 10) {
+    return "La descripción debe tener al menos 10 caracteres.";
+  }
+
+  if (values.stock_label && values.stock_label.length < 2) {
+    return "El estado de stock debe tener al menos 2 caracteres.";
+  }
+
   if (values.price !== null && values.price < 0) {
     return "El precio no puede ser negativo.";
   }
