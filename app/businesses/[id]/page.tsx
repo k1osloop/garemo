@@ -135,6 +135,18 @@ export default async function BusinessDetailPage({
           Volver al directorio
         </Link>
 
+        {coverImageUrl ? (
+          <div className="overflow-hidden rounded-lg border border-border bg-surface -mx-4 sm:mx-0">
+            <Image
+              alt={`Imagen de ${business.name}`}
+              className="aspect-[16/10] sm:aspect-auto sm:h-64 h-full w-full object-cover"
+              height={500}
+              src={coverImageUrl}
+              width={800}
+            />
+          </div>
+        ) : null}
+
         <div className="space-y-3">
           <div className="flex flex-wrap gap-2">
             <span className="inline-flex items-center gap-1 rounded-full bg-brand/10 px-2.5 py-1 text-sm font-medium text-brand">
@@ -176,18 +188,6 @@ export default async function BusinessDetailPage({
         </div>
 
         <TrustSummary business={business} />
-
-        {coverImageUrl ? (
-          <div className="overflow-hidden rounded-lg border border-border bg-surface">
-            <Image
-              alt={`Imagen de ${business.name}`}
-              className="aspect-[16/10] h-full w-full object-cover"
-              height={500}
-              src={coverImageUrl}
-              width={800}
-            />
-          </div>
-        ) : null}
 
         <Card className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div className="space-y-1">
@@ -307,8 +307,6 @@ export default async function BusinessDetailPage({
           </p>
         </Card>
 
-        <BusinessReviewForm businessId={business.id} ownerId={business.owner_id} />
-
         <div className="grid gap-4 sm:grid-cols-2">
           <Card className="space-y-3">
             <h2 className="flex items-center gap-2 text-base font-semibold">
@@ -373,6 +371,8 @@ export default async function BusinessDetailPage({
             <p className="text-sm text-muted">Horarios por confirmar.</p>
           )}
         </Card>
+
+        <BusinessReviewForm businessId={business.id} ownerId={business.owner_id} />
 
         {whatsappUrl ? (
           <WhatsAppContactButton businessId={business.id} href={whatsappUrl} />

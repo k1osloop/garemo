@@ -62,10 +62,14 @@ export function VendorProductForm({
     type: "error" | "success";
     text: string;
   } | null>(null);
+  const [saveStatus, setSaveStatus] = useState<
+    "idle" | "saving" | "success" | "error"
+  >("idle");
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setMessage(null);
+    setSaveStatus("saving");
 
     const formData = new FormData(event.currentTarget);
 
@@ -84,23 +88,32 @@ export function VendorProductForm({
 
     if (validationError) {
       setMessage({ type: "error", text: validationError });
+      setSaveStatus("error");
+      window.setTimeout(() => setSaveStatus("idle"), 2500);
       return;
     }
 
     const saved = await onSave(values, product?.id);
 
     if (saved) {
+      setSaveStatus("success");
       setMessage({
         type: "success",
-        text: product ? "Producto actualizado." : "Producto creado.",
+        text: product
+          ? "Producto actualizado correctamente."
+          : "Producto creado correctamente.",
       });
       setPendingFile(null);
+    } else {
+      setSaveStatus("error");
     }
 
     if (saved && !product) {
       event.currentTarget.reset();
       setImageUrl("");
     }
+
+    window.setTimeout(() => setSaveStatus("idle"), 2500);
   }
 
   // Modified to support passing a file when creating
@@ -221,7 +234,7 @@ export function VendorProductForm({
         ) : null}
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
           <Button disabled={isSaving} type="submit">
-            {isSaving ? "Guardando..." : product ? "Guardar producto" : "Crear producto"}
+            {getProductButtonText(saveStatus, isSaving, Boolean(product))}
           </Button>
           {message ? (
             <p
@@ -238,6 +251,26 @@ export function VendorProductForm({
       </form>
     </Card>
   );
+}
+
+function getProductButtonText(
+  saveStatus: "idle" | "saving" | "success" | "error",
+  isSaving: boolean,
+  isEditing: boolean,
+) {
+  if (isSaving || saveStatus === "saving") {
+    return isEditing ? "Actualizando..." : "Creando...";
+  }
+
+  if (saveStatus === "success") {
+    return isEditing ? "Producto actualizado ✓" : "Producto creado ✓";
+  }
+
+  if (saveStatus === "error") {
+    return "No se pudo guardar";
+  }
+
+  return isEditing ? "Actualizar producto" : "Crear producto";
 }
 
 function validateProductValues(values: VendorProductFormValues) {

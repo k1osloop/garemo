@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Clock3, MapPin, MessageCircle, Store } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -76,10 +76,25 @@ export function VendorBusinessForm({
     type: "error" | "success";
     text: string;
   } | null>(null);
+  const [saveStatus, setSaveStatus] = useState<
+    "idle" | "saving" | "success" | "error"
+  >("idle");
+  const resetTimerRef = useRef<number | null>(null);
+
+  function resetSaveStatusLater() {
+    if (resetTimerRef.current) {
+      window.clearTimeout(resetTimerRef.current);
+    }
+
+    resetTimerRef.current = window.setTimeout(() => {
+      setSaveStatus("idle");
+    }, 2500);
+  }
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setMessage(null);
+    setSaveStatus("saving");
 
     const formData = new FormData(event.currentTarget);
 
@@ -110,14 +125,28 @@ export function VendorBusinessForm({
 
     if (validationError) {
       setMessage({ type: "error", text: validationError });
+      setSaveStatus("error");
+      resetSaveStatusLater();
       return;
     }
 
     const saved = await onSave(values);
 
     if (saved) {
-      setMessage({ type: "success", text: "Datos guardados." });
+      setSaveStatus("success");
+      setMessage({
+        type: "success",
+        text: "Tu negocio se guardo correctamente.",
+      });
+    } else {
+      setSaveStatus("error");
+      setMessage({
+        type: "error",
+        text: "No pudimos guardar este negocio. Verifica que estes usando la cuenta correcta.",
+      });
     }
+
+    resetSaveStatusLater();
   }
 
   return (
@@ -362,7 +391,7 @@ export function VendorBusinessForm({
       <div className="rounded-lg border border-border bg-surface p-4">
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
           <Button disabled={isSaving} type="submit">
-            {isSaving ? "Guardando..." : "Guardar negocio"}
+            {getSaveButtonText(saveStatus, isSaving)}
           </Button>
           {message ? (
             <p
@@ -384,6 +413,25 @@ export function VendorBusinessForm({
       </div>
     </form>
   );
+}
+
+function getSaveButtonText(
+  saveStatus: "idle" | "saving" | "success" | "error",
+  isSaving: boolean,
+) {
+  if (isSaving || saveStatus === "saving") {
+    return "Guardando...";
+  }
+
+  if (saveStatus === "success") {
+    return "Negocio guardado ✓";
+  }
+
+  if (saveStatus === "error") {
+    return "No se pudo guardar";
+  }
+
+  return "Guardar cambios";
 }
 
 function validateBusinessValues(values: VendorBusinessFormValues) {

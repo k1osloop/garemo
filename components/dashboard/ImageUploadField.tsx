@@ -121,7 +121,10 @@ export function ImageUploadField({
       const publicUrl = await onUpload(file);
       setFile(null);
       setPreviewUrl(publicUrl);
-      setMessage({ type: "success", text: "Imagen actualizada." });
+      setMessage({
+        type: "success",
+        text: "La imagen se subio correctamente.",
+      });
     } catch {
       setMessage({
         type: "error",
@@ -159,7 +162,7 @@ export function ImageUploadField({
           <div className="flex flex-col gap-2 sm:flex-row">
             <input
               ref={cameraInputRef}
-              accept="image/jpeg,image/png,image/webp"
+              accept="image/jpeg,image/png,image/webp,image/heic,image/heif"
               capture="environment"
               className="hidden"
               disabled={disabled || isProcessing}
@@ -168,7 +171,7 @@ export function ImageUploadField({
             />
             <input
               ref={fileInputRef}
-              accept="image/jpeg,image/png,image/webp"
+              accept="image/jpeg,image/png,image/webp,image/heic,image/heif"
               className="hidden"
               disabled={disabled || isProcessing}
               onChange={handleFileChange}
@@ -207,7 +210,7 @@ export function ImageUploadField({
               className="w-full sm:w-auto"
             >
               <ImageUp className="h-4 w-4 mr-2" />
-              Guardar imagen
+              {getImageButtonText(message, isProcessing)}
             </Button>
             <p className="text-xs text-muted">JPG, PNG o WebP. Max 2MB.</p>
           </div>
@@ -229,4 +232,27 @@ export function ImageUploadField({
       </div>
     </div>
   );
+}
+
+function getImageButtonText(
+  message: { type: "error" | "success" | "info"; text: string } | null,
+  isProcessing: boolean,
+) {
+  if (isProcessing && message?.text.includes("Preparando")) {
+    return "Preparando imagen...";
+  }
+
+  if (isProcessing) {
+    return "Subiendo imagen...";
+  }
+
+  if (message?.type === "success") {
+    return "Imagen subida ✓";
+  }
+
+  if (message?.type === "error") {
+    return "No pudimos subir la imagen";
+  }
+
+  return "Subir imagen";
 }

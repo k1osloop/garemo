@@ -25,7 +25,12 @@ export async function compressImage(
 
     img.onerror = () => {
       URL.revokeObjectURL(url);
-      reject(new Error("Failed to load image for compression"));
+      // Fallback: If browser can't load the image (e.g. unsupported HEIC on some OS), return original if allowed size, or error.
+      if (file.size <= maxSizeMB * 1024 * 1024) {
+        resolve(file);
+      } else {
+        reject(new Error("No se pudo cargar la imagen. Si es formato especial (HEIC), intenta convertirla a JPG/PNG."));
+      }
     };
 
     img.onload = () => {
@@ -47,29 +52,39 @@ export async function compressImage(
         return;
       }
 
-      ctx.drawImage(img, 0, 0, width, height);
+      try {
+        ctx.drawImage(img, 0, 0, width, height);
+      } catch (err) {
+        reject(new Error("No pudimos procesar esta imagen. Intenta con otra foto."));
+        return;
+      }
 
-      canvas.toBlob(
-        (blob) => {
-          if (!blob) {
-            resolve(file);
-            return;
-          }
-          
-          // Create a new File from the blob
-          const compressedFile = new File([blob], file.name.replace(/\.[^/.]+$/, "") + ".webp", {
-            type: "image/webp",
-            lastModified: Date.now(),
-          });
+      const tryCompress = (currentQuality: number) => {
+        canvas.toBlob(
+          (blob) => {
+            if (!blob) {
+              resolve(file);
+              return;
+            }
+            
+            if (blob.size > maxSizeMB * 1024 * 1024 && currentQuality > 0.5) {
+              tryCompress(currentQuality - 0.15);
+              return;
+            }
 
-          // If the compressed file is somehow larger and we wanted to reduce it,
-          // or if compression didn't help much, we might fallback.
-          // But usually webp compression reduces size significantly.
-          resolve(compressedFile);
-        },
-        "image/webp",
-        quality
-      );
+            const compressedFile = new File([blob], file.name.replace(/\.[^/.]+$/, "") + ".webp", {
+              type: "image/webp",
+              lastModified: Date.now(),
+            });
+
+            resolve(compressedFile);
+          },
+          "image/webp",
+          currentQuality
+        );
+      };
+
+      tryCompress(quality);
     };
 
     img.src = url;

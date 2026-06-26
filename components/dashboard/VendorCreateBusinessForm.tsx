@@ -57,10 +57,14 @@ export function VendorCreateBusinessForm({
     type: "error" | "success";
     text: string;
   } | null>(null);
+  const [createStatus, setCreateStatus] = useState<
+    "idle" | "saving" | "success" | "error"
+  >("idle");
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setMessage(null);
+    setCreateStatus("saving");
 
     const formData = new FormData(event.currentTarget);
     const values = {
@@ -87,17 +91,24 @@ export function VendorCreateBusinessForm({
 
     if (validationError) {
       setMessage({ type: "error", text: validationError });
+      setCreateStatus("error");
+      window.setTimeout(() => setCreateStatus("idle"), 2500);
       return;
     }
 
     const created = await onCreate(values);
 
     if (created) {
+      setCreateStatus("success");
       setMessage({
         type: "success",
         text: "Negocio creado y enviado a revision.",
       });
+    } else {
+      setCreateStatus("error");
     }
+
+    window.setTimeout(() => setCreateStatus("idle"), 2500);
   }
 
   return (
@@ -222,7 +233,7 @@ export function VendorCreateBusinessForm({
             disabled={isSaving || categories.length === 0}
             type="submit"
           >
-            {isSaving ? "Creando..." : "Crear negocio"}
+            {getCreateButtonText(createStatus, isSaving)}
           </Button>
           {message ? (
             <p
@@ -239,6 +250,25 @@ export function VendorCreateBusinessForm({
       </form>
     </Card>
   );
+}
+
+function getCreateButtonText(
+  createStatus: "idle" | "saving" | "success" | "error",
+  isSaving: boolean,
+) {
+  if (isSaving || createStatus === "saving") {
+    return "Creando...";
+  }
+
+  if (createStatus === "success") {
+    return "Negocio creado ✓";
+  }
+
+  if (createStatus === "error") {
+    return "No se pudo crear";
+  }
+
+  return "Crear negocio";
 }
 
 function validateCreateBusinessValues(

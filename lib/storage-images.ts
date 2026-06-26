@@ -8,6 +8,8 @@ export const ALLOWED_IMAGE_TYPES = [
   "image/jpeg",
   "image/png",
   "image/webp",
+  "image/heic",
+  "image/heif",
 ] as const;
 
 type AllowedImageType = (typeof ALLOWED_IMAGE_TYPES)[number];
@@ -27,14 +29,14 @@ export function validateImageFile(file: File) {
   }
 
   if (!ALLOWED_IMAGE_TYPES.includes(file.type as AllowedImageType)) {
-    return "Solo se permiten imagenes JPG, PNG o WebP. SVG no esta permitido.";
+    return "Solo se permiten imagenes JPG, PNG, WebP o HEIC. SVG no esta permitido.";
   }
 
   return null;
 }
 
 export function buildBusinessCoverPath(userId: string, businessId: string, file: File) {
-  return `${userId}/businesses/${businessId}/cover/${crypto.randomUUID()}.${extensionFor(file)}`;
+  return `businesses/${businessId}/cover/${crypto.randomUUID()}.${extensionFor(file)}`;
 }
 
 export function buildProductImagePath(
@@ -43,7 +45,7 @@ export function buildProductImagePath(
   productId: string,
   file: File,
 ) {
-  return `${userId}/businesses/${businessId}/products/${productId}/${crypto.randomUUID()}.${extensionFor(file)}`;
+  return `businesses/${businessId}/products/${productId}/${crypto.randomUUID()}.${extensionFor(file)}`;
 }
 
 export async function uploadGaremoImage(

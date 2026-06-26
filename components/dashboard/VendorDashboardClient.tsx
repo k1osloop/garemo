@@ -87,6 +87,9 @@ const vendorBusinessSelect = `
   status_message,
   opens_at,
   closes_at,
+  delivery_available,
+  pickup_available,
+  delivery_notes,
   created_at,
   updated_at,
   category:categories (
@@ -169,8 +172,10 @@ export function VendorDashboardClient() {
   >("allowed");
   const [activeTab, setActiveTab] = useState("resumen");
 
-  const loadDashboard = useCallback(async () => {
-    setIsLoading(true);
+  const loadDashboard = useCallback(async (showLoading = true) => {
+    if (showLoading) {
+      setIsLoading(true);
+    }
     setError(null);
 
     const { data: userResult, error: userError } =
@@ -282,20 +287,56 @@ export function VendorDashboardClient() {
       return false;
     }
 
+    if (business.owner_id !== userId) {
+      console.error("Dashboard ownership mismatch before business update", {
+        table: "businesses",
+        operation: "update",
+        authUserId: userId,
+        businessId: business.id,
+        businessOwnerId: business.owner_id,
+      });
+      setError(
+        "Este negocio no pertenece a tu cuenta. Crea tu propio negocio o inicia sesion con la cuenta correcta.",
+      );
+      return false;
+    }
+
     setIsSaving(true);
     setError(null);
 
-    const { error: businessError } = await supabase
-      .from("businesses")
-      .update({
-        ...values.business,
-        updated_at: new Date().toISOString(),
-      })
-      .eq("id", business.id)
-      .eq("owner_id", userId);
+    const businessPayload = {
+      name: values.business.name,
+      description: values.business.description,
+      price_range: values.business.price_range,
+      status_message: values.business.status_message,
+      opens_at: values.business.opens_at,
+      closes_at: values.business.closes_at,
+      delivery_available: values.business.delivery_available,
+      pickup_available: values.business.pickup_available,
+      delivery_notes: values.business.delivery_notes,
+    };
 
-    if (businessError) {
-      setError("No pudimos guardar el negocio. RLS solo permite datos propios.");
+    const { data: updatedBusiness, error: businessError } = await supabase
+      .from("businesses")
+      .update(businessPayload)
+      .eq("id", business.id)
+      .eq("owner_id", userId)
+      .select("id, owner_id")
+      .maybeSingle();
+
+    if (businessError || !updatedBusiness) {
+      console.error("Supabase business update failed", {
+        table: "businesses",
+        operation: "update",
+        authUserId: userId,
+        businessId: business.id,
+        businessOwnerId: business.owner_id,
+        payload: businessPayload,
+        error: businessError,
+      });
+      setError(
+        "No pudimos guardar este negocio. Verifica que estes usando la cuenta correcta.",
+      );
       setIsSaving(false);
       return false;
     }
@@ -303,14 +344,20 @@ export function VendorDashboardClient() {
     if (business.location) {
       const { error: locationError } = await supabase
         .from("locations")
-        .update({
-          ...values.location,
-          updated_at: new Date().toISOString(),
-        })
+        .update(values.location)
         .eq("business_id", business.id);
 
       if (locationError) {
-        setError("No pudimos guardar la ubicación.");
+        console.error("Supabase location update failed", {
+          table: "locations",
+          operation: "update",
+          authUserId: userId,
+          businessId: business.id,
+          businessOwnerId: business.owner_id,
+          payload: values.location,
+          error: locationError,
+        });
+        setError("No pudimos guardar la ubicacion. Verifica tu cuenta e intenta de nuevo.");
         setIsSaving(false);
         return false;
       }
@@ -323,7 +370,16 @@ export function VendorDashboardClient() {
         });
 
       if (locationError) {
-        setError("No pudimos guardar la ubicación.");
+        console.error("Supabase location insert failed", {
+          table: "locations",
+          operation: "insert",
+          authUserId: userId,
+          businessId: business.id,
+          businessOwnerId: business.owner_id,
+          payload: values.location,
+          error: locationError,
+        });
+        setError("No pudimos guardar la ubicacion. Verifica tu cuenta e intenta de nuevo.");
         setIsSaving(false);
         return false;
       }
@@ -332,14 +388,20 @@ export function VendorDashboardClient() {
     if (business.contact_info) {
       const { error: contactError } = await supabase
         .from("contact_info")
-        .update({
-          ...values.contact,
-          updated_at: new Date().toISOString(),
-        })
+        .update(values.contact)
         .eq("business_id", business.id);
 
       if (contactError) {
-        setError("No pudimos guardar WhatsApp.");
+        console.error("Supabase contact_info update failed", {
+          table: "contact_info",
+          operation: "update",
+          authUserId: userId,
+          businessId: business.id,
+          businessOwnerId: business.owner_id,
+          payload: values.contact,
+          error: contactError,
+        });
+        setError("No pudimos guardar WhatsApp. Verifica tu cuenta e intenta de nuevo.");
         setIsSaving(false);
         return false;
       }
@@ -352,13 +414,22 @@ export function VendorDashboardClient() {
         });
 
       if (contactError) {
-        setError("No pudimos guardar WhatsApp.");
+        console.error("Supabase contact_info insert failed", {
+          table: "contact_info",
+          operation: "insert",
+          authUserId: userId,
+          businessId: business.id,
+          businessOwnerId: business.owner_id,
+          payload: values.contact,
+          error: contactError,
+        });
+        setError("No pudimos guardar WhatsApp. Verifica tu cuenta e intenta de nuevo.");
         setIsSaving(false);
         return false;
       }
     }
 
-    await loadDashboard();
+    await loadDashboard(false);
     setIsSaving(false);
     return true;
   }
@@ -426,7 +497,7 @@ export function VendorDashboardClient() {
       return false;
     }
 
-    await loadDashboard();
+    await loadDashboard(false);
     setIsSaving(false);
     return true;
   }
@@ -493,15 +564,32 @@ export function VendorDashboardClient() {
         await uploadProductImage(targetProductId, image_file);
       } catch {
         setError("El producto se guardó, pero hubo un error al subir la imagen.");
-        await loadDashboard();
+        await loadDashboard(false);
         setIsSaving(false);
         return false;
       }
     }
 
-    await loadDashboard();
+    await loadDashboard(false);
     setIsSaving(false);
     return true;
+  }
+
+  async function deleteProduct(productId: string) {
+    if (!business) return;
+    setIsSaving(true);
+    setError(null);
+    const { error } = await supabase
+      .from("products")
+      .delete()
+      .eq("id", productId)
+      .eq("business_id", business.id);
+
+    if (error) {
+      setError("No se pudo eliminar el producto. Si ya está en uso, te recomendamos pausarlo en lugar de eliminarlo.");
+    }
+    await loadDashboard(false);
+    setIsSaving(false);
   }
 
   async function uploadBusinessCover(file: File) {
@@ -527,7 +615,7 @@ export function VendorDashboardClient() {
       throw new Error("La imagen subió, pero no pudimos guardar metadata.");
     }
 
-    await loadDashboard();
+    await loadDashboard(false);
     return uploaded.publicUrl;
   }
 
@@ -554,7 +642,7 @@ export function VendorDashboardClient() {
       throw new Error("La imagen subió, pero no pudimos guardar el producto.");
     }
 
-    await loadDashboard();
+    await loadDashboard(false);
     return uploaded.publicUrl;
   }
 
@@ -658,7 +746,9 @@ export function VendorDashboardClient() {
                       </div>
                     </div>
                     <p className="text-sm leading-6 text-muted-foreground">
-                      Aquí puedes gestionar tu presencia en Garemo. Recuerda que la aprobación final y la insignia de verificado son administradas por 2DevDogs.
+                      {business.status === "active" 
+                        ? "Tu negocio está aprobado. Tus productos se publicarán automáticamente en la plataforma una vez creados y activados." 
+                        : "Tus productos están guardados, pero se verán públicamente cuando Garemo apruebe tu negocio."}
                     </p>
                   </div>
                   <div className="rounded-xl border border-border bg-slate-50 p-4">
@@ -695,6 +785,7 @@ export function VendorDashboardClient() {
                   isSaving={isSaving}
                   onImageUpload={uploadProductImage}
                   onSave={saveProduct}
+                  onDelete={deleteProduct}
                   products={business.products}
                 />
               </div>

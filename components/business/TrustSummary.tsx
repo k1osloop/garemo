@@ -27,7 +27,7 @@ export function TrustSummary({ business, compact = false }: TrustSummaryProps) {
       >
         <span className="inline-flex min-h-9 items-center gap-1.5 rounded-lg border border-border bg-background px-2.5 text-muted">
           <BadgeCheck className="h-4 w-4 text-brand" />
-          {business.is_verified ? "Verificado" : "No verificado"}
+          {business.is_verified ? "Verificado por Garemo" : "No verificado"}
         </span>
         <span className="inline-flex min-h-9 items-center gap-1.5 rounded-lg border border-border bg-background px-2.5 text-muted">
           <Star className="h-4 w-4 text-brand" />

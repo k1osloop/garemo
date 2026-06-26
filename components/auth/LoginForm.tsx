@@ -155,7 +155,7 @@ export function LoginForm() {
             Ingresa con tu correo y contraseña. Los campos sensibles están protegidos por RLS.
           </p>
         </div>
-        <form className="space-y-4" onSubmit={handleSubmit}>
+        <form className="space-y-4" method="post" onSubmit={handleSubmit}>
           <Input
             autoComplete="email"
             label="Email"

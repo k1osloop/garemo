@@ -90,9 +90,9 @@ export function BusinessCard({ business }: BusinessCardProps) {
                   {business.category?.name ?? "Categoría"}
                 </Badge>
                 {business.is_verified ? (
-                  <Badge variant="success" className="text-[10px] tracking-wider uppercase font-bold">
+                  <Badge variant="success" className="text-[10px] tracking-wider uppercase font-bold bg-green-100 text-green-700 border-green-200">
                     <BadgeCheck className="mr-1 h-3 w-3" />
-                    Verificado
+                    Verificado por Garemo
                   </Badge>
                 ) : null}
                 {business.delivery_available ? (
