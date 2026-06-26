@@ -1,3 +1,5 @@
+"use client";
+
 import { BadgeCheck, MessageCircle, Star } from "lucide-react";
 
 import { formatCount, formatRating } from "@/lib/business-display";
