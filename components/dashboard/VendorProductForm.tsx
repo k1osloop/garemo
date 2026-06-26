@@ -18,7 +18,9 @@ export type VendorProductFormValues = Pick<
   | "image_url"
   | "is_available"
   | "stock_label"
->;
+> & {
+  image_file?: File;
+};
 
 type VendorProductFormProps = {
   businessId: string;
@@ -33,19 +35,13 @@ type VendorProductFormProps = {
 
 function nullableText(value: FormDataEntryValue | null) {
   const text = String(value ?? "").trim();
-
   return text.length > 0 ? text : null;
 }
 
 function nullableNumber(value: FormDataEntryValue | null) {
   const text = String(value ?? "").trim();
-
-  if (!text) {
-    return null;
-  }
-
+  if (!text) return null;
   const parsed = Number(text);
-
   return Number.isFinite(parsed) ? parsed : null;
 }
 
@@ -61,6 +57,7 @@ export function VendorProductForm({
   product,
 }: VendorProductFormProps) {
   const [imageUrl, setImageUrl] = useState(product?.image_url ?? "");
+  const [pendingFile, setPendingFile] = useState<File | null>(null);
   const [message, setMessage] = useState<{
     type: "error" | "success";
     text: string;
@@ -72,7 +69,7 @@ export function VendorProductForm({
 
     const formData = new FormData(event.currentTarget);
 
-    const values = {
+    const values: VendorProductFormValues = {
       name: String(formData.get("name") ?? "").trim(),
       description: nullableText(formData.get("description")),
       price: nullableNumber(formData.get("price")),
@@ -80,6 +77,7 @@ export function VendorProductForm({
       image_url: nullableText(formData.get("image_url")),
       is_available: formData.get("is_available") === "on",
       stock_label: nullableText(formData.get("stock_label")),
+      image_file: pendingFile ?? undefined,
     };
 
     const validationError = validateProductValues(values);
@@ -96,6 +94,7 @@ export function VendorProductForm({
         type: "success",
         text: product ? "Producto actualizado." : "Producto creado.",
       });
+      setPendingFile(null);
     }
 
     if (saved && !product) {
@@ -104,15 +103,20 @@ export function VendorProductForm({
     }
   }
 
-  async function uploadProductImage(file: File) {
-    if (!product) {
-      throw new Error("Crea el producto antes de subir una imagen.");
+  // Modified to support passing a file when creating
+  async function handleImageUpload(file: File) {
+    if (product) {
+      // Direct upload if product exists
+      const publicUrl = await onImageUpload(product.id, file);
+      setImageUrl(publicUrl);
+      return publicUrl;
+    } else {
+      // Just hold it in state and preview it
+      setPendingFile(file);
+      const url = URL.createObjectURL(file);
+      setImageUrl(url);
+      return url;
     }
-
-    const publicUrl = await onImageUpload(product.id, file);
-    setImageUrl(publicUrl);
-
-    return publicUrl;
   }
 
   return (
@@ -139,7 +143,7 @@ export function VendorProductForm({
           required
         />
         <label className="grid gap-2 text-sm font-medium">
-          Descripcion
+          Descripción
           <textarea
             className="min-h-24 rounded-lg border border-border bg-surface px-3 py-2 text-base outline-none placeholder:text-muted focus:border-brand focus:ring-2 focus:ring-brand/20"
             defaultValue={product?.description ?? ""}
@@ -172,31 +176,33 @@ export function VendorProductForm({
           name="stock_label"
           placeholder="Disponible hoy"
         />
-        {product ? (
-          <ImageUploadField
-            currentUrl={imageUrl}
-            description={`Ruta segura: businesses/${businessId}/products/${product.id}/...`}
-            disabled={isSaving}
-            label="Imagen del producto"
-            onUpload={uploadProductImage}
-          />
-        ) : (
-          <p className="rounded-lg border border-border bg-background p-3 text-xs leading-5 text-muted">
-            Crea el producto primero para habilitar subida segura a Supabase
-            Storage con una ruta asociada a su `product_id`.
-          </p>
-        )}
+        
+        <ImageUploadField
+          currentUrl={imageUrl}
+          description={
+            product
+              ? `Ruta segura: businesses/${businessId}/products/${product.id}/...`
+              : "La imagen se subirá automáticamente cuando guardes el producto."
+          }
+          disabled={isSaving}
+          label="Imagen del producto"
+          onUpload={handleImageUpload}
+        />
+
         <Input
-          label="URL de imagen"
+          label="URL de imagen (Opcional)"
           name="image_url"
-          onChange={(event) => setImageUrl(event.target.value)}
+          onChange={(event) => {
+            setImageUrl(event.target.value);
+            setPendingFile(null);
+          }}
           placeholder="https://..."
           type="url"
-          value={imageUrl}
+          value={pendingFile ? "" : imageUrl}
         />
         <p className="text-xs leading-5 text-muted">
-          Puedes mantener una URL HTTPS publica o subir una imagen real con
-          Supabase Storage. SVG no esta permitido.
+          Puedes mantener una URL HTTPS pública o subir una imagen real con
+          Supabase Storage.
         </p>
         <label className="flex items-center gap-2 text-sm font-medium">
           <input
@@ -207,10 +213,10 @@ export function VendorProductForm({
           />
           Disponible
         </label>
-        {product?.image_url ? (
+        {product?.image_url && !pendingFile ? (
           <p className="flex items-center gap-2 text-xs leading-5 text-muted">
             <ImageIcon className="h-3.5 w-3.5 text-brand" />
-            La imagen se renderiza solo si la URL es HTTPS valida.
+            La imagen se renderiza solo si la URL es HTTPS válida.
           </p>
         ) : null}
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center">

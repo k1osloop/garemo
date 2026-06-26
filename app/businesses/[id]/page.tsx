@@ -343,7 +343,7 @@ export default async function BusinessDetailPage({
                 ) : null}
               </div>
               {business.delivery_notes ? (
-                <p className="text-sm leading-6 text-muted italic">"{business.delivery_notes}"</p>
+                <p className="text-sm leading-6 text-muted italic">&quot;{business.delivery_notes}&quot;</p>
               ) : null}
             </div>
           </Card>

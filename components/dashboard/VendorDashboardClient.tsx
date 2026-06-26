@@ -415,22 +415,50 @@ export function VendorDashboardClient() {
     setIsSaving(true);
     setError(null);
 
+    const { image_file, ...productValues } = values;
+
     const payload = {
-      ...values,
+      ...productValues,
       updated_at: new Date().toISOString(),
     };
 
-    const { error: productError } = productId
-      ? await supabase.from("products").update(payload).eq("id", productId)
-      : await supabase.from("products").insert({
+    let targetProductId = productId;
+
+    if (productId) {
+      const { error: productError } = await supabase.from("products").update(payload).eq("id", productId);
+      if (productError) {
+        setError("No pudimos guardar el producto. Solo puedes editar productos propios.");
+        setIsSaving(false);
+        return false;
+      }
+    } else {
+      const { data: newProduct, error: productError } = await supabase
+        .from("products")
+        .insert({
           ...payload,
           business_id: business.id,
-        });
+        })
+        .select("id")
+        .single();
 
-    if (productError) {
-      setError("No pudimos guardar el producto. Solo puedes editar productos propios.");
-      setIsSaving(false);
-      return false;
+      if (productError || !newProduct) {
+        setError("No pudimos crear el producto.");
+        setIsSaving(false);
+        return false;
+      }
+      targetProductId = newProduct.id;
+    }
+
+    if (image_file && targetProductId) {
+      try {
+        // uploadProductImage handles uploading and updating the product row
+        await uploadProductImage(targetProductId, image_file);
+      } catch {
+        setError("El producto se guardó, pero hubo un error al subir la imagen.");
+        await loadDashboard();
+        setIsSaving(false);
+        return false;
+      }
     }
 
     await loadDashboard();
@@ -468,14 +496,6 @@ export function VendorDashboardClient() {
   async function uploadProductImage(productId: string, file: File) {
     if (!business) {
       throw new Error("No pudimos confirmar tu negocio.");
-    }
-
-    const productBelongsToBusiness = business.products.some(
-      (product) => product.id === productId,
-    );
-
-    if (!productBelongsToBusiness) {
-      throw new Error("Solo puedes subir imagenes de productos propios.");
     }
 
     const path = buildProductImagePath(business.id, productId, file);

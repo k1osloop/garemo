@@ -324,7 +324,7 @@ export function BuyerAccountClient() {
               {profile?.full_name ?? userEmail}
             </h1>
             <p className="mt-1 text-sm font-medium text-muted-foreground">
-              {userEmail} • Rol: <span className="uppercase text-slate-600">{role ?? "sin perfil"}</span>
+              {userEmail} • Rol: <span className="uppercase text-slate-600">{role === "owner" ? "emprendedor" : role ?? "sin perfil"}</span>
             </p>
           </div>
           <p className="max-w-2xl text-sm leading-relaxed text-slate-600">

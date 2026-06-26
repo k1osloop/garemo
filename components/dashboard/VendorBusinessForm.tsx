@@ -131,7 +131,7 @@ export function VendorBusinessForm({
             </div>
             <p className="text-sm leading-6 text-muted-foreground">
               Edita la información pública que verá un comprador. La verificación,
-              el owner y el estado de aprobación se gestionan manualmente por
+              el rol de emprendedor y el estado de aprobación se gestionan manualmente por
               seguridad.
             </p>
 
@@ -230,36 +230,84 @@ export function VendorBusinessForm({
               Ubicación
             </div>
             <p className="text-sm leading-6 text-muted-foreground">
-              Usa una referencia humana clara. Latitud y longitud son opcionales,
-              pero si completas una debes completar ambas.
+              Ayuda a tus clientes a encontrarte fácilmente dentro o cerca del campus.
             </p>
           </div>
           <Input
             defaultValue={business.location?.address_text ?? ""}
-            label="Referencia"
+            label="Ubicación del negocio"
             name="address_text"
+            placeholder="Ej: Módulo 236, pasillo central, cerca de la fotocopiadora"
             required
           />
           <Input
             defaultValue={business.location?.campus_zone ?? ""}
-            label="Zona campus"
+            label="Referencia (opcional)"
             name="campus_zone"
+            placeholder="Ej: Puerta principal"
           />
-          <div className="grid gap-4 sm:grid-cols-2">
-            <Input
-              defaultValue={numberValue(business.location?.latitude ?? null)}
-              label="Latitud"
-              name="latitude"
-              step="0.000001"
-              type="number"
-            />
-            <Input
-              defaultValue={numberValue(business.location?.longitude ?? null)}
-              label="Longitud"
-              name="longitude"
-              step="0.000001"
-              type="number"
-            />
+
+          <div className="space-y-3 pt-2">
+            <div className="flex items-center justify-between">
+              <p className="text-sm font-medium">Ubicación exacta (Mapa)</p>
+              <button 
+                type="button" 
+                onClick={() => {
+                  const el = document.getElementById("advanced-location");
+                  if (el) el.classList.toggle("hidden");
+                }}
+                className="text-xs text-brand hover:underline"
+              >
+                Ubicación avanzada
+              </button>
+            </div>
+            
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={() => {
+                if (!navigator.geolocation) {
+                  alert("Tu navegador no soporta geolocalización.");
+                  return;
+                }
+                navigator.geolocation.getCurrentPosition(
+                  (position) => {
+                    const latInput = document.getElementById("lat-input") as HTMLInputElement;
+                    const lngInput = document.getElementById("lng-input") as HTMLInputElement;
+                    if (latInput) latInput.value = position.coords.latitude.toString();
+                    if (lngInput) lngInput.value = position.coords.longitude.toString();
+                    alert("Ubicación detectada correctamente.");
+                  },
+                  () => {
+                    alert("No pudimos obtener tu ubicación. Permite el acceso o ingrésala manualmente.");
+                  },
+                  { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+                );
+              }}
+              className="w-full sm:w-auto flex items-center gap-2"
+            >
+              <MapPin className="h-4 w-4" />
+              Usar mi ubicación actual
+            </Button>
+            
+            <div id="advanced-location" className="hidden grid gap-4 sm:grid-cols-2 pt-2 border-t border-border mt-4">
+              <Input
+                id="lat-input"
+                defaultValue={numberValue(business.location?.latitude ?? null)}
+                label="Latitud"
+                name="latitude"
+                step="0.000001"
+                type="number"
+              />
+              <Input
+                id="lng-input"
+                defaultValue={numberValue(business.location?.longitude ?? null)}
+                label="Longitud"
+                name="longitude"
+                step="0.000001"
+                type="number"
+              />
+            </div>
           </div>
         </Card>
 
@@ -330,7 +378,7 @@ export function VendorBusinessForm({
         </div>
         <p className="mt-2 flex items-center gap-2 text-xs leading-5 text-muted">
           <MessageCircle className="h-3.5 w-3.5 text-brand" />
-          Solo se envian campos editables; verificacion, owner y aprobacion no
+          Solo se envian campos editables; verificación, rol de emprendedor y aprobación no
           viajan desde este formulario.
         </p>
       </div>
