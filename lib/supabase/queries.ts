@@ -212,7 +212,7 @@ export async function getActiveBusinesses(): Promise<
   const { data, error } = await supabase
     .from("businesses")
     .select(publicBusinessSelect)
-    .eq("status", "active")
+    .in("status", ["approved", "pending_review"])
     .order("name", { ascending: true });
 
   if (error) {
@@ -252,7 +252,7 @@ export async function getBusinessesByCategory(
   const { data, error } = await supabase
     .from("businesses")
     .select(publicBusinessSelect)
-    .eq("status", "active")
+    .in("status", ["approved", "pending_review"])
     .eq("category_id", categoryRow.id)
     .order("name", { ascending: true });
 
@@ -375,7 +375,7 @@ export async function getBusinessById(
   const { data, error } = await supabase
     .from("businesses")
     .select(publicBusinessSelect)
-    .eq("status", "active")
+    .in("status", ["approved", "pending_review"])
     .eq("id", id)
     .maybeSingle();
 
@@ -399,7 +399,7 @@ export async function getBusinessBySlug(
   const { data, error } = await supabase
     .from("businesses")
     .select(publicBusinessSelect)
-    .eq("status", "active")
+    .in("status", ["approved", "pending_review"])
     .eq("slug", slug)
     .maybeSingle();
 
@@ -444,5 +444,5 @@ export async function getBusinessReviews(
     return { data: [], error: null };
   }
 
-  return { data: data ?? [], error: null };
+  return { data: (data as unknown as BusinessReviewPreview[]) ?? [], error: null };
 }

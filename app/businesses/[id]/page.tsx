@@ -157,12 +157,17 @@ export default async function BusinessDetailPage({
               <Tag className="h-4 w-4" />
               {business.category?.name ?? "Categoria"}
             </span>
-            {business.is_verified ? (
+            {business.status === 'approved' || business.is_verified ? (
               <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-1 text-sm font-medium text-emerald-700">
                 <BadgeCheck className="h-4 w-4" />
                 Verificado por Garemo
               </span>
-            ) : null}
+            ) : (
+              <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 px-2.5 py-1 text-sm font-medium text-amber-700 border border-amber-200">
+                <BadgeCheck className="h-4 w-4 text-amber-600" />
+                Sin verificar
+              </span>
+            )}
           </div>
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div>
@@ -299,15 +304,15 @@ export default async function BusinessDetailPage({
           </Card>
         )}
 
-        <Card className="space-y-2 border-emerald-100 bg-emerald-50 text-emerald-950">
+        <Card className={cn("space-y-2", business.status === 'approved' || business.is_verified ? "border-emerald-100 bg-emerald-50 text-emerald-950" : "border-amber-100 bg-amber-50 text-amber-950")}>
           <h2 className="flex items-center gap-2 text-base font-semibold">
             <BadgeCheck className="h-4 w-4" />
             Confianza
           </h2>
           <p className="text-sm leading-6">
-            {business.is_verified
-              ? "Emprendedor verificado manualmente por Garemo para el piloto. Aún así, confirma detalles por WhatsApp antes de pagar o coordinar entrega."
-              : "Perfil aun no verificado. Contacta con cuidado y confirma datos antes de comprar."}
+            {business.status === 'approved' || business.is_verified
+              ? "Emprendedor verificado manualmente por Garemo. Aún así, confirma detalles por WhatsApp antes de pagar o coordinar entrega."
+              : "Garemo aún no revisó este negocio. Compra con criterio y reporta cualquier problema."}
           </p>
         </Card>
 
@@ -421,6 +426,7 @@ export default async function BusinessDetailPage({
       </div>
 
       <StickyBottomBar 
+        businessId={business.id}
         businessName={business.name}
         whatsappUrl={whatsappUrl}
         latitude={business.location?.latitude ?? null}

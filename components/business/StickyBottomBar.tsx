@@ -3,8 +3,10 @@
 import { MessageCircle, Map, Share2, AlertTriangle, Check } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { ReportModal } from "./ReportModal";
 
 type StickyBottomBarProps = {
+  businessId: string;
   businessName: string;
   whatsappUrl: string | null;
   latitude: number | null;
@@ -12,12 +14,14 @@ type StickyBottomBarProps = {
 };
 
 export function StickyBottomBar({
+  businessId,
   businessName,
   whatsappUrl,
   latitude,
   longitude,
 }: StickyBottomBarProps) {
   const [copied, setCopied] = useState(false);
+  const [isReportModalOpen, setIsReportModalOpen] = useState(false);
 
   const handleShare = async () => {
     const shareData = {
@@ -85,12 +89,19 @@ export function StickyBottomBar({
         <Button
           variant="outline"
           className="h-11 w-11 shrink-0 rounded-xl px-0 border-red-200 bg-red-50 hover:bg-red-100 shadow-sm"
-          onClick={() => alert("Función de reportes pronto disponible")}
+          onClick={() => setIsReportModalOpen(true)}
           aria-label="Reportar"
         >
           <AlertTriangle className="h-5 w-5 text-red-500" />
         </Button>
       </div>
+
+      <ReportModal
+        isOpen={isReportModalOpen}
+        onClose={() => setIsReportModalOpen(false)}
+        targetId={businessId}
+        targetType="business"
+      />
     </div>
   );
 }

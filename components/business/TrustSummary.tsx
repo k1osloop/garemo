@@ -1,10 +1,12 @@
 "use client";
 
+import { useState } from "react";
 import { BadgeCheck, MessageCircle, Star } from "lucide-react";
 
 import { formatCount, formatRating } from "@/lib/business-display";
 import { cn } from "@/lib/utils";
 import type { PublicBusiness } from "@/types/database";
+import { ReportModal } from "./ReportModal";
 
 type TrustSummaryProps = {
   business: PublicBusiness;
@@ -12,6 +14,7 @@ type TrustSummaryProps = {
 };
 
 export function TrustSummary({ business, compact = false }: TrustSummaryProps) {
+  const [isReportModalOpen, setIsReportModalOpen] = useState(false);
   const summary = business.trust_summary;
   const rating = formatRating(summary?.average_rating ?? null);
   const reviewCount = summary?.review_count ?? 0;
@@ -25,9 +28,23 @@ export function TrustSummary({ business, compact = false }: TrustSummaryProps) {
           compact ? "grid-cols-1" : "sm:grid-cols-4",
         )}
       >
-        <span className="inline-flex min-h-9 items-center gap-1.5 rounded-lg border border-border bg-background px-2.5 text-muted">
-          <BadgeCheck className="h-4 w-4 text-brand" />
-          {business.is_verified ? "Verificado por Garemo" : "No verificado"}
+        <span className={cn(
+          "inline-flex min-h-9 items-center gap-1.5 rounded-lg border px-2.5",
+          business.status === 'approved' || business.is_verified 
+            ? "border-green-200 bg-green-50 text-green-700"
+            : "border-amber-200 bg-amber-50 text-amber-700"
+        )}>
+          {business.status === 'approved' || business.is_verified ? (
+            <>
+              <BadgeCheck className="h-4 w-4 text-green-600" />
+              Verificado por Garemo
+            </>
+          ) : (
+            <>
+              <BadgeCheck className="h-4 w-4 text-amber-600" />
+              Sin verificar
+            </>
+          )}
         </span>
         <span className="inline-flex min-h-9 items-center gap-1.5 rounded-lg border border-border bg-background px-2.5 text-muted" title="Calificación de usuarios">
           <Star className="h-4 w-4 text-amber-400 fill-amber-400" />
@@ -49,12 +66,19 @@ export function TrustSummary({ business, compact = false }: TrustSummaryProps) {
           <button 
             type="button" 
             className="text-xs text-muted-foreground hover:text-red-500 hover:underline transition-colors"
-            onClick={() => alert("Función de reporte en desarrollo (MVP).")}
+            onClick={() => setIsReportModalOpen(true)}
           >
             Reportar negocio
           </button>
         </div>
       )}
+      
+      <ReportModal
+        isOpen={isReportModalOpen}
+        onClose={() => setIsReportModalOpen(false)}
+        targetId={business.id}
+        targetType="business"
+      />
     </div>
   );
 }

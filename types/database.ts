@@ -543,8 +543,10 @@ export type Database = {
         | "draft"
         | "pending_review"
         | "active"
+        | "approved"
         | "hidden"
-        | "rejected";
+        | "rejected"
+        | "under_review";
       report_reason: "inappropriate" | "scam" | "false_info" | "prohibited" | "duplicate" | "closed" | "abusive" | "spam" | "misleading" | "other";
       report_status: "open" | "reviewing" | "resolved" | "dismissed";
       user_role: "buyer" | "owner" | "admin";

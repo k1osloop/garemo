@@ -90,12 +90,17 @@ export function BusinessCard({ business }: BusinessCardProps) {
                   <Tag className="mr-1 h-3 w-3 shrink-0" />
                   {business.category?.name ?? "Categoría"}
                 </Badge>
-                {business.is_verified ? (
-                  <Badge variant="success" className="text-[10px] tracking-wider uppercase font-bold bg-green-100 text-green-700 border-green-200">
+                {business.status === 'approved' || business.is_verified ? (
+                  <Badge variant="success" className="text-[10px] tracking-wider uppercase font-bold bg-green-100 text-green-700 border-green-200 hover:bg-green-100">
                     <BadgeCheck className="mr-1 h-3 w-3" />
                     Verificado por Garemo
                   </Badge>
-                ) : null}
+                ) : (
+                  <Badge variant="secondary" className="text-[10px] tracking-wider uppercase font-bold bg-amber-100 text-amber-700 border-amber-200 hover:bg-amber-100">
+                    <BadgeCheck className="mr-1 h-3 w-3" />
+                    Sin verificar
+                  </Badge>
+                )}
                 {business.delivery_available ? (
                   <Badge variant="outline" className="text-[10px] tracking-wider uppercase font-bold border-brand text-brand">
                     Delivery
