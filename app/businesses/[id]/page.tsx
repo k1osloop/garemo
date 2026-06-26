@@ -157,7 +157,7 @@ export default async function BusinessDetailPage({
               <Tag className="h-4 w-4" />
               {business.category?.name ?? "Categoria"}
             </span>
-            {business.status === 'approved' || business.is_verified ? (
+            {business.status === 'approved' || business.status === 'active' || business.is_verified ? (
               <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-1 text-sm font-medium text-emerald-700">
                 <BadgeCheck className="h-4 w-4" />
                 Verificado por Garemo

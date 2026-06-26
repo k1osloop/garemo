@@ -164,14 +164,22 @@ export function LoginForm() {
             required
             type="email"
           />
-          <Input
-            autoComplete="current-password"
-            label="Contraseña"
-            name="password"
-            placeholder="********"
-            required
-            type="password"
-          />
+          <div className="space-y-1 text-right">
+            <Input
+              autoComplete="current-password"
+              label="Contraseña"
+              name="password"
+              placeholder="********"
+              required
+              type="password"
+            />
+            <a 
+              href="/forgot-password" 
+              className="text-xs font-medium text-brand hover:underline inline-block"
+            >
+              ¿Olvidaste tu contraseña?
+            </a>
+          </div>
           {error ? <p className="text-sm text-red-600 font-medium bg-red-50 p-2 rounded-md">{error}</p> : null}
           <Button className="w-full" disabled={isLoading} type="submit">
             <LogIn className="h-4 w-4" />

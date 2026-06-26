@@ -311,14 +311,7 @@ export function BuyerAccountClient() {
     );
   }
 
-  if (role === "admin") {
-    return (
-      <ErrorState
-        title="Cuenta admin"
-        description="Esta vista es para compradores y emprendedores. Usa el panel admin para revisar negocios."
-      />
-    );
-  }
+
 
   return (
     <div className="space-y-6">
@@ -331,7 +324,7 @@ export function BuyerAccountClient() {
               <UserRound className="h-4 w-4 text-brand" />
             </span>
             <p className="text-xs font-bold uppercase tracking-wider text-brand">
-              Perfil comprador
+              Perfil de {role === "admin" ? "Administrador" : role === "owner" ? "Emprendedor" : "Comprador"}
             </p>
           </div>
           <div>
@@ -339,18 +332,43 @@ export function BuyerAccountClient() {
               {profile?.full_name ?? userEmail}
             </h1>
             <p className="mt-1 text-sm font-medium text-muted-foreground">
-              {userEmail} • Rol: <span className="uppercase text-slate-600">{role === "owner" ? "emprendedor" : role ?? "sin perfil"}</span>
+              {userEmail} • Rol: <span className="uppercase text-slate-600">{role === "owner" ? "emprendedor" : role === "admin" ? "administrador" : role ?? "comprador"}</span>
             </p>
           </div>
           <p className="max-w-2xl text-sm leading-relaxed text-slate-600">
-            Guarda negocios para volver rápido y revisa tus calificaciones. Los
-            favoritos son privados y no se usan como ranking público.
+            Gestiona tu cuenta y configuración.
+            {role !== "admin" ? " Guarda negocios para volver rápido y revisa tus calificaciones. Los favoritos son privados y no se usan como ranking público." : ""}
           </p>
         </div>
-        <Button onClick={signOut} type="button" variant="outline" className="shrink-0 border-slate-300 hover:bg-slate-100 hover:text-slate-900">
-          <LogOut className="mr-2 h-4 w-4" />
-          Cerrar sesión
-        </Button>
+        <div className="flex flex-col gap-2 sm:flex-row">
+          {role === "admin" && (
+            <Link
+              href="/admin"
+              className="inline-flex h-9 items-center justify-center rounded-md bg-brand px-4 py-2 text-sm font-medium text-brand-foreground shadow transition-colors hover:bg-brand/90"
+            >
+              Ir a Administración
+            </Link>
+          )}
+          {role === "owner" && (
+            <Link
+              href="/dashboard"
+              className="inline-flex h-9 items-center justify-center rounded-md bg-brand px-4 py-2 text-sm font-medium text-brand-foreground shadow transition-colors hover:bg-brand/90"
+            >
+              Panel de mi negocio
+            </Link>
+          )}
+          {role === "buyer" && (
+            <Link
+              href="/dashboard"
+              className="inline-flex h-9 items-center justify-center rounded-md border border-brand bg-transparent px-4 py-2 text-sm font-medium text-brand shadow-sm transition-colors hover:bg-brand/10"
+            >
+              Publicar mi negocio
+            </Link>
+          )}
+          <Button onClick={signOut} type="button" variant="outline" className="shrink-0 border-slate-300 hover:bg-slate-100 hover:text-slate-900">
+            <LogOut className="mr-2 h-4 w-4" /> Cerrar sesión
+          </Button>
+        </div>
       </Card>
 
       {role === "owner" ? (

@@ -30,11 +30,11 @@ export function TrustSummary({ business, compact = false }: TrustSummaryProps) {
       >
         <span className={cn(
           "inline-flex min-h-9 items-center gap-1.5 rounded-lg border px-2.5",
-          business.status === 'approved' || business.is_verified 
+          business.status === 'approved' || business.status === 'active' || business.is_verified 
             ? "border-green-200 bg-green-50 text-green-700"
             : "border-amber-200 bg-amber-50 text-amber-700"
         )}>
-          {business.status === 'approved' || business.is_verified ? (
+          {business.status === 'approved' || business.status === 'active' || business.is_verified ? (
             <>
               <BadgeCheck className="h-4 w-4 text-green-600" />
               Verificado por Garemo

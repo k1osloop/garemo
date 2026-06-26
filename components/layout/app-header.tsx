@@ -10,6 +10,7 @@ export function AppHeader() {
   const [session, setSession] = useState<Session | null>(null);
   const [role, setRole] = useState<string | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const supabase = createSupabaseBrowserClient();
@@ -17,16 +18,25 @@ export function AppHeader() {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       if (session) {
-        supabase.rpc("current_app_role").then(({ data }) => setRole(data));
+        supabase.rpc("current_app_role").then(({ data }) => {
+          setRole(data);
+          setIsLoading(false);
+        });
+      } else {
+        setIsLoading(false);
       }
     });
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session);
       if (session) {
-        supabase.rpc("current_app_role").then(({ data }) => setRole(data));
+        supabase.rpc("current_app_role").then(({ data }) => {
+          setRole(data);
+          setIsLoading(false);
+        });
       } else {
         setRole(null);
+        setIsLoading(false);
       }
     });
 
@@ -65,7 +75,12 @@ export function AppHeader() {
             Mapa
           </Link>
           
-          {session ? (
+          {isLoading ? (
+            <div className="flex items-center gap-2 ml-2">
+              <div className="h-9 w-16 animate-pulse rounded-lg bg-slate-100"></div>
+              <div className="h-9 w-24 animate-pulse rounded-lg bg-slate-100"></div>
+            </div>
+          ) : session ? (
             <div className="relative ml-2">
               <button
                 onClick={() => setMenuOpen(!menuOpen)}
@@ -78,6 +93,13 @@ export function AppHeader() {
               
               {menuOpen && (
                 <div className="absolute right-0 mt-2 w-48 rounded-lg border border-border bg-surface py-1 shadow-md">
+                  <Link
+                    href="/account"
+                    className="block px-4 py-2 text-sm text-foreground hover:bg-slate-50"
+                    onClick={() => setMenuOpen(false)}
+                  >
+                    Mi perfil
+                  </Link>
                   {role === "admin" && (
                     <Link
                       href="/admin"
@@ -96,13 +118,13 @@ export function AppHeader() {
                       Panel de mi negocio
                     </Link>
                   )}
-                  {role !== "admin" && (
+                  {role === "buyer" && (
                     <Link
-                      href="/account"
+                      href="/dashboard"
                       className="block px-4 py-2 text-sm text-foreground hover:bg-slate-50"
                       onClick={() => setMenuOpen(false)}
                     >
-                      Mi cuenta
+                      Publicar mi negocio
                     </Link>
                   )}
                   <div className="my-1 border-t border-border"></div>

@@ -90,7 +90,7 @@ export function BusinessCard({ business }: BusinessCardProps) {
                   <Tag className="mr-1 h-3 w-3 shrink-0" />
                   {business.category?.name ?? "Categoría"}
                 </Badge>
-                {business.status === 'approved' || business.is_verified ? (
+                {business.status === 'approved' || business.status === 'active' || business.is_verified ? (
                   <Badge variant="success" className="text-[10px] tracking-wider uppercase font-bold bg-green-100 text-green-700 border-green-200 hover:bg-green-100">
                     <BadgeCheck className="mr-1 h-3 w-3" />
                     Verificado por Garemo
