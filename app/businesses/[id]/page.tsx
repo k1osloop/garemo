@@ -22,6 +22,7 @@ import { BusinessReviewForm } from "@/components/business/BusinessReviewForm";
 import { FavoriteButton } from "@/components/business/FavoriteButton";
 import { TrustSummary } from "@/components/business/TrustSummary";
 import { WhatsAppContactButton } from "@/components/business/WhatsAppContactButton";
+import { BusinessActionButtons } from "@/components/business/BusinessActionButtons";
 import { Card } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { ErrorState } from "@/components/ui/ErrorState";
@@ -146,21 +147,31 @@ export default async function BusinessDetailPage({
               </span>
             ) : null}
           </div>
-          <h1 className="text-2xl font-semibold tracking-tight">
-            {business.name}
-          </h1>
-          <p className="text-sm leading-6 text-muted">
-            {business.description}
-          </p>
-          <p
-            className={cn(
-              "inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm",
-              availabilityClassName(availability.tone),
-            )}
-          >
-            <Clock className="h-4 w-4 text-brand" />
-            {availability.label}
-          </p>
+          <div className="flex flex-wrap items-start justify-between gap-4">
+            <div>
+              <h1 className="text-3xl font-bold tracking-tight text-foreground">
+                {business.name}
+              </h1>
+              <p className="mt-2 text-sm leading-6 text-muted-foreground">
+                {business.description}
+              </p>
+              <p
+                className={cn(
+                  "mt-3 inline-flex items-center gap-2 rounded-lg border px-3 py-1.5 text-sm font-medium shadow-sm",
+                  availabilityClassName(availability.tone),
+                )}
+              >
+                <Clock className="h-4 w-4 text-brand" />
+                {availability.label}
+              </p>
+            </div>
+            
+            <BusinessActionButtons 
+              businessName={business.name}
+              latitude={business.location?.latitude ?? null}
+              longitude={business.location?.longitude ?? null}
+            />
+          </div>
         </div>
 
         <TrustSummary business={business} />
@@ -290,7 +301,7 @@ export default async function BusinessDetailPage({
           </h2>
           <p className="text-sm leading-6">
             {business.is_verified
-              ? "Vendedor verificado manualmente por Garemo para el piloto. Aun asi, confirma detalles por WhatsApp antes de pagar o coordinar entrega."
+              ? "Emprendedor verificado manualmente por Garemo para el piloto. Aún así, confirma detalles por WhatsApp antes de pagar o coordinar entrega."
               : "Perfil aun no verificado. Contacta con cuidado y confirma datos antes de comprar."}
           </p>
         </Card>

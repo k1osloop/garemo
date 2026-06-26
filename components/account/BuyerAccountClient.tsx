@@ -12,8 +12,10 @@ import {
   Star,
   Store,
   UserRound,
+  MapPin,
 } from "lucide-react";
 
+import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/EmptyState";
@@ -298,57 +300,57 @@ export function BuyerAccountClient() {
     return (
       <ErrorState
         title="Cuenta admin"
-        description="Esta vista es para compradores y vendedores. Usa el panel admin para revisar negocios."
+        description="Esta vista es para compradores y emprendedores. Usa el panel admin para revisar negocios."
       />
     );
   }
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-6">
       {error ? <ErrorState title="No pudimos cargar la cuenta" description={error} /> : null}
 
-      <Card className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+      <Card className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between border-brand/20 bg-brand/5 shadow-sm">
         <div className="space-y-3">
           <div className="flex items-center gap-2">
-            <UserRound className="h-5 w-5 text-brand" />
-            <p className="text-sm font-medium uppercase text-brand">
+            <span className="flex h-8 w-8 items-center justify-center rounded-full bg-brand/20">
+              <UserRound className="h-4 w-4 text-brand" />
+            </span>
+            <p className="text-xs font-bold uppercase tracking-wider text-brand">
               Perfil comprador
             </p>
           </div>
           <div>
-            <h1 className="text-2xl font-semibold tracking-tight">
+            <h1 className="text-3xl font-bold tracking-tight text-slate-800">
               {profile?.full_name ?? userEmail}
             </h1>
-            <p className="mt-1 text-sm leading-6 text-muted">
-              {userEmail} - rol {role ?? "sin perfil"}
+            <p className="mt-1 text-sm font-medium text-muted-foreground">
+              {userEmail} • Rol: <span className="uppercase text-slate-600">{role ?? "sin perfil"}</span>
             </p>
           </div>
-          <p className="max-w-2xl text-sm leading-6 text-muted">
-            Guarda negocios para volver rapido y revisa tus calificaciones. Los
-            favoritos son privados y no se usan como ranking publico en esta
-            etapa.
+          <p className="max-w-2xl text-sm leading-relaxed text-slate-600">
+            Guarda negocios para volver rápido y revisa tus calificaciones. Los
+            favoritos son privados y no se usan como ranking público.
           </p>
         </div>
-        <Button onClick={signOut} type="button" variant="secondary">
-          <LogOut className="h-4 w-4" />
-          Cerrar sesion
+        <Button onClick={signOut} type="button" variant="outline" className="shrink-0 border-slate-300 hover:bg-slate-100 hover:text-slate-900">
+          <LogOut className="mr-2 h-4 w-4" />
+          Cerrar sesión
         </Button>
       </Card>
 
       {role === "owner" ? (
-        <Card className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <div className="space-y-1">
-            <h2 className="flex items-center gap-2 text-base font-semibold">
-              <Store className="h-4 w-4 text-brand" />
-              Tambien eres vendedor
+        <Card className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between border-slate-200 bg-white shadow-sm">
+          <div className="space-y-2">
+            <h2 className="flex items-center gap-2 text-lg font-bold text-slate-800">
+              <Store className="h-5 w-5 text-brand" />
+              También eres emprendedor
             </h2>
-            <p className="text-sm leading-6 text-muted">
-              Puedes administrar tu negocio desde el dashboard. Tus favoritos
-              siguen siendo privados como usuario autenticado.
+            <p className="text-sm leading-relaxed text-muted-foreground">
+              Puedes administrar tu negocio público y productos desde el dashboard. 
             </p>
           </div>
           <Link
-            className="inline-flex min-h-10 items-center justify-center gap-2 rounded-lg bg-brand px-3 text-sm font-medium text-brand-foreground hover:bg-teal-800"
+            className="inline-flex min-h-11 shrink-0 items-center justify-center gap-2 rounded-xl bg-brand px-6 text-sm font-semibold text-brand-foreground hover:bg-brand-hover shadow-sm transition-all"
             href="/dashboard"
           >
             Ir al dashboard
@@ -357,134 +359,138 @@ export function BuyerAccountClient() {
         </Card>
       ) : null}
 
-      <section className="space-y-3">
-        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+      <div className="grid lg:grid-cols-[1.2fr_0.8fr] gap-6">
+        <section className="space-y-4">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <h2 className="flex items-center gap-2 text-xl font-bold text-slate-800">
+                <BookmarkCheck className="h-5 w-5 text-brand" />
+                Negocios guardados
+              </h2>
+            </div>
+            <Link
+              className="inline-flex min-h-9 items-center justify-center gap-2 rounded-lg border border-border bg-white px-4 text-sm font-medium hover:bg-slate-50 transition-colors shadow-sm"
+              href="/businesses"
+            >
+              <Search className="h-4 w-4 text-muted-foreground" />
+              Explorar
+            </Link>
+          </div>
+
+          {favorites.length === 0 ? (
+            <EmptyState
+              title="Aún no guardaste negocios"
+              description="Explora el directorio y toca el ícono de guardar en los negocios que quieras revisar después."
+            />
+          ) : (
+            <div className="grid gap-4 sm:grid-cols-2">
+              {favorites.map((favorite) => (
+                <Card className="flex flex-col space-y-4 hover:border-brand/30 transition-colors shadow-sm bg-white" key={favorite.id}>
+                  {favorite.business ? (
+                    <>
+                      <div className="space-y-1.5 flex-1">
+                        <p className="text-[10px] font-bold uppercase tracking-wider text-brand bg-brand/10 inline-block px-2 py-0.5 rounded">
+                          {favorite.business.categoryName}
+                        </p>
+                        <h3 className="text-lg font-bold text-slate-800 leading-tight">
+                          {favorite.business.name}
+                        </h3>
+                        <p className="line-clamp-2 text-sm leading-relaxed text-muted-foreground">
+                          {favorite.business.description}
+                        </p>
+                        <p className="text-xs font-medium text-slate-500 flex items-center gap-1 mt-2">
+                          <MapPin className="h-3 w-3 shrink-0" />
+                          <span className="truncate">{favorite.business.locationLabel}</span>
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-2 pt-3 border-t border-slate-100">
+                        <Link
+                          className="flex-1 inline-flex min-h-9 items-center justify-center rounded-lg bg-slate-100 text-slate-700 text-xs font-semibold hover:bg-slate-200 transition-colors"
+                          href={`/businesses/${favorite.business.id}`}
+                        >
+                          Ver negocio
+                        </Link>
+                        <Button
+                          onClick={() => void removeFavorite(favorite.id)}
+                          type="button"
+                          variant="ghost"
+                          className="text-red-600 hover:text-red-700 hover:bg-red-50 text-xs font-semibold h-9 px-3"
+                        >
+                          Quitar
+                        </Button>
+                      </div>
+                    </>
+                  ) : (
+                    <p className="text-sm text-muted-foreground italic my-auto">
+                      Este negocio ya no está disponible.
+                    </p>
+                  )}
+                </Card>
+              ))}
+            </div>
+          )}
+        </section>
+
+        <section className="space-y-4">
           <div>
-            <h2 className="flex items-center gap-2 text-lg font-semibold">
-              <BookmarkCheck className="h-5 w-5 text-brand" />
-              Negocios favoritos
+            <h2 className="flex items-center gap-2 text-xl font-bold text-slate-800">
+              <Star className="h-5 w-5 text-brand" />
+              Tus reseñas
             </h2>
-            <p className="text-sm leading-6 text-muted">
-              Solo tu cuenta puede ver y modificar esta lista.
+            <p className="text-sm leading-6 text-muted-foreground mt-1">
+              Historial de calificaciones dejadas.
             </p>
           </div>
-          <Link
-            className="inline-flex min-h-10 items-center justify-center gap-2 rounded-lg border border-border px-3 text-sm font-medium hover:bg-surface"
-            href="/businesses"
-          >
-            <Search className="h-4 w-4" />
-            Explorar negocios
-          </Link>
-        </div>
 
-        {favorites.length === 0 ? (
-          <EmptyState
-            title="Aun no guardaste negocios"
-            description="Explora el directorio y toca Guardar en los negocios que quieras revisar despues."
-          />
-        ) : (
-          <div className="grid gap-3 sm:grid-cols-2">
-            {favorites.map((favorite) => (
-              <Card className="space-y-3" key={favorite.id}>
-                {favorite.business ? (
-                  <>
+          {reviews.length === 0 ? (
+            <EmptyState
+              title="Sin calificaciones"
+              description="Cuando dejes una calificación visible, aparecerá aquí."
+            />
+          ) : (
+            <div className="grid gap-4">
+              {reviews.map((review) => (
+                <Card className="space-y-3 shadow-sm bg-white" key={review.id}>
+                  <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
                     <div className="space-y-1">
-                      <p className="text-xs font-medium uppercase text-brand">
-                        {favorite.business.categoryName}
+                      <p className="text-sm font-bold text-slate-800">
+                        {review.business?.name ?? "Negocio no disponible"}
                       </p>
-                      <h3 className="text-base font-semibold">
-                        {favorite.business.name}
-                      </h3>
-                      <p className="line-clamp-2 text-sm leading-6 text-muted">
-                        {favorite.business.description}
-                      </p>
-                      <p className="text-sm text-muted">
-                        {favorite.business.locationLabel}
-                      </p>
+                      <div className="flex items-center gap-1 text-amber-400">
+                        {Array.from({ length: 5 }).map((_, i) => (
+                          <Star key={i} className={cn("h-4 w-4", i < review.rating ? "fill-amber-400" : "text-slate-200 fill-slate-200")} />
+                        ))}
+                      </div>
                     </div>
-                    <div className="flex flex-col gap-2 sm:flex-row">
+                    {review.business ? (
                       <Link
-                        className="inline-flex min-h-10 items-center justify-center rounded-lg border border-border px-3 text-sm font-medium hover:bg-surface"
-                        href={`/businesses/${favorite.business.id}`}
+                        className="inline-flex items-center text-xs font-semibold text-brand hover:text-brand-hover transition-colors"
+                        href={`/businesses/${review.business.id}`}
                       >
                         Ver negocio
                       </Link>
-                      <Button
-                        onClick={() => void removeFavorite(favorite.id)}
-                        type="button"
-                        variant="secondary"
-                      >
-                        Quitar
-                      </Button>
-                    </div>
-                  </>
-                ) : (
-                  <p className="text-sm text-muted">
-                    Este favorito ya no esta disponible publicamente.
-                  </p>
-                )}
-              </Card>
-            ))}
-          </div>
-        )}
-      </section>
+                    ) : null}
+                  </div>
+                  {review.comment ? (
+                    <p className="text-sm leading-relaxed text-slate-600 bg-slate-50 p-2.5 rounded-lg border border-slate-100">
+                      &ldquo;{review.comment}&rdquo;
+                    </p>
+                  ) : null}
+                </Card>
+              ))}
+            </div>
+          )}
+        </section>
+      </div>
 
-      <section className="space-y-3">
-        <div>
-          <h2 className="flex items-center gap-2 text-lg font-semibold">
-            <Star className="h-5 w-5 text-brand" />
-            Calificaciones dadas
-          </h2>
-          <p className="text-sm leading-6 text-muted">
-            Historial visible de las calificaciones que dejaste en negocios
-            publicos.
+      <Card className="flex items-start gap-4 border-l-4 border-l-amber-400 bg-amber-50/50 p-5">
+        <ShieldAlert className="mt-0.5 h-6 w-6 text-amber-500 shrink-0" />
+        <div className="space-y-1 text-amber-900">
+          <h3 className="font-bold text-sm">Garemo es un directorio seguro</h3>
+          <p className="text-sm leading-relaxed">
+            No procesamos pagos ni pedidos directos. Usa los favoritos para organizarte y siempre confirma disponibilidad y precios por WhatsApp antes de transferir dinero.
           </p>
         </div>
-
-        {reviews.length === 0 ? (
-          <EmptyState
-            title="Aun no calificaste negocios"
-            description="Cuando dejes una calificacion visible, aparecera aqui."
-          />
-        ) : (
-          <div className="grid gap-3">
-            {reviews.map((review) => (
-              <Card className="space-y-2" key={review.id}>
-                <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
-                  <div>
-                    <p className="text-sm font-semibold">
-                      {review.business?.name ?? "Negocio no disponible"}
-                    </p>
-                    <p className="text-sm text-brand">
-                      {review.rating}/5 estrellas
-                    </p>
-                  </div>
-                  {review.business ? (
-                    <Link
-                      className="inline-flex min-h-10 items-center justify-center rounded-lg border border-border px-3 text-sm font-medium hover:bg-surface"
-                      href={`/businesses/${review.business.id}`}
-                    >
-                      Ver negocio
-                    </Link>
-                  ) : null}
-                </div>
-                {review.comment ? (
-                  <p className="text-sm leading-6 text-muted">
-                    {review.comment}
-                  </p>
-                ) : null}
-              </Card>
-            ))}
-          </div>
-        )}
-      </section>
-
-      <Card className="flex gap-3 border-amber-100 bg-amber-50 text-amber-950">
-        <ShieldAlert className="mt-0.5 h-5 w-5 shrink-0" />
-        <p className="text-sm leading-6">
-          Garemo no procesa pagos ni pedidos. Usa favoritos para organizarte y
-          confirma detalles por WhatsApp antes de coordinar cualquier compra.
-        </p>
       </Card>
     </div>
   );

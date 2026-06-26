@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Building2, LogIn, Search, ShieldCheck, Store, UserPlus } from "lucide-react";
+import { LogIn, Search, ShieldCheck, Store } from "lucide-react";
 import type { User } from "@supabase/supabase-js";
 
 import { Button } from "@/components/ui/button";
@@ -98,46 +98,41 @@ export function LoginForm() {
       <div className="space-y-4">
         <Card className="space-y-3">
           <p className="text-sm font-medium uppercase text-brand">
-            Antes de entrar
+            Bienvenido de vuelta
           </p>
           <h1 className="text-2xl font-semibold tracking-tight">
-            Elige el camino correcto
+            Entra a tu cuenta Garemo
           </h1>
           <p className="text-sm leading-6 text-muted">
-            Garemo mantiene la navegacion publica abierta para estudiantes. Las
-            cuentas sirven para vendedores y admins con permisos definidos por
-            RLS, no por botones del frontend.
+            Garemo te redirigirá a la vista correcta según tu rol.
           </p>
         </Card>
 
         <div className="grid gap-3">
-          <Card className="flex gap-3">
+          <Card className="flex gap-3 hover:border-brand/30 transition-colors shadow-sm">
             <Search className="mt-0.5 h-5 w-5 shrink-0 text-brand" />
             <div className="space-y-1">
-              <h2 className="text-sm font-semibold">Comprador o estudiante</h2>
+              <h2 className="text-sm font-semibold">Comprador → Mi cuenta</h2>
               <p className="text-sm leading-6 text-muted">
-                No necesitas cuenta para explorar. Si entras, puedes guardar
-                favoritos y ver tus calificaciones.
+                Gestiona tus negocios favoritos y revisa tus calificaciones.
               </p>
             </div>
           </Card>
-          <Card className="flex gap-3" id="crear-cuenta">
-            <UserPlus className="mt-0.5 h-5 w-5 shrink-0 text-brand" />
+          <Card className="flex gap-3 hover:border-brand/30 transition-colors shadow-sm" id="crear-cuenta">
+            <Store className="mt-0.5 h-5 w-5 shrink-0 text-brand" />
             <div className="space-y-1">
-              <h2 className="text-sm font-semibold">Crear cuenta</h2>
-          <p className="text-sm leading-6 text-muted">
-                Puedes crear una cuenta como comprador o vendedor. Admin no se
-                puede elegir desde la interfaz publica.
+              <h2 className="text-sm font-semibold">Emprendedor → Panel de mi negocio</h2>
+              <p className="text-sm leading-6 text-muted">
+                Administra tu perfil, productos y revisa tus estadísticas.
               </p>
             </div>
           </Card>
-          <Card className="flex gap-3">
+          <Card className="flex gap-3 hover:border-brand/30 transition-colors shadow-sm">
             <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-brand" />
             <div className="space-y-1">
-              <h2 className="text-sm font-semibold">Admin</h2>
+              <h2 className="text-sm font-semibold">Admin → Administración</h2>
               <p className="text-sm leading-6 text-muted">
-                El acceso admin no se solicita ni se elige aqui. Solo funciona
-                si el perfil ya tiene rol admin activo en Supabase.
+                Acceso exclusivo para revisión y moderación.
               </p>
             </div>
           </Card>
@@ -150,12 +145,10 @@ export function LoginForm() {
             Acceso seguro
           </p>
           <h2 className="text-2xl font-semibold tracking-tight">
-            Inicia sesion
+            Iniciar sesión
           </h2>
           <p className="text-sm leading-6 text-muted">
-            Si eres vendedor, entraras al dashboard para crear o editar tu
-            negocio propio. Si eres admin, Garemo te enviara al panel de
-            revision. Los campos sensibles siguen protegidos por RLS.
+            Ingresa con tu correo y contraseña. Los campos sensibles están protegidos por RLS.
           </p>
         </div>
         <form className="space-y-4" onSubmit={handleSubmit}>
@@ -169,33 +162,23 @@ export function LoginForm() {
           />
           <Input
             autoComplete="current-password"
-            label="Contrasena"
+            label="Contraseña"
             name="password"
             placeholder="********"
             required
             type="password"
           />
-          {error ? <p className="text-sm text-red-600">{error}</p> : null}
+          {error ? <p className="text-sm text-red-600 font-medium bg-red-50 p-2 rounded-md">{error}</p> : null}
           <Button className="w-full" disabled={isLoading} type="submit">
             <LogIn className="h-4 w-4" />
-            {isLoading ? "Entrando..." : "Iniciar sesion"}
+            {isLoading ? "Entrando..." : "Iniciar sesión"}
           </Button>
         </form>
         <div className="rounded-lg border border-border bg-background p-3 text-sm text-muted">
           ¿No tienes cuenta?{" "}
-          <a className="font-medium text-brand hover:underline" href="/signup">
-            Crear cuenta
+          <a className="font-medium text-brand hover:text-brand-hover hover:underline transition-colors" href="/signup">
+            Crea una cuenta nueva
           </a>
-        </div>
-        <div className="grid gap-2 rounded-lg border border-border bg-background p-3 text-sm text-muted">
-          <div className="flex items-center gap-2">
-            <Store className="h-4 w-4 text-brand" />
-            <span>Vendedor: crea negocio y espera aprobacion.</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <Building2 className="h-4 w-4 text-brand" />
-            <span>Comprador: guarda favoritos y revisa tus calificaciones.</span>
-          </div>
         </div>
       </Card>
     </div>

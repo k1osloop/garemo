@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { CheckCircle2, Circle, ShieldCheck } from "lucide-react";
 
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
+import { cn } from "@/lib/utils";
 import {
   VendorBusinessForm,
   type VendorBusinessFormValues,
@@ -166,6 +167,7 @@ export function VendorDashboardClient() {
   const [accessState, setAccessState] = useState<
     "allowed" | "missing_profile" | "not_owner"
   >("allowed");
+  const [activeTab, setActiveTab] = useState("resumen");
 
   const loadDashboard = useCallback(async () => {
     setIsLoading(true);
@@ -516,7 +518,7 @@ export function VendorDashboardClient() {
           <h2 className="text-lg font-semibold">Completa tu perfil primero</h2>
           <p className="text-sm leading-6 text-muted">
             Tu cuenta de Auth existe, pero aun no tiene perfil Garemo activo.
-            Crea una cuenta publica como comprador o vendedor para activar un
+            Crea una cuenta pública como comprador o emprendedor para activar un
             perfil sin permisos admin.
           </p>
           <Link
@@ -530,9 +532,9 @@ export function VendorDashboardClient() {
 
       {accessState === "not_owner" ? (
         <Card className="space-y-3">
-          <h2 className="text-lg font-semibold">Panel solo para vendedores</h2>
+          <h2 className="text-lg font-semibold">Panel solo para emprendedores</h2>
           <p className="text-sm leading-6 text-muted">
-            Esta cuenta no tiene rol vendedor. Puedes usar Garemo como
+            Esta cuenta no tiene rol emprendedor. Puedes usar Garemo como
             comprador desde tu cuenta, guardar favoritos y calificar negocios.
           </p>
           <Link
@@ -545,76 +547,100 @@ export function VendorDashboardClient() {
       ) : null}
 
       {accessState !== "allowed" ? null : business ? (
-        <div className="space-y-5">
-          <Card className="grid gap-4 lg:grid-cols-[1.1fr_0.9fr]">
-            <div className="space-y-3">
-              <div className="flex items-center gap-2">
-                <ShieldCheck className="h-5 w-5 text-brand" />
-                <p className="text-sm font-medium text-brand">
-                  Estado: {business.status}
-                </p>
-              </div>
-              <p className="text-sm leading-6 text-muted">
-                Puedes editar datos publicos de tu negocio, ubicacion, WhatsApp
-                y productos. El badge verificado, el owner y el estado de
-                aprobacion son campos protegidos y no se editan desde este
-                panel.
-              </p>
-              <p className="text-xs leading-5 text-muted">
-                Los cambios quedan sujetos a RLS owner-only: Garemo solo acepta
-                edicion autenticada sobre datos propios.
-              </p>
-            </div>
-            <div className="rounded-lg border border-border bg-background p-3">
-              <h2 className="text-sm font-semibold">Checklist de perfil</h2>
-              <ul className="mt-3 space-y-2 text-sm">
-                {getProfileChecklist(business).map((item) => (
-                  <li className="flex items-center gap-2" key={item.label}>
-                    {item.done ? (
-                      <CheckCircle2 className="h-4 w-4 text-brand" />
-                    ) : (
-                      <Circle className="h-4 w-4 text-muted" />
+        <div className="space-y-6">
+          <div className="flex flex-col lg:flex-row gap-6">
+            {/* Sidebar Navigation */}
+            <aside className="lg:w-64 shrink-0">
+              <nav className="flex lg:flex-col gap-2 overflow-x-auto pb-2 lg:pb-0 scrollbar-hide lg:sticky lg:top-24">
+                {[
+                  { id: "resumen", label: "Resumen" },
+                  { id: "perfil", label: "Perfil del negocio" },
+                  { id: "ubicacion", label: "Ubicación y horarios" },
+                  { id: "productos", label: "Productos" },
+                ].map((tab) => (
+                  <button
+                    key={tab.id}
+                    onClick={() => setActiveTab(tab.id)}
+                    className={cn(
+                      "shrink-0 rounded-lg px-4 py-2.5 text-sm font-medium transition-all duration-200 text-left",
+                      activeTab === tab.id
+                        ? "bg-brand text-brand-foreground shadow-sm"
+                        : "bg-surface text-muted-foreground hover:bg-slate-50 hover:text-foreground"
                     )}
-                    <span className={item.done ? "" : "text-muted"}>
-                      {item.label}
-                    </span>
-                  </li>
+                  >
+                    {tab.label}
+                  </button>
                 ))}
-              </ul>
-            </div>
-          </Card>
-          <nav
-            aria-label="Secciones del panel"
-            className="flex gap-2 overflow-x-auto rounded-lg border border-border bg-surface p-2 text-sm font-medium text-muted"
-          >
-            {[
-              ["Mi negocio", "#mi-negocio"],
-              ["Estado del dia", "#estado-del-dia"],
-              ["Horario y ubicacion", "#horario-y-ubicacion"],
-              ["Productos", "#productos"],
-            ].map(([label, href]) => (
-              <a
-                className="shrink-0 rounded-lg px-3 py-2 transition-colors hover:bg-background hover:text-foreground"
-                href={href}
-                key={href}
-              >
-                {label}
-              </a>
-            ))}
-          </nav>
-          <VendorBusinessForm
-            business={business}
-            isSaving={isSaving}
-            onCoverUpload={uploadBusinessCover}
-            onSave={saveBusiness}
-          />
-          <VendorProductList
-            businessId={business.id}
-            isSaving={isSaving}
-            onImageUpload={uploadProductImage}
-            onSave={saveProduct}
-            products={business.products}
-          />
+                
+                <a
+                  href={`/businesses/${business.id}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="shrink-0 rounded-lg px-4 py-2.5 text-sm font-medium text-slate-600 bg-slate-100 hover:bg-slate-200 transition-colors text-left flex items-center justify-between mt-0 lg:mt-4"
+                >
+                  Vista previa
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="opacity-50"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+                </a>
+              </nav>
+            </aside>
+
+            {/* Content Area */}
+            <main className="flex-1 min-w-0 pb-12">
+              <div className={cn("space-y-5", activeTab !== "resumen" && "hidden")}>
+                <Card className="grid gap-6 lg:grid-cols-2 shadow-sm border-slate-200">
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-2 border-b border-border pb-3">
+                      <ShieldCheck className="h-6 w-6 text-brand" />
+                      <div>
+                        <h2 className="text-sm font-medium uppercase text-muted-foreground tracking-wider">Estado Actual</h2>
+                        <p className="text-base font-bold text-slate-800">
+                          {business.status === "pending_review" ? "En revisión" : business.status === "active" ? "Activo y visible" : business.status}
+                        </p>
+                      </div>
+                    </div>
+                    <p className="text-sm leading-6 text-muted-foreground">
+                      Aquí puedes gestionar tu presencia en Garemo. Recuerda que la aprobación final y la insignia de verificado son administradas por 2DevDogs.
+                    </p>
+                  </div>
+                  <div className="rounded-xl border border-border bg-slate-50 p-4">
+                    <h3 className="text-sm font-bold text-slate-800">Progreso del perfil</h3>
+                    <ul className="mt-4 space-y-3 text-sm">
+                      {getProfileChecklist(business).map((item) => (
+                        <li className="flex items-start gap-3" key={item.label}>
+                          {item.done ? (
+                            <CheckCircle2 className="h-5 w-5 text-emerald-500 shrink-0 mt-0.5" />
+                          ) : (
+                            <Circle className="h-5 w-5 text-slate-300 shrink-0 mt-0.5" />
+                          )}
+                          <span className={item.done ? "text-slate-700 font-medium" : "text-muted-foreground"}>
+                            {item.label}
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </Card>
+              </div>
+
+              <VendorBusinessForm
+                business={business}
+                isSaving={isSaving}
+                onCoverUpload={uploadBusinessCover}
+                onSave={saveBusiness}
+                activeTab={activeTab}
+              />
+              
+              <div className={cn(activeTab !== "productos" && "hidden")}>
+                <VendorProductList
+                  businessId={business.id}
+                  isSaving={isSaving}
+                  onImageUpload={uploadProductImage}
+                  onSave={saveProduct}
+                  products={business.products}
+                />
+              </div>
+            </main>
+          </div>
         </div>
       ) : (
         <div className="space-y-4">

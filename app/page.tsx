@@ -1,20 +1,17 @@
 import Link from "next/link";
 import {
   ArrowRight,
-  Building2,
-  CheckCircle2,
-  Clock3,
-  LogIn,
   MapPinned,
-  MessageCircle,
   Search,
   ShieldCheck,
-  Sparkles,
   Star,
   Store,
-  UserPlus,
+  MessageCircle,
+  CheckCircle2,
+  Sparkles,
+  Building2,
+  Clock3,
 } from "lucide-react";
-
 import { PageShell } from "@/components/layout/page-shell";
 import { Card } from "@/components/ui/card";
 import { getActiveBusinesses, getCategories } from "@/lib/supabase/queries";
@@ -38,191 +35,125 @@ export default async function Home() {
   return (
     <PageShell>
       <div className="space-y-10 pb-8">
-        <section className="grid gap-6 lg:grid-cols-[1.05fr_0.95fr] lg:items-center">
-          <div className="space-y-6 py-4">
-            <div className="space-y-3">
-              <p className="inline-flex rounded-full border border-border bg-surface px-3 py-1 text-sm font-medium text-brand">
+        <section className="relative overflow-hidden rounded-3xl bg-gradient-to-b from-brand/10 to-transparent p-6 sm:p-12 lg:p-16 border border-border/50 shadow-sm">
+          <div className="absolute inset-0 bg-[url('https://placehold.co/100x100/png?text=pattern')] opacity-5 mix-blend-overlay"></div>
+          <div className="relative mx-auto max-w-3xl space-y-8 text-center">
+            <div className="space-y-4">
+              <span className="inline-flex rounded-full border border-brand/20 bg-surface px-4 py-1.5 text-sm font-semibold text-brand shadow-sm">
                 Directorio universitario local
-              </p>
-              <h1 className="max-w-2xl text-4xl font-semibold leading-tight tracking-tight text-foreground sm:text-5xl">
-                Garemo conecta estudiantes con negocios cerca del campus.
+              </span>
+              <h1 className="text-4xl font-bold leading-tight tracking-tight text-foreground sm:text-5xl lg:text-6xl">
+                Encuentra emprendimientos y productos cerca de tu universidad
               </h1>
-              <p className="max-w-xl text-base leading-7 text-muted">
-                Explora emprendimientos activos, revisa su ubicacion y abre el
-                perfil publico para contactar por WhatsApp sin crear cuenta.
+              <p className="mx-auto max-w-2xl text-lg leading-8 text-muted-foreground">
+                Apoya a la comunidad universitaria. Explora negocios, revisa el mapa de ubicaciones y contacta directo por WhatsApp sin intermediarios.
               </p>
             </div>
 
-            <div className="grid gap-3 sm:flex">
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
               <Link
-                className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-brand px-4 text-sm font-medium text-brand-foreground transition-colors hover:bg-teal-800"
+                className="inline-flex h-12 w-full sm:w-auto items-center justify-center gap-2 rounded-xl bg-brand px-8 text-base font-medium text-brand-foreground shadow-md transition-all hover:bg-brand-hover hover:shadow-lg hover:-translate-y-0.5"
                 href="/businesses"
               >
-                <Search className="h-4 w-4" />
+                <Search className="h-5 w-5" />
                 Explorar negocios
               </Link>
               <Link
-                className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border border-border bg-surface px-4 text-sm font-medium text-foreground transition-colors hover:bg-background"
-                href="/map"
-              >
-                <MapPinned className="h-4 w-4" />
-                Ver mapa
-              </Link>
-              <Link
-                className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border border-border bg-surface px-4 text-sm font-medium text-foreground transition-colors hover:bg-background"
-                href="/login"
-              >
-                <LogIn className="h-4 w-4" />
-                Iniciar sesion
-              </Link>
-            </div>
-
-            <div className="grid gap-3 sm:grid-cols-2">
-              <Link
-                className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border border-border bg-surface px-4 text-sm font-medium text-foreground transition-colors hover:bg-background"
+                className="inline-flex h-12 w-full sm:w-auto items-center justify-center gap-2 rounded-xl border-2 border-border bg-surface px-8 text-base font-medium text-foreground transition-all hover:border-brand/30 hover:bg-slate-50"
                 href="/signup"
               >
-                <UserPlus className="h-4 w-4" />
-                Crear cuenta
-              </Link>
-              <Link
-                className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border border-border bg-surface px-4 text-sm font-medium text-foreground transition-colors hover:bg-background"
-                href="/dashboard"
-              >
-                <Store className="h-4 w-4" />
+                <Store className="h-5 w-5 text-brand" />
                 Publicar mi negocio
               </Link>
             </div>
 
-            <div className="grid grid-cols-3 gap-3 text-center sm:max-w-md">
-              <div className="rounded-lg border border-border bg-surface p-3">
-                <p className="text-2xl font-semibold">{visibleBusinessCount}</p>
-                <p className="text-xs leading-5 text-muted">negocios</p>
+            <div className="grid grid-cols-3 gap-4 pt-8 sm:max-w-xl mx-auto border-t border-border/50">
+              <div className="flex flex-col items-center">
+                <p className="text-3xl font-bold text-brand">{visibleBusinessCount}</p>
+                <p className="text-sm font-medium text-muted-foreground mt-1">Negocios</p>
               </div>
-              <div className="rounded-lg border border-border bg-surface p-3">
-                <p className="text-2xl font-semibold">{categories.length}</p>
-                <p className="text-xs leading-5 text-muted">categorias</p>
+              <div className="flex flex-col items-center">
+                <p className="text-3xl font-bold text-brand">{categories.length}</p>
+                <p className="text-sm font-medium text-muted-foreground mt-1">Categorías</p>
               </div>
-              <div className="rounded-lg border border-border bg-surface p-3">
-                <p className="text-2xl font-semibold">{mappedBusinessCount}</p>
-                <p className="text-xs leading-5 text-muted">pines</p>
-              </div>
-            </div>
-          </div>
-
-          <div className="rounded-lg border border-border bg-surface p-4 shadow-sm">
-            <div className="space-y-4">
-              <div className="flex items-center justify-between gap-4">
-                <div>
-                  <p className="text-sm font-medium text-brand">
-                    Vista publica
-                  </p>
-                  <h2 className="text-lg font-semibold">
-                    Negocios disponibles
-                  </h2>
-                </div>
-                <MapPinned className="h-5 w-5 text-brand" />
-              </div>
-
-              <div className="space-y-3">
-                {businesses.slice(0, 3).map((business) => (
-                  <Link href={`/businesses/${business.id}`} key={business.id}>
-                    <div className="rounded-lg border border-border bg-background p-3 transition-colors hover:border-brand">
-                      <div className="flex items-start justify-between gap-3">
-                        <div className="min-w-0">
-                          <p className="truncate text-sm font-semibold">
-                            {business.name}
-                          </p>
-                          <p className="text-xs text-muted">
-                            {business.category?.name ?? "Categoria"}
-                          </p>
-                        </div>
-                        <ArrowRight className="h-4 w-4 shrink-0 text-brand" />
-                      </div>
-                    </div>
-                  </Link>
-                ))}
+              <div className="flex flex-col items-center">
+                <p className="text-3xl font-bold text-brand">{mappedBusinessCount}</p>
+                <p className="text-sm font-medium text-muted-foreground mt-1">En el mapa</p>
               </div>
             </div>
           </div>
         </section>
 
-        <section className="grid gap-3 sm:grid-cols-3">
-          <Card className="space-y-3">
-            <Search className="h-5 w-5 text-brand" />
-            <h2 className="text-base font-semibold">Busca rapido</h2>
-            <p className="text-sm leading-6 text-muted">
-              Filtra por categoria y abre perfiles activos aprobados.
+        <section className="grid gap-4 sm:grid-cols-3 mt-12">
+          <Card className="space-y-3 hover:border-brand/30 transition-colors shadow-sm">
+            <Search className="h-6 w-6 text-brand" />
+            <h2 className="text-lg font-semibold">Busca rápido</h2>
+            <p className="text-sm leading-6 text-muted-foreground">
+              Filtra por categoría y descubre emprendimientos activos en la universidad.
             </p>
           </Card>
-          <Card className="space-y-3">
-            <MapPinned className="h-5 w-5 text-brand" />
-            <h2 className="text-base font-semibold">Ubica en mapa</h2>
-            <p className="text-sm leading-6 text-muted">
-              Revisa pines y referencias para encontrar el negocio.
+          <Card className="space-y-3 hover:border-brand/30 transition-colors shadow-sm">
+            <MapPinned className="h-6 w-6 text-brand" />
+            <h2 className="text-lg font-semibold">Ubica en el mapa</h2>
+            <p className="text-sm leading-6 text-muted-foreground">
+              Revisa los pines en el mapa interactivo para encontrar los negocios físicos.
             </p>
           </Card>
-          <Card className="space-y-3">
-            <MessageCircle className="h-5 w-5 text-brand" />
-            <h2 className="text-base font-semibold">Contacta directo</h2>
-            <p className="text-sm leading-6 text-muted">
-              Usa WhatsApp desde el perfil publico cuando este disponible.
+          <Card className="space-y-3 hover:border-brand/30 transition-colors shadow-sm">
+            <MessageCircle className="h-6 w-6 text-brand" />
+            <h2 className="text-lg font-semibold">Contacta directo</h2>
+            <p className="text-sm leading-6 text-muted-foreground">
+              Abre WhatsApp con un clic para hacer pedidos sin comisiones ni registros.
             </p>
           </Card>
         </section>
 
-        <section className="grid gap-3 lg:grid-cols-3">
-          <Card className="space-y-3">
+        <section className="grid gap-4 lg:grid-cols-3 pt-8">
+          <Card className="space-y-4 border-t-4 border-t-slate-800 shadow-sm">
             <div className="flex items-center gap-2">
-              <Search className="h-5 w-5 text-brand" />
-              <h2 className="text-base font-semibold">Estudiantes</h2>
+              <Search className="h-5 w-5 text-slate-800" />
+              <h2 className="text-xl font-semibold">Estudiantes</h2>
             </div>
-            <p className="text-sm leading-6 text-muted">
+            <p className="text-sm leading-6 text-muted-foreground">
               Puedes explorar negocios, productos, precios, mapa y WhatsApp sin
               crear cuenta. Si te registras como comprador, puedes guardar
               favoritos y calificar negocios.
             </p>
             <Link
-              className="inline-flex min-h-10 items-center gap-2 rounded-lg border border-border px-3 text-sm font-medium hover:bg-background"
+              className="inline-flex min-h-10 items-center gap-2 rounded-lg border border-border bg-surface px-4 text-sm font-medium hover:bg-slate-50 transition-colors"
               href="/signup"
             >
               Crear cuenta comprador
               <ArrowRight className="h-4 w-4" />
             </Link>
           </Card>
-          <Card className="space-y-3">
+          
+          <Card className="space-y-4 border-t-4 border-t-brand shadow-sm">
             <div className="flex items-center gap-2">
               <Store className="h-5 w-5 text-brand" />
-              <h2 className="text-base font-semibold">Emprendedores</h2>
+              <h2 className="text-xl font-semibold">Emprendedores</h2>
             </div>
-            <p className="text-sm leading-6 text-muted">
-              Crea cuenta como vendedor para crear o editar tu negocio. Los
-              negocios nuevos quedan en revision antes de aparecer publicamente.
+            <p className="text-sm leading-6 text-muted-foreground">
+              Crea tu perfil como emprendedor para publicar tu negocio. Los
+              negocios nuevos pasan por una revisión rápida antes de aparecer en el directorio.
             </p>
             <Link
-              className="inline-flex min-h-10 items-center gap-2 rounded-lg border border-border px-3 text-sm font-medium hover:bg-background"
+              className="inline-flex min-h-10 items-center gap-2 rounded-lg bg-brand px-4 text-sm font-medium text-brand-foreground hover:bg-brand-hover transition-colors"
               href="/signup"
             >
               Publicar mi negocio
               <ArrowRight className="h-4 w-4" />
             </Link>
           </Card>
-          <Card className="space-y-3">
+          
+          <Card className="space-y-4 border-t-4 border-t-slate-300 shadow-sm">
             <div className="flex items-center gap-2">
-              <ShieldCheck className="h-5 w-5 text-brand" />
-              <h2 className="text-base font-semibold">Admin Garemo</h2>
+              <ShieldCheck className="h-5 w-5 text-slate-600" />
+              <h2 className="text-xl font-semibold">Garemo Seguro</h2>
             </div>
-            <p className="text-sm leading-6 text-muted">
-              Solo usuarios con rol admin activo pueden revisar negocios. Nadie
-              puede elegir admin desde la interfaz publica.
+            <p className="text-sm leading-6 text-muted-foreground">
+              Garemo no procesa pagos en línea. Verifica siempre con el emprendedor por WhatsApp antes de transferir dinero.
             </p>
-            <Link
-              className="inline-flex min-h-10 items-center gap-2 rounded-lg border border-border px-3 text-sm font-medium hover:bg-background"
-              href="/admin"
-            >
-              Revisar pendientes
-              <ArrowRight className="h-4 w-4" />
-            </Link>
           </Card>
         </section>
 
@@ -318,7 +249,7 @@ export default async function Home() {
               </h2>
               <p className="text-sm leading-6 text-muted">
                 Compradores pueden crear cuenta para guardar favoritos.
-                Vendedores autenticados pueden crear/editar su negocio propio.
+                Emprendedores autenticados pueden crear/editar su negocio propio.
                 Admin revisa negocios con RLS y funciones seguras antes de
                 publicar.
               </p>

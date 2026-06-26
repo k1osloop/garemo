@@ -131,7 +131,7 @@ export function SignupForm() {
             <p className="text-sm leading-6 text-muted">
               Enviamos un enlace a {status.email}. Cuando confirmes el email,
               vuelve a iniciar sesion. Garemo creara tu perfil como{" "}
-              {status.role === "owner" ? "vendedor" : "comprador"} sin
+              {status.role === "owner" ? "emprendedor" : "comprador"} sin
               permisos admin.
             </p>
           </div>
@@ -166,7 +166,7 @@ export function SignupForm() {
             Crea tu cuenta Garemo
           </h1>
           <p className="text-sm leading-6 text-muted">
-            Elige comprador o vendedor. El rol admin no se puede solicitar ni
+            Elige comprador o emprendedor. El rol admin no se puede solicitar ni
             activar desde esta pantalla; solo 2DevDogs lo asigna manualmente
             cuando corresponde.
           </p>
@@ -183,13 +183,12 @@ export function SignupForm() {
               </p>
             </div>
           </Card>
-          <Card className="flex gap-3">
+          <Card className="flex gap-3 hover:border-brand/30 transition-colors shadow-sm">
             <Store className="mt-0.5 h-5 w-5 shrink-0 text-brand" />
             <div className="space-y-1">
-              <h2 className="text-sm font-semibold">Vendedor / emprendedor</h2>
+              <h2 className="text-sm font-semibold">Emprendedor</h2>
               <p className="text-sm leading-6 text-muted">
-                Crea tu negocio desde el dashboard. Quedara en revision antes
-                de publicarse.
+                Publica tu negocio, muestra tus productos y recibe contactos por WhatsApp.
               </p>
             </div>
           </Card>
@@ -224,7 +223,7 @@ export function SignupForm() {
         <form className="space-y-4" onSubmit={handleSubmit}>
           <fieldset className="grid gap-3">
             <legend className="text-sm font-medium">Tipo de cuenta</legend>
-            <div className="grid gap-2 sm:grid-cols-2">
+            <div className="grid gap-3 sm:grid-cols-2">
               {[
                 {
                   label: "Comprador",
@@ -232,16 +231,16 @@ export function SignupForm() {
                   text: "Favoritos y calificaciones.",
                 },
                 {
-                  label: "Vendedor",
+                  label: "Emprendedor",
                   role: "owner" as const,
-                  text: "Negocio pendiente de revision.",
+                  text: "Publica tu negocio.",
                 },
               ].map((option) => (
                 <label
-                  className={`grid cursor-pointer gap-1 rounded-lg border p-3 text-sm transition-colors ${
+                  className={`grid cursor-pointer gap-1.5 rounded-xl border p-4 text-sm transition-all duration-200 ${
                     selectedRole === option.role
-                      ? "border-brand bg-brand/5"
-                      : "border-border bg-background"
+                      ? "border-brand bg-brand/5 shadow-sm ring-1 ring-brand/20"
+                      : "border-border bg-surface hover:border-brand/30 hover:bg-slate-50"
                   }`}
                   key={option.role}
                 >

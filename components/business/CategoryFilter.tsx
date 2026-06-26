@@ -31,13 +31,13 @@ export function CategoryFilter({
   }
 
   return (
-    <div className="flex flex-wrap gap-2">
+    <div className="flex flex-wrap gap-2 pt-2">
       <Link
         className={cn(
-          "shrink-0 rounded-full border px-3 py-2 text-sm font-medium transition-colors",
+          "shrink-0 rounded-full border px-4 py-1.5 text-sm font-semibold transition-all duration-200",
           !selectedCategory
-            ? "border-brand bg-brand text-brand-foreground"
-            : "border-border bg-surface text-muted hover:border-brand hover:text-foreground",
+            ? "border-brand bg-brand text-brand-foreground shadow-sm"
+            : "border-border bg-surface text-muted-foreground hover:border-brand/50 hover:text-foreground hover:bg-slate-50",
         )}
         href={buildHref()}
       >
@@ -46,10 +46,10 @@ export function CategoryFilter({
       {categories.map((category) => (
         <Link
           className={cn(
-            "shrink-0 rounded-full border px-3 py-2 text-sm font-medium transition-colors",
+            "shrink-0 rounded-full border px-4 py-1.5 text-sm font-semibold transition-all duration-200",
             selectedCategory === category.slug
-              ? "border-brand bg-brand text-brand-foreground"
-              : "border-border bg-surface text-muted hover:border-brand hover:text-foreground",
+              ? "border-brand bg-brand text-brand-foreground shadow-sm"
+              : "border-border bg-surface text-muted-foreground hover:border-brand/50 hover:text-foreground hover:bg-slate-50",
           )}
           href={buildHref(category.slug)}
           key={category.id}

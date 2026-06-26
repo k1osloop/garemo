@@ -233,128 +233,137 @@ export function AdminReviewClient() {
   }
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-6">
       {error ? (
         <ErrorState title="No se pudo revisar" description={error} />
       ) : null}
 
-      <Card className="space-y-2">
-        <div className="flex items-center gap-2">
-          <ShieldAlert className="h-5 w-5 text-brand" />
-          <h2 className="text-lg font-semibold">Negocios pendientes</h2>
+      <Card className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between border-brand/20 bg-brand/5 shadow-sm">
+        <div className="space-y-2">
+          <div className="flex items-center gap-2">
+            <span className="flex h-8 w-8 items-center justify-center rounded-full bg-brand/20">
+              <ShieldAlert className="h-4 w-4 text-brand" />
+            </span>
+            <h2 className="text-xl font-bold tracking-tight text-slate-800">Negocios pendientes</h2>
+          </div>
+          <p className="text-sm leading-relaxed text-slate-600 max-w-3xl">
+            Revisa identidad/contacto, categoría, ubicación y productos antes de
+            aprobar. Aprobar publica el negocio en directorio y mapa si tiene
+            ubicación.
+          </p>
         </div>
-        <p className="text-sm leading-6 text-muted">
-          Revisa identidad/contacto, categoria, ubicacion y productos antes de
-          aprobar. Aprobar publica el negocio en directorio y mapa si tiene
-          ubicacion.
-        </p>
       </Card>
 
       {businesses.length === 0 ? (
         <EmptyState
           title="No hay negocios pendientes"
-          description="Cuando un emprendedor cree su primer negocio, aparecera aqui como pending_review."
+          description="Cuando un emprendedor cree su primer negocio, aparecerá aquí para revisión."
         />
       ) : (
-        <div className="grid gap-4">
+        <div className="grid gap-6">
           {businesses.map((business) => {
             const isBusy = isReviewing === business.id;
             const shouldVerify = verifiedByBusiness[business.id] ?? true;
 
             return (
-              <Card className="space-y-4" key={business.id}>
-                <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                  <div className="space-y-2">
-                    <p className="text-xs font-semibold uppercase text-brand">
-                      {business.category?.name ?? "Sin categoria"} - {business.status}
+              <Card className="space-y-5 shadow-sm bg-white" key={business.id}>
+                <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between border-b border-slate-100 pb-4">
+                  <div className="space-y-1.5">
+                    <p className="text-[10px] font-bold uppercase tracking-wider text-brand bg-brand/10 inline-block px-2 py-0.5 rounded">
+                      {business.category?.name ?? "Sin categoría"} • {business.status}
                     </p>
-                    <h3 className="text-xl font-semibold">{business.name}</h3>
-                    <p className="text-sm leading-6 text-muted">
+                    <h3 className="text-2xl font-bold text-slate-800">{business.name}</h3>
+                    <p className="text-sm leading-relaxed text-slate-600 max-w-2xl">
                       {business.description}
                     </p>
                   </div>
                   <Link
-                    className="inline-flex min-h-10 items-center justify-center rounded-lg border border-border px-3 text-sm font-medium hover:bg-surface"
+                    className="inline-flex min-h-10 items-center justify-center rounded-xl bg-slate-100 text-slate-700 text-sm font-semibold hover:bg-slate-200 transition-colors px-4 shrink-0"
                     href={`/businesses/${business.id}`}
+                    target="_blank"
                   >
-                    Ver publico
+                    Ver público
                   </Link>
                 </div>
 
-                <div className="grid gap-3 text-sm sm:grid-cols-3">
-                  <div className="rounded-lg border border-border bg-background p-3">
-                    <p className="font-medium">Contacto</p>
-                    <p className="mt-1 text-muted">
+                <div className="grid gap-4 text-sm sm:grid-cols-3">
+                  <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
+                    <p className="text-xs font-bold uppercase tracking-wider text-slate-500">Contacto</p>
+                    <p className="mt-1 font-medium text-slate-800">
                       {business.contact_info?.whatsapp_number ?? "Sin WhatsApp"}
                     </p>
                   </div>
-                  <div className="rounded-lg border border-border bg-background p-3">
-                    <p className="font-medium">Ubicacion</p>
-                    <p className="mt-1 text-muted">
-                      {business.location?.address_text ?? "Sin ubicacion"}
+                  <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
+                    <p className="text-xs font-bold uppercase tracking-wider text-slate-500">Ubicación</p>
+                    <p className="mt-1 font-medium text-slate-800">
+                      {business.location?.address_text ?? "Sin ubicación"}
                     </p>
                   </div>
-                  <div className="rounded-lg border border-border bg-background p-3">
-                    <p className="font-medium">Productos</p>
-                    <p className="mt-1 text-muted">
+                  <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
+                    <p className="text-xs font-bold uppercase tracking-wider text-slate-500">Productos</p>
+                    <p className="mt-1 font-medium text-slate-800">
                       {business.products.length} productos cargados
                     </p>
                   </div>
                 </div>
 
-                <label className="grid gap-2 text-sm font-medium">
-                  Notas de revision
-                  <textarea
-                    className="min-h-24 rounded-lg border border-border bg-surface px-3 py-2 text-base outline-none placeholder:text-muted focus:border-brand focus:ring-2 focus:ring-brand/20"
-                    maxLength={1000}
-                    onChange={(event) =>
-                      setNotesByBusiness((current) => ({
-                        ...current,
-                        [business.id]: event.target.value,
-                      }))
-                    }
-                    placeholder="Motivo de aprobacion, rechazo o datos pendientes."
-                    value={notesByBusiness[business.id] ?? ""}
-                  />
-                </label>
+                <div className="space-y-4 pt-2">
+                  <label className="grid gap-2 text-sm font-bold text-slate-800">
+                    Notas de revisión
+                    <textarea
+                      className="min-h-24 rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-normal text-slate-700 outline-none placeholder:text-slate-400 focus:border-brand focus:ring-2 focus:ring-brand/20 transition-all shadow-sm"
+                      maxLength={1000}
+                      onChange={(event) =>
+                        setNotesByBusiness((current) => ({
+                          ...current,
+                          [business.id]: event.target.value,
+                        }))
+                      }
+                      placeholder="Motivo de aprobación, rechazo o datos pendientes."
+                      value={notesByBusiness[business.id] ?? ""}
+                    />
+                  </label>
 
-                <label className="flex items-center gap-2 text-sm font-medium">
-                  <input
-                    checked={shouldVerify}
-                    className="h-4 w-4 accent-[var(--brand)]"
-                    onChange={(event) =>
-                      setVerifiedByBusiness((current) => ({
-                        ...current,
-                        [business.id]: event.target.checked,
-                      }))
-                    }
-                    type="checkbox"
-                  />
-                  Marcar como verificado manualmente al aprobar
-                </label>
+                  <label className="flex items-center gap-3 text-sm font-semibold text-slate-700 cursor-pointer bg-slate-50 p-3 rounded-lg border border-slate-100">
+                    <input
+                      checked={shouldVerify}
+                      className="h-4 w-4 accent-brand rounded border-slate-300"
+                      onChange={(event) =>
+                        setVerifiedByBusiness((current) => ({
+                          ...current,
+                          [business.id]: event.target.checked,
+                        }))
+                      }
+                      type="checkbox"
+                    />
+                    Marcar como verificado manualmente al aprobar
+                  </label>
 
-                <div className="flex flex-col gap-2 sm:flex-row">
-                  <Button
-                    disabled={isBusy}
-                    onClick={() =>
-                      void reviewBusiness(business.id, "active", shouldVerify)
-                    }
-                    type="button"
-                  >
-                    <CheckCircle2 className="h-4 w-4" />
-                    {isBusy ? "Revisando..." : "Aprobar"}
-                  </Button>
-                  <Button
-                    disabled={isBusy}
-                    onClick={() =>
-                      void reviewBusiness(business.id, "rejected", false)
-                    }
-                    type="button"
-                    variant="secondary"
-                  >
-                    <XCircle className="h-4 w-4" />
-                    Rechazar
-                  </Button>
+                  <div className="flex flex-col gap-3 sm:flex-row pt-2">
+                    <Button
+                      disabled={isBusy}
+                      onClick={() =>
+                        void reviewBusiness(business.id, "active", shouldVerify)
+                      }
+                      type="button"
+                      className="gap-2 bg-emerald-600 hover:bg-emerald-700 text-white min-h-11 shadow-sm"
+                    >
+                      <CheckCircle2 className="h-4 w-4" />
+                      {isBusy ? "Revisando..." : "Aprobar negocio"}
+                    </Button>
+                    <Button
+                      disabled={isBusy}
+                      onClick={() =>
+                        void reviewBusiness(business.id, "rejected", false)
+                      }
+                      type="button"
+                      variant="outline"
+                      className="gap-2 text-red-600 border-red-200 hover:bg-red-50 hover:text-red-700 hover:border-red-300 min-h-11 shadow-sm"
+                    >
+                      <XCircle className="h-4 w-4" />
+                      Rechazar
+                    </Button>
+                  </div>
                 </div>
               </Card>
             );
