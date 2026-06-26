@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 120" width="400" height="120">
+  <defs>
+    <style>
+      .text-dark { fill: #0B1F3D; font-family: system-ui, sans-serif; font-weight: 800; font-size: 52px; letter-spacing: -1px; }
+      .text-slogan { fill: #0B1F3D; font-family: system-ui, sans-serif; font-weight: 500; font-size: 16px; }
+      .pin { fill: #1BA463; }
+      .star { fill: #F2B227; }
+    </style>
+  </defs>
+  
+  <g transform="translate(10, 10)">
+    <!-- Isotipo (Pin con G y estrella) -->
+    <path class="pin" d="M45,0 C20.147,0 0,20.147 0,45 C0,78.75 45,100 45,100 C45,100 90,78.75 90,45 C90,20.147 69.853,0 45,0 Z M45,15 C48.314,15 51,17.686 51,21 C51,24.314 48.314,27 45,27 C41.686,27 39,24.314 39,21 C39,17.686 41.686,15 45,15 Z M65,55 C65,66.046 56.046,75 45,75 C33.954,75 25,66.046 25,55 C25,43.954 33.954,35 45,35 L45,45 C39.477,45 35,49.477 35,55 C35,60.523 39.477,65 45,65 C50.523,65 55,60.523 55,55 L45,55 L45,45 L65,45 L65,55 Z"/>
+    
+    <!-- Estrella amarilla -->
+    <path class="star" d="M45,28 L49,38 L60,40 L51,47 L54,58 L45,52 L36,58 L39,47 L30,40 L41,38 Z"/>
+  </g>
+  
+  <text x="110" y="65" class="text-dark">GAREMO</text>
+  <text x="115" y="90" class="text-slogan">Compra talento universitario</text>
+</svg>

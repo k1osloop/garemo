@@ -127,6 +127,7 @@ export function ImageUploadField({
         <div className="grid gap-3">
           <input
             accept="image/jpeg,image/png,image/webp"
+            capture="environment"
             className="block w-full text-sm file:mr-3 file:min-h-10 file:rounded-lg file:border-0 file:bg-brand file:px-3 file:text-sm file:font-medium file:text-brand-foreground"
             disabled={disabled || isUploading}
             onChange={handleFileChange}

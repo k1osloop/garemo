@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 
 import { AppHeader } from "@/components/layout/app-header";
+import { SiteFooter } from "@/components/layout/site-footer";
 
 type PageShellProps = {
   children: ReactNode;
@@ -9,9 +10,9 @@ type PageShellProps = {
 
 export function PageShell({ children, title }: PageShellProps) {
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen flex flex-col">
       <AppHeader />
-      <main className="mx-auto w-full max-w-5xl px-4 py-6 sm:py-8">
+      <main className="mx-auto w-full max-w-5xl px-4 py-6 sm:py-8 flex-1">
         {title ? (
           <h1 className="mb-4 text-2xl font-semibold tracking-tight">
             {title}
@@ -19,6 +20,7 @@ export function PageShell({ children, title }: PageShellProps) {
         ) : null}
         {children}
       </main>
+      <SiteFooter />
     </div>
   );
 }

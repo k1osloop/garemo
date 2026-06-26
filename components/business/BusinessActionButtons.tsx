@@ -53,6 +53,16 @@ export function BusinessActionButtons({ businessName, latitude, longitude }: Bus
           Cómo llegar
         </a>
       )}
+      <Button 
+        variant="outline" 
+        className="text-xs sm:text-sm h-9 px-3 text-brand border-brand/20 bg-brand/5 hover:bg-brand/10 hover:text-brand"
+        onClick={() => alert("Chat en desarrollo (MVP). Pronto podrás enviar mensajes directos por aquí.")}
+      >
+        <span className="relative flex items-center gap-2">
+          Chat
+          <span className="flex h-2 w-2 rounded-full bg-brand"></span>
+        </span>
+      </Button>
     </div>
   );
 }

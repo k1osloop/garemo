@@ -159,12 +159,16 @@ export function SignupForm() {
     <div className="mx-auto grid max-w-5xl gap-5 lg:grid-cols-[0.95fr_1.05fr]">
       <div className="space-y-4">
         <Card className="space-y-3">
+          <img src="/brand/logo.svg" alt="Garemo Logo" className="h-12 w-auto mb-2 drop-shadow-sm" />
           <p className="text-sm font-medium uppercase text-brand">
             Registro publico
           </p>
           <h1 className="text-2xl font-semibold tracking-tight">
             Crea tu cuenta Garemo
           </h1>
+          <p className="text-sm font-medium text-brand/80">
+            Compra talento universitario
+          </p>
           <p className="text-sm leading-6 text-muted">
             Elige comprador o emprendedor. El rol admin no se puede solicitar ni
             activar desde esta pantalla; solo 2DevDogs lo asigna manualmente

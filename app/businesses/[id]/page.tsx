@@ -308,22 +308,46 @@ export default async function BusinessDetailPage({
 
         <BusinessReviewForm businessId={business.id} ownerId={business.owner_id} />
 
-        <Card className="space-y-3">
-          <h2 className="flex items-center gap-2 text-base font-semibold">
-            <MapPin className="h-4 w-4 text-brand" />
-            Ubicacion
-          </h2>
-          {business.location ? (
-            <div className="space-y-1 text-sm leading-6 text-muted">
-              <p>{business.location.address_text}</p>
-              {business.location.campus_zone ? (
-                <p>{business.location.campus_zone}</p>
+        <div className="grid gap-4 sm:grid-cols-2">
+          <Card className="space-y-3">
+            <h2 className="flex items-center gap-2 text-base font-semibold">
+              <MapPin className="h-4 w-4 text-brand" />
+              Ubicacion
+            </h2>
+            {business.location ? (
+              <div className="space-y-1 text-sm leading-6 text-muted">
+                <p>{business.location.address_text}</p>
+                {business.location.campus_zone ? (
+                  <p>{business.location.campus_zone}</p>
+                ) : null}
+              </div>
+            ) : (
+              <p className="text-sm text-muted">Ubicacion por confirmar.</p>
+            )}
+          </Card>
+
+          <Card className="space-y-3 border-l-4 border-l-brand">
+            <h2 className="flex items-center gap-2 text-base font-semibold">
+              Opciones de entrega
+            </h2>
+            <div className="space-y-2">
+              <div className="flex gap-2">
+                {business.delivery_available ? (
+                  <span className="inline-flex items-center rounded-md bg-brand/10 px-2 py-1 text-xs font-medium text-brand">Delivery</span>
+                ) : null}
+                {business.pickup_available ? (
+                  <span className="inline-flex items-center rounded-md bg-slate-100 px-2 py-1 text-xs font-medium text-slate-600">Recojo</span>
+                ) : null}
+                {!business.delivery_available && !business.pickup_available ? (
+                  <span className="text-sm text-muted">No especificado</span>
+                ) : null}
+              </div>
+              {business.delivery_notes ? (
+                <p className="text-sm leading-6 text-muted italic">"{business.delivery_notes}"</p>
               ) : null}
             </div>
-          ) : (
-            <p className="text-sm text-muted">Ubicacion por confirmar.</p>
-          )}
-        </Card>
+          </Card>
+        </div>
 
         <Card className="space-y-3">
           <h2 className="flex items-center gap-2 text-base font-semibold">

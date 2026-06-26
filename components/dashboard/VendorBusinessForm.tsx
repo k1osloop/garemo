@@ -20,6 +20,9 @@ export type VendorBusinessFormValues = {
     | "status_message"
     | "opens_at"
     | "closes_at"
+    | "delivery_available"
+    | "pickup_available"
+    | "delivery_notes"
   >;
   contact: Pick<ContactInfo, "whatsapp_number">;
   location: Pick<
@@ -88,6 +91,9 @@ export function VendorBusinessForm({
         status_message: nullableText(formData.get("status_message")),
         opens_at: nullableText(formData.get("opens_at")),
         closes_at: nullableText(formData.get("closes_at")),
+        delivery_available: formData.get("delivery_available") === "on",
+        pickup_available: formData.get("pickup_available") === "on",
+        delivery_notes: nullableText(formData.get("delivery_notes")),
       },
       contact: {
         whatsapp_number: String(formData.get("whatsapp_number") ?? "").trim(),
@@ -221,7 +227,7 @@ export function VendorBusinessForm({
           <div className="space-y-2">
             <div className="flex items-center gap-2 text-sm font-semibold">
               <MapPin className="h-4 w-4 text-brand" />
-              Horario y ubicación
+              Ubicación
             </div>
             <p className="text-sm leading-6 text-muted-foreground">
               Usa una referencia humana clara. Latitud y longitud son opcionales,
@@ -255,6 +261,53 @@ export function VendorBusinessForm({
               type="number"
             />
           </div>
+        </Card>
+
+        <Card className="space-y-4 border-l-4 border-l-brand">
+          <div className="space-y-2">
+            <div className="flex items-center gap-2 text-sm font-semibold">
+              <Store className="h-4 w-4 text-brand" />
+              Opciones de entrega
+            </div>
+            <p className="text-sm leading-6 text-muted-foreground">
+              Indica cómo pueden obtener tus productos. Esto es sólo informativo para los compradores.
+            </p>
+          </div>
+          
+          <div className="grid gap-4 sm:grid-cols-2">
+            <label className="flex items-start gap-3 rounded-lg border border-border p-4 hover:bg-slate-50 cursor-pointer">
+              <input 
+                type="checkbox" 
+                name="delivery_available" 
+                defaultChecked={business.delivery_available}
+                className="mt-1 h-4 w-4 accent-brand"
+              />
+              <div className="space-y-1">
+                <p className="text-sm font-medium">Delivery disponible</p>
+                <p className="text-xs text-muted-foreground">Haces envíos a los compradores.</p>
+              </div>
+            </label>
+            <label className="flex items-start gap-3 rounded-lg border border-border p-4 hover:bg-slate-50 cursor-pointer">
+              <input 
+                type="checkbox" 
+                name="pickup_available" 
+                defaultChecked={business.pickup_available}
+                className="mt-1 h-4 w-4 accent-brand"
+              />
+              <div className="space-y-1">
+                <p className="text-sm font-medium">Recojo en punto</p>
+                <p className="text-xs text-muted-foreground">Los compradores pueden pasar a recoger.</p>
+              </div>
+            </label>
+          </div>
+          
+          <Input
+            defaultValue={business.delivery_notes ?? ""}
+            label="Notas de entrega"
+            name="delivery_notes"
+            placeholder="Ej. Delivery gratis en Campus Norte. Recojo en puerta 3."
+            maxLength={140}
+          />
         </Card>
       </div>
 

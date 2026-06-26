@@ -46,9 +46,7 @@ export function AppHeader() {
           className="flex items-center gap-2 text-lg font-bold tracking-tight text-brand transition-opacity hover:opacity-90"
           href="/"
         >
-          <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-brand text-sm font-bold text-brand-foreground shadow">
-            G
-          </span>
+          <img src="/brand/icon.svg" alt="Garemo Logo" className="h-8 w-8 drop-shadow-sm" />
           <span>Garemo</span>
         </Link>
         <nav className="flex w-full flex-wrap items-center gap-1.5 text-sm font-medium text-muted-foreground sm:w-auto sm:justify-end">

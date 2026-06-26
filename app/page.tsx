@@ -38,9 +38,10 @@ export default async function Home() {
         <section className="relative overflow-hidden rounded-3xl bg-gradient-to-b from-brand/10 to-transparent p-6 sm:p-12 lg:p-16 border border-border/50 shadow-sm">
           <div className="absolute inset-0 bg-[url('https://placehold.co/100x100/png?text=pattern')] opacity-5 mix-blend-overlay"></div>
           <div className="relative mx-auto max-w-3xl space-y-8 text-center">
-            <div className="space-y-4">
+            <div className="space-y-4 flex flex-col items-center">
+              <img src="/brand/logo.svg" alt="Garemo Logo" className="h-16 w-auto mb-2 drop-shadow-sm" />
               <span className="inline-flex rounded-full border border-brand/20 bg-surface px-4 py-1.5 text-sm font-semibold text-brand shadow-sm">
-                Directorio universitario local
+                Compra talento universitario
               </span>
               <h1 className="text-4xl font-bold leading-tight tracking-tight text-foreground sm:text-5xl lg:text-6xl">
                 Encuentra emprendimientos y productos cerca de tu universidad

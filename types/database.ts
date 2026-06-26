@@ -91,6 +91,9 @@ export type Database = {
           closes_at: string | null;
           reviewed_at: string | null;
           review_notes: string | null;
+          delivery_available: boolean;
+          pickup_available: boolean;
+          delivery_notes: string | null;
           created_at: string;
           updated_at: string;
         };
@@ -109,6 +112,9 @@ export type Database = {
           closes_at?: string | null;
           reviewed_at?: string | null;
           review_notes?: string | null;
+          delivery_available?: boolean;
+          pickup_available?: boolean;
+          delivery_notes?: string | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -127,6 +133,9 @@ export type Database = {
           closes_at?: string | null;
           reviewed_at?: string | null;
           review_notes?: string | null;
+          delivery_available?: boolean;
+          pickup_available?: boolean;
+          delivery_notes?: string | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -389,10 +398,93 @@ export type Database = {
           updated_at?: string;
         };
         Relationships: [];
+      reports: {
+        Row: {
+          id: string;
+          reporter_id: string;
+          target_type: string;
+          target_id: string;
+          reason: Database["public"]["Enums"]["report_reason"];
+          description: string | null;
+          status: Database["public"]["Enums"]["report_status"];
+          admin_notes: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          reporter_id: string;
+          target_type: string;
+          target_id: string;
+          reason: Database["public"]["Enums"]["report_reason"];
+          description?: string | null;
+          status?: Database["public"]["Enums"]["report_status"];
+          admin_notes?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          reporter_id?: string;
+          target_type?: string;
+          target_id?: string;
+          reason?: Database["public"]["Enums"]["report_reason"];
+          description?: string | null;
+          status?: Database["public"]["Enums"]["report_status"];
+          admin_notes?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
       };
+      messages: {
+        Row: {
+          id: string;
+          sender_id: string;
+          business_id: string;
+          content: string;
+          is_read: boolean;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          sender_id: string;
+          business_id: string;
+          content: string;
+          is_read?: boolean;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          sender_id?: string;
+          business_id?: string;
+          content?: string;
+          is_read?: boolean;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
+    };
     };
     Views: Record<string, never>;
     Functions: {
+      submit_report: {
+        Args: {
+          p_target_type: string;
+          p_target_id: string;
+          p_reason: Database["public"]["Enums"]["report_reason"];
+          p_description?: string;
+        };
+        Returns: string;
+      };
+      admin_resolve_report: {
+        Args: {
+          p_report_id: string;
+          p_status: Database["public"]["Enums"]["report_status"];
+          p_admin_notes?: string;
+        };
+        Returns: void;
+      };
       admin_review_business: {
         Args: {
           target_business_id: string;
@@ -442,10 +534,10 @@ export type Database = {
         | "active"
         | "hidden"
         | "rejected";
-      report_reason: "wrong_info" | "closed" | "duplicate" | "abuse" | "other";
+      report_reason: "inappropriate" | "scam" | "false_info" | "prohibited" | "duplicate" | "closed" | "abusive" | "spam" | "misleading" | "other";
       report_status: "open" | "reviewing" | "resolved" | "dismissed";
       user_role: "buyer" | "owner" | "admin";
-      user_status: "active" | "disabled";
+      user_status: "active" | "disabled" | "under_review";
     };
     CompositeTypes: Record<string, never>;
   };

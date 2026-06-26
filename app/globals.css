@@ -2,15 +2,17 @@
 @import "leaflet/dist/leaflet.css";
 
 :root {
-  --background: #f8fafc;
-  --foreground: #0f172a;
+  --background: #FFF4E2;
+  --foreground: #0B1F3D;
   --surface: #ffffff;
-  --muted: #64748b;
+  --muted: #cbd5e1;
   --muted-foreground: #475569;
   --border: #e2e8f0;
-  --brand: #0d9488;
-  --brand-hover: #0f766e;
+  --brand: #1BA463;
+  --brand-hover: #15834f;
   --brand-foreground: #ffffff;
+  --accent: #F2B227;
+  --accent-foreground: #0B1F3D;
   --radius: 0.75rem;
 }
 
@@ -24,6 +26,8 @@
   --color-brand: var(--brand);
   --color-brand-hover: var(--brand-hover);
   --color-brand-foreground: var(--brand-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
   --radius-lg: var(--radius);

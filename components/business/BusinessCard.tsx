@@ -92,6 +92,16 @@ export function BusinessCard({ business }: BusinessCardProps) {
                     Verificado
                   </Badge>
                 ) : null}
+                {business.delivery_available ? (
+                  <Badge variant="outline" className="text-[10px] tracking-wider uppercase font-bold border-brand text-brand">
+                    Delivery
+                  </Badge>
+                ) : null}
+                {business.pickup_available ? (
+                  <Badge variant="outline" className="text-[10px] tracking-wider uppercase font-bold border-slate-300 text-slate-600">
+                    Recojo
+                  </Badge>
+                ) : null}
               </div>
               <h2 className="text-lg font-bold leading-tight text-foreground group-hover:text-brand transition-colors">
                 {business.name}
