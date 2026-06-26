@@ -278,7 +278,7 @@ export function VendorDashboardClient() {
   }
 
   async function saveBusiness(values: VendorBusinessFormValues) {
-    if (!business) {
+    if (!business || !userId) {
       return false;
     }
 
@@ -291,7 +291,8 @@ export function VendorDashboardClient() {
         ...values.business,
         updated_at: new Date().toISOString(),
       })
-      .eq("id", business.id);
+      .eq("id", business.id)
+      .eq("owner_id", userId);
 
     if (businessError) {
       setError("No pudimos guardar el negocio. RLS solo permite datos propios.");
@@ -299,36 +300,62 @@ export function VendorDashboardClient() {
       return false;
     }
 
-    const { error: locationError } = await supabase.from("locations").upsert(
-      {
-        ...values.location,
-        business_id: business.id,
-        updated_at: new Date().toISOString(),
-      },
-      { onConflict: "business_id" },
-    );
+    if (business.location) {
+      const { error: locationError } = await supabase
+        .from("locations")
+        .update({
+          ...values.location,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("business_id", business.id);
 
-    if (locationError) {
-      setError("No pudimos guardar la ubicacion.");
-      setIsSaving(false);
-      return false;
+      if (locationError) {
+        setError("No pudimos guardar la ubicación.");
+        setIsSaving(false);
+        return false;
+      }
+    } else {
+      const { error: locationError } = await supabase
+        .from("locations")
+        .insert({
+          ...values.location,
+          business_id: business.id,
+        });
+
+      if (locationError) {
+        setError("No pudimos guardar la ubicación.");
+        setIsSaving(false);
+        return false;
+      }
     }
 
-    const { error: contactError } = await supabase
-      .from("contact_info")
-      .upsert(
-        {
+    if (business.contact_info) {
+      const { error: contactError } = await supabase
+        .from("contact_info")
+        .update({
+          ...values.contact,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("business_id", business.id);
+
+      if (contactError) {
+        setError("No pudimos guardar WhatsApp.");
+        setIsSaving(false);
+        return false;
+      }
+    } else {
+      const { error: contactError } = await supabase
+        .from("contact_info")
+        .insert({
           ...values.contact,
           business_id: business.id,
-          updated_at: new Date().toISOString(),
-        },
-        { onConflict: "business_id" },
-      );
+        });
 
-    if (contactError) {
-      setError("No pudimos guardar WhatsApp.");
-      setIsSaving(false);
-      return false;
+      if (contactError) {
+        setError("No pudimos guardar WhatsApp.");
+        setIsSaving(false);
+        return false;
+      }
     }
 
     await loadDashboard();
@@ -425,7 +452,12 @@ export function VendorDashboardClient() {
     let targetProductId = productId;
 
     if (productId) {
-      const { error: productError } = await supabase.from("products").update(payload).eq("id", productId);
+      const { error: productError } = await supabase
+        .from("products")
+        .update(payload)
+        .eq("id", productId)
+        .eq("business_id", business.id);
+        
       if (productError) {
         setError("No pudimos guardar el producto. Solo puedes editar productos propios.");
         setIsSaving(false);
@@ -467,11 +499,11 @@ export function VendorDashboardClient() {
   }
 
   async function uploadBusinessCover(file: File) {
-    if (!business) {
+    if (!business || !userId) {
       throw new Error("No pudimos confirmar tu negocio.");
     }
 
-    const path = buildBusinessCoverPath(business.id, file);
+    const path = buildBusinessCoverPath(userId, business.id, file);
     const uploaded = await uploadGaremoImage(supabase, path, file);
 
     const { error: imageError } = await supabase
@@ -486,7 +518,7 @@ export function VendorDashboardClient() {
 
     if (imageError) {
       await supabase.storage.from("garemo-images").remove([uploaded.path]);
-      throw new Error("La imagen subio, pero no pudimos guardar metadata.");
+      throw new Error("La imagen subió, pero no pudimos guardar metadata.");
     }
 
     await loadDashboard();
@@ -494,11 +526,11 @@ export function VendorDashboardClient() {
   }
 
   async function uploadProductImage(productId: string, file: File) {
-    if (!business) {
+    if (!business || !userId) {
       throw new Error("No pudimos confirmar tu negocio.");
     }
 
-    const path = buildProductImagePath(business.id, productId, file);
+    const path = buildProductImagePath(userId, business.id, productId, file);
     const uploaded = await uploadGaremoImage(supabase, path, file);
 
     const { error: productError } = await supabase
@@ -508,11 +540,12 @@ export function VendorDashboardClient() {
         image_url: uploaded.publicUrl,
         updated_at: new Date().toISOString(),
       })
-      .eq("id", productId);
+      .eq("id", productId)
+      .eq("business_id", business.id);
 
     if (productError) {
       await supabase.storage.from("garemo-images").remove([uploaded.path]);
-      throw new Error("La imagen subio, pero no pudimos guardar el producto.");
+      throw new Error("La imagen subió, pero no pudimos guardar el producto.");
     }
 
     await loadDashboard();

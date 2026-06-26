@@ -33,16 +33,17 @@ export function validateImageFile(file: File) {
   return null;
 }
 
-export function buildBusinessCoverPath(businessId: string, file: File) {
-  return `businesses/${businessId}/cover/${crypto.randomUUID()}.${extensionFor(file)}`;
+export function buildBusinessCoverPath(userId: string, businessId: string, file: File) {
+  return `${userId}/businesses/${businessId}/cover/${crypto.randomUUID()}.${extensionFor(file)}`;
 }
 
 export function buildProductImagePath(
+  userId: string,
   businessId: string,
   productId: string,
   file: File,
 ) {
-  return `businesses/${businessId}/products/${productId}/${crypto.randomUUID()}.${extensionFor(file)}`;
+  return `${userId}/businesses/${businessId}/products/${productId}/${crypto.randomUUID()}.${extensionFor(file)}`;
 }
 
 export async function uploadGaremoImage(
