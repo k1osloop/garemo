@@ -65,7 +65,7 @@ function formatSchedule(schedule: Schedule) {
 }
 
 function buildWhatsAppUrl(business: PublicBusiness) {
-  const number = business.contact_info?.whatsapp_number.replace(/\D/g, "");
+  const number = business.contact_info?.whatsapp_number?.replace(/\D/g, "");
 
   if (!number) {
     return null;
