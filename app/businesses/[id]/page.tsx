@@ -412,7 +412,7 @@ export default async function BusinessDetailPage({
                       ))}
                     </div>
                     <span className="text-xs font-medium text-slate-700">
-                      {review.user?.first_name ?? "Usuario"}
+                      Usuario Garemo
                     </span>
                     <span className="text-xs text-muted-foreground">
                       {new Date(review.created_at).toLocaleDateString("es-ES")}

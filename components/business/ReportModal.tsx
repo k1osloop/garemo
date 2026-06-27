@@ -137,11 +137,11 @@ export function ReportModal({ targetId, targetType, isOpen, onClose }: ReportMod
                 </div>
               )}
 
-              <div className="pt-4 border-t border-border mt-4 flex justify-end gap-2 sticky bottom-0 bg-background pb-1">
+              <div className="pt-4 border-t border-border mt-4 flex justify-end gap-2 sticky bottom-0 bg-background pb-safe sm:pb-1 pb-4">
                 <Button type="button" variant="outline" onClick={onClose} disabled={isSubmitting}>
                   Cancelar
                 </Button>
-                <Button type="submit" disabled={isSubmitting}>
+                <Button type="submit" disabled={isSubmitting} size="default" className="min-h-10">
                   {isSubmitting ? "Enviando..." : "Enviar reporte"}
                 </Button>
               </div>

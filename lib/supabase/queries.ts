@@ -424,7 +424,6 @@ export type BusinessReviewPreview = {
   rating: number;
   comment: string | null;
   created_at: string;
-  user: { first_name: string | null } | null;
 };
 
 export async function getBusinessReviews(
@@ -437,13 +436,14 @@ export async function getBusinessReviews(
   const supabase = createSupabaseBrowserClient();
   const { data, error } = await supabase
     .from("business_reviews")
-    .select("id, rating, comment, created_at, user:users_profile(first_name)")
+    .select("id, rating, comment, created_at")
     .eq("business_id", businessId)
     .eq("status", "visible")
     .order("created_at", { ascending: false })
     .limit(10);
 
   if (error) {
+    console.error("Error fetching business reviews:", error);
     return { data: [], error: null };
   }
 

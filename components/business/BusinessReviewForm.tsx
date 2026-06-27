@@ -25,6 +25,7 @@ export function BusinessReviewForm({
   const [isLoading, setIsLoading] = useState(true);
   const [isOwner, setIsOwner] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [rating, setRating] = useState(5);
   const [review, setReview] = useState<BusinessReview | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
@@ -131,13 +132,17 @@ export function BusinessReviewForm({
       return;
     }
 
+    const isNew = !review;
     setReview(data as BusinessReview);
     setIsSaving(false);
     
-    // Clear comment input if creating new review or keeping it if updating?
-    // User requested "limpiar formulario", but for update maybe we keep it. 
-    // The prompt: "después de enviar una review: limpiar formulario"
-    setComment("");
+    if (isNew) {
+      setSuccessMessage("Gracias por tu opinión ✓");
+      setComment("");
+    } else {
+      setSuccessMessage("Tu opinión fue actualizada ✓");
+    }
+    
     router.refresh();
   }
 
@@ -180,10 +185,9 @@ export function BusinessReviewForm({
   return (
     <Card className="space-y-4">
       <div>
-        <h2 className="text-base font-semibold">Tu calificacion</h2>
+        <h2 className="text-base font-semibold">Tu calificación</h2>
         <p className="text-sm leading-6 text-muted">
-          Puedes dejar o actualizar una calificacion por negocio. Comentarios
-          abusivos pueden ocultarse por admin.
+          Puedes actualizar tu opinión cuando quieras.
         </p>
       </div>
       <form className="space-y-4" onSubmit={handleSubmit}>
@@ -208,19 +212,22 @@ export function BusinessReviewForm({
           <textarea
             className="min-h-24 rounded-lg border border-border bg-surface px-3 py-2 text-base outline-none placeholder:text-muted focus:border-brand focus:ring-2 focus:ring-brand/20"
             maxLength={280}
-            onChange={(event) => setComment(event.target.value)}
-            placeholder="Breve, claro y respetuoso."
+            onChange={(event) => {
+              setComment(event.target.value);
+              setSuccessMessage(null);
+            }}
+            placeholder={review ? "Edita tu opinión" : "Breve, claro y respetuoso."}
             value={comment}
           />
         </label>
         {error ? <p className="text-sm text-red-600">{error}</p> : null}
-        {review ? (
+        {successMessage && !isSaving ? (
           <p className="text-sm font-semibold text-brand">
-            {isSaving ? "" : "Gracias por tu opinión ✓"}
+            {successMessage}
           </p>
         ) : null}
         <Button disabled={isSaving} type="submit">
-          {isSaving ? "Guardando..." : review ? "Actualizar calificacion" : "Enviar calificacion"}
+          {isSaving ? "Guardando..." : review ? "Actualizar calificación" : "Enviar calificación"}
         </Button>
       </form>
     </Card>
