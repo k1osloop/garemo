@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { ImageUploadField } from "@/components/dashboard/ImageUploadField";
 import { getBusinessCoverImage } from "@/lib/business-display";
 import { cn } from "@/lib/utils";
-import type { ContactInfo, Location, PublicBusiness } from "@/types/database";
+import type { ContactInfo, Location, PublicBusiness, Schedule } from "@/types/database";
 
 export type VendorBusinessFormValues = {
   business: Pick<
@@ -29,6 +29,10 @@ export type VendorBusinessFormValues = {
     Location,
     "address_text" | "campus_zone" | "latitude" | "longitude"
   >;
+  schedules: Pick<
+    Schedule,
+    "day_of_week" | "opens_at" | "closes_at" | "is_closed"
+  >[];
 };
 
 type VendorBusinessFormProps = {
@@ -45,6 +49,36 @@ function timeValue(value: string | null) {
 
 function numberValue(value: number | null) {
   return value === null ? "" : String(value);
+}
+
+const weekDays = [
+  { value: 1, label: "Lunes" },
+  { value: 2, label: "Martes" },
+  { value: 3, label: "Miercoles" },
+  { value: 4, label: "Jueves" },
+  { value: 5, label: "Viernes" },
+  { value: 6, label: "Sabado" },
+  { value: 0, label: "Domingo" },
+];
+
+function scheduleByDay(business: PublicBusiness, dayOfWeek: number) {
+  return business.schedules.find(
+    (schedule) => schedule.day_of_week === dayOfWeek,
+  );
+}
+
+function defaultScheduleTime(
+  schedule: Schedule | undefined,
+  fallback: string | null,
+) {
+  return timeValue(schedule?.opens_at ?? fallback);
+}
+
+function defaultScheduleCloseTime(
+  schedule: Schedule | undefined,
+  fallback: string | null,
+) {
+  return timeValue(schedule?.closes_at ?? fallback);
 }
 
 function nullableText(value: FormDataEntryValue | null) {
@@ -120,6 +154,20 @@ export function VendorBusinessForm({
         latitude: nullableNumber(formData.get("latitude")),
         longitude: nullableNumber(formData.get("longitude")),
       },
+      schedules: weekDays.map((day) => {
+        const isClosed = formData.get(`schedule_${day.value}_closed`) === "on";
+
+        return {
+          day_of_week: day.value,
+          opens_at: isClosed
+            ? null
+            : nullableText(formData.get(`schedule_${day.value}_opens_at`)),
+          closes_at: isClosed
+            ? null
+            : nullableText(formData.get(`schedule_${day.value}_closes_at`)),
+          is_closed: isClosed,
+        };
+      }),
     };
 
     const validationError = validateBusinessValues(values);
@@ -252,6 +300,61 @@ export function VendorBusinessForm({
               name="closes_at"
               type="time"
             />
+          </div>
+        </Card>
+
+        <Card className="space-y-4">
+          <div className="space-y-2">
+            <div className="flex items-center gap-2 text-sm font-semibold">
+              <Clock3 className="h-4 w-4 text-brand" />
+              Horarios semanales
+            </div>
+            <p className="text-sm leading-6 text-muted-foreground">
+              Estos horarios se muestran publicamente en la pagina de tu negocio.
+              Marca cerrado los dias en los que no atiendes.
+            </p>
+          </div>
+
+          <div className="space-y-3">
+            {weekDays.map((day) => {
+              const schedule = scheduleByDay(business, day.value);
+
+              return (
+                <div
+                  className="grid gap-3 rounded-lg border border-border bg-background p-3 sm:grid-cols-[1fr_120px_120px_auto] sm:items-end"
+                  key={day.value}
+                >
+                  <div className="text-sm font-medium">{day.label}</div>
+                  <Input
+                    defaultValue={defaultScheduleTime(
+                      schedule,
+                      business.opens_at,
+                    )}
+                    label="Abre"
+                    name={`schedule_${day.value}_opens_at`}
+                    type="time"
+                  />
+                  <Input
+                    defaultValue={defaultScheduleCloseTime(
+                      schedule,
+                      business.closes_at,
+                    )}
+                    label="Cierra"
+                    name={`schedule_${day.value}_closes_at`}
+                    type="time"
+                  />
+                  <label className="flex min-h-11 items-center gap-2 rounded-lg border border-border px-3 text-sm">
+                    <input
+                      className="h-4 w-4 accent-brand"
+                      defaultChecked={schedule?.is_closed ?? false}
+                      name={`schedule_${day.value}_closed`}
+                      type="checkbox"
+                    />
+                    Cerrado
+                  </label>
+                </div>
+              );
+            })}
           </div>
         </Card>
 
@@ -492,6 +595,24 @@ function validateBusinessValues(values: VendorBusinessFormValues) {
     values.business.opens_at >= values.business.closes_at
   ) {
     return "La hora de cierre debe ser posterior a la hora de apertura.";
+  }
+
+  for (const schedule of values.schedules) {
+    if (schedule.is_closed) {
+      continue;
+    }
+
+    if (!schedule.opens_at && !schedule.closes_at) {
+      continue;
+    }
+
+    if (!schedule.opens_at || !schedule.closes_at) {
+      return "Completa hora de apertura y cierre para cada dia abierto.";
+    }
+
+    if (schedule.opens_at >= schedule.closes_at) {
+      return "Cada dia abierto debe cerrar despues de la hora de apertura.";
+    }
   }
 
   return null;

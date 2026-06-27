@@ -429,6 +429,43 @@ export function VendorDashboardClient() {
       }
     }
 
+    const schedulePayload = values.schedules
+      .filter(
+        (schedule) =>
+          schedule.is_closed || (schedule.opens_at && schedule.closes_at),
+      )
+      .map((schedule) => ({
+        business_id: business.id,
+        day_of_week: schedule.day_of_week,
+        opens_at: schedule.is_closed ? null : schedule.opens_at,
+        closes_at: schedule.is_closed ? null : schedule.closes_at,
+        is_closed: schedule.is_closed,
+        updated_at: new Date().toISOString(),
+      }));
+
+    if (schedulePayload.length > 0) {
+      const { error: schedulesError } = await supabase
+        .from("schedules")
+        .upsert(schedulePayload, {
+          onConflict: "business_id,day_of_week",
+        });
+
+      if (schedulesError) {
+        console.error("Supabase schedules upsert failed", {
+          table: "schedules",
+          operation: "upsert",
+          authUserId: userId,
+          businessId: business.id,
+          businessOwnerId: business.owner_id,
+          payload: schedulePayload,
+          error: schedulesError,
+        });
+        setError("No pudimos guardar los horarios. Verifica tu cuenta e intenta de nuevo.");
+        setIsSaving(false);
+        return false;
+      }
+    }
+
     await loadDashboard(false);
     setIsSaving(false);
     return true;

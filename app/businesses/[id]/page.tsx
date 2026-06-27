@@ -49,11 +49,18 @@ const dayNames = [
   "Sabado",
 ];
 
+type DisplaySchedule = Pick<
+  Schedule,
+  "day_of_week" | "opens_at" | "closes_at" | "is_closed"
+> & {
+  id?: string;
+};
+
 function formatTime(value: string | null) {
   return value ? value.slice(0, 5) : "";
 }
 
-function formatSchedule(schedule: Schedule) {
+function formatSchedule(schedule: DisplaySchedule) {
   if (schedule.is_closed) {
     return "Cerrado";
   }
@@ -63,6 +70,23 @@ function formatSchedule(schedule: Schedule) {
   }
 
   return `${formatTime(schedule.opens_at)} - ${formatTime(schedule.closes_at)}`;
+}
+
+function buildScheduleFallback(business: PublicBusiness): DisplaySchedule[] {
+  if (business.schedules.length > 0) {
+    return business.schedules;
+  }
+
+  if (!business.opens_at || !business.closes_at) {
+    return [];
+  }
+
+  return [1, 2, 3, 4, 5, 6, 0].map((dayOfWeek) => ({
+    day_of_week: dayOfWeek,
+    opens_at: business.opens_at,
+    closes_at: business.closes_at,
+    is_closed: false,
+  }));
 }
 
 function buildWhatsAppUrl(business: PublicBusiness) {
@@ -124,7 +148,7 @@ export default async function BusinessDetailPage({
   const whatsappUrl = buildWhatsAppUrl(business);
   const availability = getBusinessAvailability(business);
   const coverImageUrl = getBusinessCoverImage(business);
-  const sortedSchedules = [...business.schedules].sort(
+  const sortedSchedules = buildScheduleFallback(business).sort(
     (first, second) => first.day_of_week - second.day_of_week,
   );
 
@@ -385,7 +409,7 @@ export default async function BusinessDetailPage({
               {sortedSchedules.map((schedule) => (
                 <div
                   className="flex items-center justify-between gap-4 py-2 text-sm"
-                  key={schedule.id}
+                  key={schedule.id ?? `fallback-${schedule.day_of_week}`}
                 >
                   <span>{dayNames[schedule.day_of_week]}</span>
                   <span className="text-right text-muted">
