@@ -9,6 +9,20 @@
 
 begin;
 
+alter type public.report_reason add value if not exists 'inappropriate';
+alter type public.report_reason add value if not exists 'scam';
+alter type public.report_reason add value if not exists 'false_info';
+alter type public.report_reason add value if not exists 'prohibited';
+alter type public.report_reason add value if not exists 'duplicate';
+alter type public.report_reason add value if not exists 'closed';
+alter type public.report_reason add value if not exists 'abusive';
+alter type public.report_reason add value if not exists 'spam';
+alter type public.report_reason add value if not exists 'misleading';
+alter type public.report_reason add value if not exists 'other';
+
+commit;
+begin;
+
 alter table public.reports
   add column if not exists target_type text,
   add column if not exists target_id uuid,
