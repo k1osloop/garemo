@@ -171,7 +171,7 @@ export function SignupForm() {
           </p>
           <p className="text-sm leading-6 text-muted">
             Elige comprador o emprendedor. El rol admin no se puede solicitar ni
-            activar desde esta pantalla; solo 2DevDogs lo asigna manualmente
+            activar desde esta pantalla; solo la administracion de Garemo lo asigna manualmente
             cuando corresponde.
           </p>
         </Card>

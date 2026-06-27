@@ -851,7 +851,7 @@ export function VendorDashboardClient() {
             <p className="text-sm leading-6 text-muted">
               El negocio quedara asignado a {userEmail} y solo podras editar
               tus propios datos. La verificacion, el estado publico y la
-              aprobacion siguen a cargo de 2DevDogs.
+              aprobacion siguen a cargo de la administracion de Garemo.
             </p>
           </Card>
         </div>

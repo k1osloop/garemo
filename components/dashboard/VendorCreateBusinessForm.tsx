@@ -121,7 +121,7 @@ export function VendorCreateBusinessForm({
           </div>
           <p className="text-sm leading-6 text-muted">
             Tu negocio se creara como pendiente de revision. No sera publico
-            hasta que 2DevDogs lo apruebe manualmente.
+            hasta que la administracion de Garemo lo revise.
           </p>
         </div>
 

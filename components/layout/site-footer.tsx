@@ -59,7 +59,7 @@ export function SiteFooter() {
             &copy; {new Date().getFullYear()} Garemo. Todos los derechos reservados.
           </p>
           <div className="flex gap-4">
-            <span className="text-xs text-muted-foreground">Construido con <span className="text-brand">♥</span> por 2DevDogs</span>
+            <span className="text-xs text-muted-foreground">Construido con <span className="text-brand">♥</span> por Garemo</span>
           </div>
         </div>
       </div>
