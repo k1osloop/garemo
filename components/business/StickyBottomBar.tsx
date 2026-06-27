@@ -56,10 +56,10 @@ export function StickyBottomBar({
             href={whatsappUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex-1 inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-[#25D366] px-4 text-sm font-semibold text-white transition-colors hover:bg-[#1EBE5D] shadow-sm"
+            className="flex-1 inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-[#25D366] px-4 text-base font-bold text-white transition-all hover:bg-[#1EBE5D] hover:scale-[1.02] shadow-md"
           >
-            <MessageCircle className="h-5 w-5" />
-            <span className="sr-only">WhatsApp</span>
+            <MessageCircle className="h-5 w-5 fill-white text-white" />
+            <span>WhatsApp</span>
           </a>
         ) : null}
 

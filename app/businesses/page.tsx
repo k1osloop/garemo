@@ -1,7 +1,7 @@
-import Link from "next/link";
 import { MapPinned } from "lucide-react";
 
 import { BusinessGrid } from "@/components/business/BusinessGrid";
+import { CategoryFilter } from "@/components/business/CategoryFilter";
 import { MobileFilters } from "@/components/business/MobileFilters";
 import { PageShell } from "@/components/layout/page-shell";
 import { ErrorState } from "@/components/ui/ErrorState";
@@ -49,33 +49,24 @@ export default async function BusinessesPage({
 
   return (
     <PageShell>
-      <div className="space-y-5">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-          <div className="max-w-2xl space-y-2">
-            <p className="text-sm font-medium uppercase text-brand">
-              Directorio publico
-            </p>
-            <h1 className="text-3xl font-semibold tracking-tight">
+      <div className="space-y-6">
+        <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between bg-surface p-4 sm:p-6 rounded-2xl border border-border/60 shadow-sm">
+          <div className="max-w-2xl space-y-1.5">
+            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground flex items-center gap-2">
+              <MapPinned className="h-7 w-7 text-brand hidden sm:block" />
               Negocios cerca del campus
             </h1>
-            <p className="text-sm leading-6 text-muted">
-              Busca productos, servicios y negocios visibles. Solo mostramos
-              datos publicos y revisados por las reglas de Garemo.
+            <p className="text-sm text-muted-foreground">
+              Encuentra lo que necesitas de emprendedores universitarios
             </p>
           </div>
-          <Link
-            className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border border-border bg-surface px-4 text-sm font-medium transition-colors hover:bg-background"
-            href="/map"
-          >
-            <MapPinned className="h-4 w-4" />
-            Ver mapa
-          </Link>
+          <div className="w-full sm:w-80">
+            <MobileFilters 
+              categories={categoriesResult.data ?? []}
+              initialQuery={query}
+            />
+          </div>
         </div>
-
-        <MobileFilters 
-          categories={categoriesResult.data}
-          initialQuery={query}
-        />
 
         {error ? (
           <ErrorState
@@ -83,9 +74,18 @@ export default async function BusinessesPage({
             description={error}
           />
         ) : (
-          <BusinessGrid businesses={businessesResult.data} query={query} />
+          <div className="space-y-6">
+            <CategoryFilter
+              categories={categoriesResult.data ?? []}
+              query={query}
+              selectedCategory={selectedCategory}
+              selectedFeatures={{ delivery, offers: hasOffers, open: isOpen }}
+            />
+            <BusinessGrid businesses={businessesResult.data} query={query} />
+          </div>
         )}
       </div>
+
     </PageShell>
   );
 }

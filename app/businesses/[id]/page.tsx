@@ -225,9 +225,8 @@ export default async function BusinessDetailPage({
         <Card className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div className="space-y-1">
             <h2 className="text-base font-semibold">Guardar negocio</h2>
-            <p className="text-sm leading-6 text-muted">
-              Guarda este negocio en tu cuenta para volver rapido despues.
-              Garemo no usa favoritos como ranking publico en este piloto.
+            <p className="text-sm leading-6 text-muted-foreground">
+              Guárdalo para encontrarlo fácilmente en tu perfil.
             </p>
           </div>
           <FavoriteButton businessId={business.id} />
@@ -236,9 +235,9 @@ export default async function BusinessDetailPage({
         {business.products.length > 0 ? (
           <section className="space-y-3">
             <div>
-              <h2 className="text-base font-semibold">Productos destacados</h2>
-              <p className="text-sm leading-6 text-muted">
-                Datos DEV/manuales para validar busqueda, precio y confianza.
+              <h2 className="text-base font-semibold">Productos y servicios</h2>
+              <p className="text-sm leading-6 text-muted-foreground">
+                Catálogo de opciones ofrecidas por el negocio.
               </p>
             </div>
             <div className="grid gap-3 sm:grid-cols-2">

@@ -54,7 +54,7 @@ export async function compressImage(
 
       try {
         ctx.drawImage(img, 0, 0, width, height);
-      } catch (err) {
+      } catch {
         reject(new Error("No pudimos procesar esta imagen. Intenta con otra foto."));
         return;
       }
