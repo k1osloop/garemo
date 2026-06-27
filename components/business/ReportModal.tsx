@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useState } from "react";
 import { AlertCircle, X } from "lucide-react";
 
@@ -39,6 +40,8 @@ export function ReportModal({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+  const [hasExistingReport, setHasExistingReport] = useState(false);
+  const [requiresLogin, setRequiresLogin] = useState(false);
 
   useEffect(() => {
     if (!isOpen) {
@@ -51,7 +54,38 @@ export function ReportModal({
     return () => {
       document.body.style.overflow = previousOverflow;
     };
-  }, [isOpen]);
+    const supabase = createSupabaseBrowserClient();
+
+    void supabase.auth.getUser().then(async ({ data: userResult }) => {
+      if (!userResult.user) {
+        setRequiresLogin(true);
+        return;
+      }
+
+      setRequiresLogin(false);
+
+      const { data, error: existingReportError } = await supabase
+        .from("reports")
+        .select("id")
+        .eq("target_type", targetType)
+        .eq("target_id", targetId)
+        .limit(1);
+
+      if (existingReportError) {
+        console.debug("Garemo report existing-check skipped", {
+          code: existingReportError.code,
+          message: existingReportError.message,
+          details: existingReportError.details,
+          hint: existingReportError.hint,
+          targetType,
+          targetId,
+        });
+        return;
+      }
+
+      setHasExistingReport((data ?? []).length > 0);
+    });
+  }, [isOpen, targetId, targetType]);
 
   if (!isOpen) return null;
 
@@ -64,28 +98,63 @@ export function ReportModal({
     const { data: userResult } = await supabase.auth.getUser();
 
     if (!userResult.user) {
-      setError("Inicia sesion para reportar.");
+      setRequiresLogin(true);
+      setError("Inicia sesion para reportar este negocio.");
       setIsSubmitting(false);
       return;
     }
 
-    const { error: rpcError } = await supabase.rpc("submit_report", {
+    const payload = {
       p_target_type: targetType,
       p_target_id: targetId,
       p_reason: reason,
       p_description: description,
+    };
+
+    const { error: rpcError } = await supabase.rpc("submit_report", {
+      p_target_type: payload.p_target_type,
+      p_target_id: payload.p_target_id,
+      p_reason: payload.p_reason,
+      p_description: payload.p_description,
     });
 
     if (rpcError) {
-      setError(
+      console.error("Garemo submit_report failed", {
+        rpc: "submit_report",
+        payload,
+        userId: userResult.user.id,
+        error: {
+          code: rpcError.code,
+          message: rpcError.message,
+          details: rpcError.details,
+          hint: rpcError.hint,
+        },
+      });
+
+      if (
+        rpcError.message.includes("REPORT_OWN_BUSINESS") ||
         rpcError.message.includes("Cannot report your own")
-          ? "No puedes reportar tu propio negocio o productos."
-          : rpcError.message.includes("duplicate key")
-            ? "Ya enviaste un reporte para este elemento."
-            : "Hubo un error al enviar el reporte.",
-      );
+      ) {
+        setError("No puedes reportar tu propio negocio.");
+      } else if (
+        rpcError.code === "23505" ||
+        rpcError.message.includes("REPORT_DUPLICATE") ||
+        rpcError.message.includes("duplicate key")
+      ) {
+        setHasExistingReport(true);
+        setError("Ya enviaste un reporte para este negocio. Lo estamos revisando.");
+      } else if (
+        rpcError.code === "42501" ||
+        rpcError.message.includes("REPORT_AUTH_REQUIRED")
+      ) {
+        setRequiresLogin(true);
+        setError("Inicia sesion para reportar este negocio.");
+      } else {
+        setError("No pudimos enviar el reporte. Intenta nuevamente.");
+      }
     } else {
       setSuccess(true);
+      setHasExistingReport(true);
     }
 
     setIsSubmitting(false);
@@ -154,6 +223,16 @@ export function ReportModal({
                 Ayudanos a entender el problema. Tu reporte es anonimo para el
                 emprendedor, pero nosotros lo revisaremos.
               </p>
+              <p className="rounded-lg bg-brand/10 px-3 py-2 text-sm leading-6 text-brand">
+                Tu reporte ayuda a mantener Garemo seguro.
+              </p>
+
+              {hasExistingReport ? (
+                <div className="rounded-md border border-amber-100 bg-amber-50 p-3 text-sm leading-6 text-amber-700">
+                  Ya enviaste un reporte para este negocio. Lo estamos
+                  revisando.
+                </div>
+              ) : null}
 
               <div className="space-y-2">
                 <label className="text-sm font-medium" htmlFor="report-reason">
@@ -197,6 +276,14 @@ export function ReportModal({
               {error ? (
                 <div className="rounded-md border border-red-100 bg-red-50 p-3 text-sm text-red-600">
                   {error}
+                  {requiresLogin ? (
+                    <Link
+                      className="mt-3 inline-flex min-h-10 items-center justify-center rounded-lg bg-brand px-3 text-sm font-medium text-brand-foreground"
+                      href="/login"
+                    >
+                      Iniciar sesion
+                    </Link>
+                  ) : null}
                 </div>
               ) : null}
             </div>
@@ -214,11 +301,15 @@ export function ReportModal({
                 </Button>
                 <Button
                   className="min-h-12"
-                  disabled={isSubmitting}
+                  disabled={isSubmitting || hasExistingReport}
                   size="default"
                   type="submit"
                 >
-                  {isSubmitting ? "Enviando..." : "Enviar reporte"}
+                  {success || hasExistingReport
+                    ? "Reporte enviado ✓"
+                    : isSubmitting
+                      ? "Enviando..."
+                      : "Enviar reporte"}
                 </Button>
               </div>
             </div>

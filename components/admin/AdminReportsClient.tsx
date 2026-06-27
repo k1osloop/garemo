@@ -18,9 +18,11 @@ type ReportRow = {
   target_id: string;
   reason: string;
   description: string | null;
+  details?: string | null;
   status: ReportStatus;
   admin_notes: string | null;
   created_at: string;
+  resolved_at?: string | null;
 };
 
 export function AdminReportsClient() {
@@ -62,8 +64,8 @@ export function AdminReportsClient() {
     setIsUpdating(reportId);
     const { error } = await supabase.rpc("admin_resolve_report", {
       p_report_id: reportId,
-      p_status: nextStatus,
-      p_admin_notes: "Actualizado desde panel admin",
+      p_next_status: nextStatus,
+      p_notes: "Actualizado desde panel admin",
     });
 
     if (!error) {
@@ -87,6 +89,7 @@ export function AdminReportsClient() {
   }
 
   const filteredReports = reports.filter(r => activeTab === "all" || r.status === activeTab);
+  const openReportCount = reports.filter((report) => report.status === "open").length;
 
   return (
     <div className="space-y-6">
@@ -102,6 +105,7 @@ export function AdminReportsClient() {
             }`}
           >
             {tab.charAt(0).toUpperCase() + tab.slice(1)}
+            {tab === "open" && openReportCount > 0 ? ` (${openReportCount})` : ""}
           </button>
         ))}
       </div>
@@ -137,9 +141,9 @@ export function AdminReportsClient() {
                   <span className="font-medium text-slate-600 ml-2">ID:</span> {report.target_id.split('-')[0]}...
                 </p>
                 
-                {report.description && (
+                {(report.description ?? report.details) && (
                   <p className="text-sm bg-slate-50 p-2 rounded border border-slate-100 mt-2 text-slate-600">
-                    &quot;{report.description}&quot;
+                    &quot;{report.description ?? report.details}&quot;
                   </p>
                 )}
               </div>

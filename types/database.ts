@@ -402,36 +402,48 @@ export type Database = {
         Row: {
           id: string;
           reporter_id: string;
+          business_id: string;
           target_type: string;
           target_id: string;
           reason: Database["public"]["Enums"]["report_reason"];
+          details: string | null;
           description: string | null;
           status: Database["public"]["Enums"]["report_status"];
           admin_notes: string | null;
+          resolved_by: string | null;
+          resolved_at: string | null;
           created_at: string;
           updated_at: string;
         };
         Insert: {
           id?: string;
           reporter_id: string;
+          business_id: string;
           target_type: string;
           target_id: string;
           reason: Database["public"]["Enums"]["report_reason"];
+          details?: string | null;
           description?: string | null;
           status?: Database["public"]["Enums"]["report_status"];
           admin_notes?: string | null;
+          resolved_by?: string | null;
+          resolved_at?: string | null;
           created_at?: string;
           updated_at?: string;
         };
         Update: {
           id?: string;
           reporter_id?: string;
+          business_id?: string;
           target_type?: string;
           target_id?: string;
           reason?: Database["public"]["Enums"]["report_reason"];
+          details?: string | null;
           description?: string | null;
           status?: Database["public"]["Enums"]["report_status"];
           admin_notes?: string | null;
+          resolved_by?: string | null;
+          resolved_at?: string | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -480,8 +492,8 @@ export type Database = {
       admin_resolve_report: {
         Args: {
           p_report_id: string;
-          p_status: Database["public"]["Enums"]["report_status"];
-          p_admin_notes?: string;
+          p_next_status: Database["public"]["Enums"]["report_status"];
+          p_notes?: string;
         };
         Returns: void;
       };
