@@ -498,7 +498,7 @@ export function VendorDashboardClient() {
 
     if (businessError || !createdBusiness) {
       setError(
-        "No pudimos crear el negocio. Debes tener perfil owner activo y RLS solo permite crear negocios propios.",
+        "No pudimos crear el negocio. Debes tener una cuenta emprendedora activa y solo puedes crear negocios para tu propia cuenta.",
       );
       setIsSaving(false);
       return false;
@@ -692,7 +692,12 @@ export function VendorDashboardClient() {
   }
 
   return (
-    <DashboardShell onSignOut={signOut} userEmail={userEmail}>
+    <DashboardShell
+      onSignOut={signOut}
+      subtitle={accessState === "allowed" ? "Panel emprendedor" : "Cuenta Garemo"}
+      title={accessState === "allowed" ? "Gestiona tu negocio" : "Acceso al panel"}
+      userEmail={userEmail}
+    >
       {error ? (
         <ErrorState title="No se pudo guardar" description={error} />
       ) : null}

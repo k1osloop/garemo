@@ -251,8 +251,8 @@ export default async function Home() {
               <p className="text-sm leading-6 text-muted">
                 Compradores pueden crear cuenta para guardar favoritos.
                 Emprendedores autenticados pueden crear/editar su negocio propio.
-                Admin revisa negocios con RLS y funciones seguras antes de
-                publicar.
+                Administradores revisan negocios con controles seguros antes
+                de publicar.
               </p>
             </div>
           </div>

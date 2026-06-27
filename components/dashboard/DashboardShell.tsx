@@ -8,12 +8,16 @@ import { Button } from "@/components/ui/button";
 type DashboardShellProps = {
   children: React.ReactNode;
   onSignOut: () => void;
+  subtitle?: string;
+  title?: string;
   userEmail: string;
 };
 
 export function DashboardShell({
   children,
   onSignOut,
+  subtitle = "Panel emprendedor",
+  title = "Gestiona tu negocio",
   userEmail,
 }: DashboardShellProps) {
   return (
@@ -25,10 +29,10 @@ export function DashboardShell({
           </span>
           <div>
             <p className="text-sm font-medium uppercase text-brand">
-              Panel emprendedor
+              {subtitle}
             </p>
             <h1 className="text-2xl font-semibold tracking-tight">
-              Gestiona tu negocio
+              {title}
             </h1>
             <p className="text-sm text-muted">{userEmail}</p>
           </div>

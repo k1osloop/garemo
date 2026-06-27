@@ -146,8 +146,8 @@ export function VendorProductForm({
           </h3>
         </div>
         <p className="text-xs leading-5 text-muted">
-          Producto visible para compradores. No cambies datos de otro negocio:
-          RLS lo bloquea y el formulario solo envia campos permitidos.
+          Producto visible para compradores. Solo puedes editar productos de
+          tu propio negocio.
         </p>
       </div>
       <form className="space-y-4" onSubmit={handleSubmit}>

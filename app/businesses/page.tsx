@@ -59,8 +59,8 @@ export default async function BusinessesPage({
               Negocios cerca del campus
             </h1>
             <p className="text-sm leading-6 text-muted">
-              Busca productos, servicios y negocios visibles. Solo aparecen
-              datos activos segun las politicas RLS de Supabase.
+              Busca productos, servicios y negocios visibles. Solo mostramos
+              datos publicos y revisados por las reglas de Garemo.
             </p>
           </div>
           <Link

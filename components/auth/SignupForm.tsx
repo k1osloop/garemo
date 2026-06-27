@@ -201,8 +201,9 @@ export function SignupForm() {
             <div className="space-y-1">
               <h2 className="text-sm font-semibold">Admin protegido</h2>
               <p className="text-sm leading-6 text-muted">
-                Ningun usuario puede convertirse en admin desde el frontend.
-                RLS y la RPC solo aceptan buyer u owner.
+                Ningun usuario puede convertirse en administrador desde esta
+                pantalla. Los roles permitidos aqui son comprador o
+                emprendedor.
               </p>
             </div>
           </Card>

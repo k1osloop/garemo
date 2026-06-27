@@ -152,7 +152,8 @@ export function LoginForm() {
             Iniciar sesión
           </h2>
           <p className="text-sm leading-6 text-muted">
-            Ingresa con tu correo y contraseña. Los campos sensibles están protegidos por RLS.
+            Ingresa con tu correo y contraseña. Tus datos sensibles estan
+            protegidos.
           </p>
         </div>
         <form className="space-y-4" method="post" onSubmit={handleSubmit}>
