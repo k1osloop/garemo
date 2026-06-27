@@ -5,7 +5,7 @@ export const dynamic = "force-dynamic";
 
 export default function DashboardPage() {
   return (
-    <PageShell title="Panel emprendedor">
+    <PageShell title="Panel Garemo">
       <VendorDashboardClient />
     </PageShell>
   );
