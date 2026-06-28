@@ -1,6 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 160" role="img" aria-labelledby="title desc">
-  <title id="title">Garemo icon</title>
-  <desc id="desc">Isotipo verde de Garemo con forma de marcador y estrella amarilla.</desc>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 160">
   <defs>
     <linearGradient id="pinGradient" x1="24" x2="136" y1="18" y2="140" gradientUnits="userSpaceOnUse">
       <stop offset="0" stop-color="#22C47A"/>

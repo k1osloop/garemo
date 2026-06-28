@@ -16,6 +16,13 @@ export const metadata: Metadata = {
   title: "Garemo",
   description:
     "Directorio universitario mobile-first para descubrir negocios locales.",
+  icons: {
+    icon: [
+      { url: "/brand/icon.svg", type: "image/svg+xml" },
+      { url: "/favicon.ico" },
+    ],
+    apple: [{ url: "/brand/icon.svg", type: "image/svg+xml" }],
+  },
 };
 
 export default function RootLayout({

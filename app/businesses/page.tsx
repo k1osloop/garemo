@@ -61,16 +61,16 @@ export default async function BusinessesPage({
 
   return (
     <PageShell>
-      <div className="space-y-6">
-        <section className="overflow-hidden rounded-[2rem] border border-border/70 bg-surface shadow-sm">
-          <div className="grid gap-5 p-5 sm:p-7 lg:grid-cols-[1fr_360px] lg:items-center">
-            <div className="space-y-5">
+      <div className="min-w-0 space-y-6">
+        <section className="max-w-full overflow-hidden rounded-[1.5rem] border border-border/70 bg-surface shadow-sm sm:rounded-[2rem]">
+          <div className="grid min-w-0 gap-5 p-4 sm:p-7 lg:grid-cols-[minmax(0,1fr)_minmax(320px,380px)] lg:items-center">
+            <div className="min-w-0 space-y-5">
               <div className="inline-flex items-center gap-2 rounded-full bg-brand/10 px-3 py-1 text-xs font-bold uppercase tracking-wide text-brand">
                 <MapPinned className="h-4 w-4" />
                 Directorio publico
               </div>
               <div className="max-w-2xl space-y-2">
-                <h1 className="text-3xl font-extrabold tracking-tight text-foreground sm:text-4xl">
+                <h1 className="text-3xl font-extrabold leading-tight text-foreground sm:text-4xl">
                   Negocios cerca del campus
                 </h1>
                 <p className="text-base leading-7 text-muted-foreground">
@@ -87,7 +87,7 @@ export default async function BusinessesPage({
                 Ver mapa
               </Link>
             </div>
-            <div className="rounded-3xl bg-[#fbfaf6] p-4 shadow-inner">
+            <div className="min-w-0 rounded-3xl bg-[#fbfaf6] p-3 shadow-inner sm:p-4">
               <MobileFilters
                 categories={categoriesResult.data ?? []}
                 initialQuery={query}
@@ -103,12 +103,12 @@ export default async function BusinessesPage({
           />
         ) : (
           <div className="space-y-6">
-            <div className="grid gap-3 sm:grid-cols-3">
+            <div className="grid min-w-0 gap-3 sm:grid-cols-3">
               <SectionCard className="flex items-center gap-3 p-4">
                 <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-brand/10 text-brand">
                   <MapPinned className="h-5 w-5" />
                 </span>
-                <div>
+                <div className="min-w-0">
                   <p className="text-sm font-bold text-foreground">
                     Cerca del campus
                   </p>
@@ -121,7 +121,7 @@ export default async function BusinessesPage({
                 <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-amber-100 text-amber-700">
                   <Sparkles className="h-5 w-5" />
                 </span>
-                <div>
+                <div className="min-w-0">
                   <p className="text-sm font-bold text-foreground">
                     Promos universitarias
                   </p>
@@ -138,7 +138,7 @@ export default async function BusinessesPage({
                     <Bike className="h-5 w-5" />
                   )}
                 </span>
-                <div>
+                <div className="min-w-0">
                   <p className="text-sm font-bold text-foreground">
                     {ratedCount > 0 ? "Mejor calificados" : "Delivery activo"}
                   </p>
@@ -151,8 +151,8 @@ export default async function BusinessesPage({
               </SectionCard>
             </div>
 
-            <div className="flex items-end justify-between gap-4">
-              <div>
+            <div className="flex min-w-0 items-end justify-between gap-4">
+              <div className="min-w-0">
                 <h2 className="text-xl font-extrabold text-foreground">
                   Todos los negocios
                 </h2>

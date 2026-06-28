@@ -41,9 +41,9 @@ export function PublicMap({ businesses }: PublicMapProps) {
   );
 
   return (
-    <div className="space-y-5">
-      <section className="overflow-hidden rounded-lg border border-border bg-surface shadow-sm">
-        <div className="min-h-96">
+    <div className="min-w-0 space-y-5">
+      <section className="max-w-full overflow-hidden rounded-2xl border border-border bg-surface shadow-sm">
+        <div className="min-h-[22rem] sm:min-h-96">
           <LeafletMapCanvas businesses={businessesWithCoordinates} />
         </div>
       </section>

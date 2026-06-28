@@ -1,17 +1,19 @@
 import Link from "next/link";
 import {
   ArrowRight,
+  Building2,
+  CheckCircle2,
+  Clock3,
   MapPinned,
+  MessageCircle,
   Search,
   ShieldCheck,
+  Sparkles,
   Star,
   Store,
-  MessageCircle,
-  CheckCircle2,
-  Sparkles,
-  Building2,
-  Clock3,
 } from "lucide-react";
+
+import { BrandLogo } from "@/components/layout/brand-logo";
 import { PageShell } from "@/components/layout/page-shell";
 import { Card } from "@/components/ui/card";
 import { getActiveBusinesses, getCategories } from "@/lib/supabase/queries";
@@ -34,33 +36,35 @@ export default async function Home() {
 
   return (
     <PageShell>
-      <div className="space-y-10 pb-8">
-        <section className="relative overflow-hidden rounded-3xl bg-gradient-to-b from-brand/10 to-transparent p-6 sm:p-12 lg:p-16 border border-border/50 shadow-sm">
-          <div className="absolute inset-0 bg-[url('https://placehold.co/100x100/png?text=pattern')] opacity-5 mix-blend-overlay"></div>
+      <div className="min-w-0 space-y-10 pb-8">
+        <section className="relative overflow-hidden rounded-[1.5rem] border border-border/50 bg-gradient-to-b from-brand/10 to-transparent p-5 shadow-sm sm:rounded-3xl sm:p-12 lg:p-16">
           <div className="relative mx-auto max-w-3xl space-y-8 text-center">
-            <div className="space-y-4 flex flex-col items-center">
-              <img src="/brand/logo.svg" alt="Garemo Logo" className="h-16 w-auto mb-2 drop-shadow-sm" />
+            <div className="flex flex-col items-center space-y-4">
+              <BrandLogo className="justify-center" />
               <span className="inline-flex rounded-full border border-brand/20 bg-surface px-4 py-1.5 text-sm font-semibold text-brand shadow-sm">
                 Compra talento universitario
               </span>
-              <h1 className="text-4xl font-bold leading-tight tracking-tight text-foreground sm:text-5xl lg:text-6xl">
+              <h1 className="text-4xl font-bold leading-tight text-foreground sm:text-5xl lg:text-6xl">
                 Encuentra emprendimientos y productos cerca de tu universidad
               </h1>
               <p className="mx-auto max-w-2xl text-lg leading-8 text-muted-foreground">
-                Apoya a la comunidad universitaria. Explora negocios, revisa el mapa de ubicaciones y contacta directo por WhatsApp sin intermediarios.
+                Apoya a la comunidad universitaria. Explora negocios, revisa el
+                mapa de ubicaciones y contacta directo por WhatsApp sin
+                intermediarios.
               </p>
             </div>
 
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+            <div className="flex flex-col items-center justify-center gap-4 sm:flex-row">
               <Link
-                className="inline-flex h-12 w-full sm:w-auto items-center justify-center gap-2 rounded-xl bg-brand px-8 text-base font-medium text-brand-foreground shadow-md transition-all hover:bg-brand-hover hover:shadow-lg hover:-translate-y-0.5"
+                className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-brand px-8 text-base font-medium text-brand-foreground shadow-md transition-all hover:-translate-y-0.5 hover:bg-brand-hover hover:shadow-lg sm:w-auto"
                 href="/businesses"
+                prefetch={false}
               >
                 <Search className="h-5 w-5" />
                 Explorar negocios
               </Link>
               <Link
-                className="inline-flex h-12 w-full sm:w-auto items-center justify-center gap-2 rounded-xl border-2 border-border bg-surface px-8 text-base font-medium text-foreground transition-all hover:border-brand/30 hover:bg-slate-50"
+                className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-xl border-2 border-border bg-surface px-8 text-base font-medium text-foreground transition-all hover:border-brand/30 hover:bg-slate-50 sm:w-auto"
                 href="/signup"
               >
                 <Store className="h-5 w-5 text-brand" />
@@ -68,48 +72,63 @@ export default async function Home() {
               </Link>
             </div>
 
-            <div className="grid grid-cols-3 gap-4 pt-8 sm:max-w-xl mx-auto border-t border-border/50">
+            <div className="mx-auto grid grid-cols-3 gap-3 border-t border-border/50 pt-8 sm:max-w-xl sm:gap-4">
               <div className="flex flex-col items-center">
-                <p className="text-3xl font-bold text-brand">{visibleBusinessCount}</p>
-                <p className="text-sm font-medium text-muted-foreground mt-1">Negocios</p>
+                <p className="text-3xl font-bold text-brand">
+                  {visibleBusinessCount}
+                </p>
+                <p className="mt-1 text-sm font-medium text-muted-foreground">
+                  Negocios
+                </p>
               </div>
               <div className="flex flex-col items-center">
-                <p className="text-3xl font-bold text-brand">{categories.length}</p>
-                <p className="text-sm font-medium text-muted-foreground mt-1">Categorías</p>
+                <p className="text-3xl font-bold text-brand">
+                  {categories.length}
+                </p>
+                <p className="mt-1 text-sm font-medium text-muted-foreground">
+                  Categorias
+                </p>
               </div>
               <div className="flex flex-col items-center">
-                <p className="text-3xl font-bold text-brand">{mappedBusinessCount}</p>
-                <p className="text-sm font-medium text-muted-foreground mt-1">En el mapa</p>
+                <p className="text-3xl font-bold text-brand">
+                  {mappedBusinessCount}
+                </p>
+                <p className="mt-1 text-sm font-medium text-muted-foreground">
+                  En el mapa
+                </p>
               </div>
             </div>
           </div>
         </section>
 
-        <section className="grid gap-4 sm:grid-cols-3 mt-12">
-          <Card className="space-y-3 hover:border-brand/30 transition-colors shadow-sm">
+        <section className="mt-12 grid min-w-0 gap-4 sm:grid-cols-3">
+          <Card className="space-y-3 shadow-sm transition-colors hover:border-brand/30">
             <Search className="h-6 w-6 text-brand" />
-            <h2 className="text-lg font-semibold">Busca rápido</h2>
+            <h2 className="text-lg font-semibold">Busca rapido</h2>
             <p className="text-sm leading-6 text-muted-foreground">
-              Filtra por categoría y descubre emprendimientos activos en la universidad.
+              Filtra por categoria y descubre emprendimientos activos en la
+              universidad.
             </p>
           </Card>
-          <Card className="space-y-3 hover:border-brand/30 transition-colors shadow-sm">
+          <Card className="space-y-3 shadow-sm transition-colors hover:border-brand/30">
             <MapPinned className="h-6 w-6 text-brand" />
             <h2 className="text-lg font-semibold">Ubica en el mapa</h2>
             <p className="text-sm leading-6 text-muted-foreground">
-              Revisa los pines en el mapa interactivo para encontrar los negocios físicos.
+              Revisa los pines en el mapa interactivo para encontrar los
+              negocios fisicos.
             </p>
           </Card>
-          <Card className="space-y-3 hover:border-brand/30 transition-colors shadow-sm">
+          <Card className="space-y-3 shadow-sm transition-colors hover:border-brand/30">
             <MessageCircle className="h-6 w-6 text-brand" />
             <h2 className="text-lg font-semibold">Contacta directo</h2>
             <p className="text-sm leading-6 text-muted-foreground">
-              Abre WhatsApp con un clic para hacer pedidos sin comisiones ni registros.
+              Abre WhatsApp con un clic para consultar sin comisiones ni
+              registros.
             </p>
           </Card>
         </section>
 
-        <section className="grid gap-4 lg:grid-cols-3 pt-8">
+        <section className="grid min-w-0 gap-4 pt-8 lg:grid-cols-3">
           <Card className="space-y-4 border-t-4 border-t-slate-800 shadow-sm">
             <div className="flex items-center gap-2">
               <Search className="h-5 w-5 text-slate-800" />
@@ -121,14 +140,14 @@ export default async function Home() {
               favoritos y calificar negocios.
             </p>
             <Link
-              className="inline-flex min-h-10 items-center gap-2 rounded-lg border border-border bg-surface px-4 text-sm font-medium hover:bg-slate-50 transition-colors"
+              className="inline-flex min-h-10 items-center gap-2 rounded-lg border border-border bg-surface px-4 text-sm font-medium transition-colors hover:bg-slate-50"
               href="/signup"
             >
               Crear cuenta comprador
               <ArrowRight className="h-4 w-4" />
             </Link>
           </Card>
-          
+
           <Card className="space-y-4 border-t-4 border-t-brand shadow-sm">
             <div className="flex items-center gap-2">
               <Store className="h-5 w-5 text-brand" />
@@ -136,24 +155,26 @@ export default async function Home() {
             </div>
             <p className="text-sm leading-6 text-muted-foreground">
               Crea tu perfil como emprendedor para publicar tu negocio. Los
-              negocios nuevos pasan por una revisión rápida antes de aparecer en el directorio.
+              negocios nuevos pasan por una revision rapida antes de aparecer
+              en el directorio.
             </p>
             <Link
-              className="inline-flex min-h-10 items-center gap-2 rounded-lg bg-brand px-4 text-sm font-medium text-brand-foreground hover:bg-brand-hover transition-colors"
+              className="inline-flex min-h-10 items-center gap-2 rounded-lg bg-brand px-4 text-sm font-medium text-brand-foreground transition-colors hover:bg-brand-hover"
               href="/signup"
             >
               Publicar mi negocio
               <ArrowRight className="h-4 w-4" />
             </Link>
           </Card>
-          
+
           <Card className="space-y-4 border-t-4 border-t-slate-300 shadow-sm">
             <div className="flex items-center gap-2">
               <ShieldCheck className="h-5 w-5 text-slate-600" />
               <h2 className="text-xl font-semibold">Garemo Seguro</h2>
             </div>
             <p className="text-sm leading-6 text-muted-foreground">
-              Garemo no procesa pagos en línea. Verifica siempre con el emprendedor por WhatsApp antes de transferir dinero.
+              Garemo no procesa pagos en linea. Verifica siempre con el
+              emprendedor por WhatsApp antes de transferir dinero.
             </p>
           </Card>
         </section>
@@ -167,7 +188,7 @@ export default async function Home() {
               Senales claras, sin prometer mas de lo que existe
             </h2>
           </div>
-          <div className="grid gap-3 sm:grid-cols-3">
+          <div className="grid min-w-0 gap-3 sm:grid-cols-3">
             <Card className="space-y-3">
               <CheckCircle2 className="h-5 w-5 text-brand" />
               <h3 className="text-base font-semibold">
@@ -190,9 +211,7 @@ export default async function Home() {
             </Card>
             <Card className="space-y-3">
               <Sparkles className="h-5 w-5 text-brand" />
-              <h3 className="text-base font-semibold">
-                Contactos generados
-              </h3>
+              <h3 className="text-base font-semibold">Contactos generados</h3>
               <p className="text-sm leading-6 text-muted">
                 Contamos clics a WhatsApp como senal de interes. No son ventas
                 ni pagos procesados por Garemo.
@@ -214,18 +233,20 @@ export default async function Home() {
             <Link
               className="hidden text-sm font-medium text-brand sm:inline-flex"
               href="/businesses"
+              prefetch={false}
             >
               Ver todo
             </Link>
           </div>
 
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="grid min-w-0 gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {categories.map((category) => (
               <Link
                 href={`/businesses?category=${category.slug}`}
                 key={category.id}
+                prefetch={false}
               >
-                <Card className="flex items-start gap-3 transition-colors hover:border-brand">
+                <Card className="flex min-w-0 items-start gap-3 transition-colors hover:border-brand">
                   <span className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-background text-brand">
                     <Building2 className="h-4 w-4" />
                   </span>
@@ -250,9 +271,9 @@ export default async function Home() {
               </h2>
               <p className="text-sm leading-6 text-muted">
                 Compradores pueden crear cuenta para guardar favoritos.
-                Emprendedores autenticados pueden crear/editar su negocio propio.
-                Administradores revisan negocios con controles seguros antes
-                de publicar.
+                Emprendedores autenticados pueden crear/editar su negocio
+                propio. Administradores revisan negocios con controles seguros
+                antes de publicar.
               </p>
             </div>
           </div>

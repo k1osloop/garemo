@@ -15,9 +15,9 @@ export function MapBusinessList({ businesses, title }: MapBusinessListProps) {
   }
 
   return (
-    <section className="space-y-3">
+    <section className="min-w-0 space-y-3">
       <h2 className="text-base font-semibold">{title}</h2>
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="grid min-w-0 gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {businesses.map((business) => {
           const locationText =
             business.location?.campus_zone ??
@@ -26,13 +26,13 @@ export function MapBusinessList({ businesses, title }: MapBusinessListProps) {
 
           return (
             <Link
-              className="block"
+              className="block min-w-0"
               href={`/businesses/${business.id}`}
               key={business.id}
             >
-              <Card className="h-full space-y-2 transition-colors hover:border-brand hover:shadow-sm">
-                <div className="flex items-start justify-between gap-3">
-                  <div className="min-w-0">
+              <Card className="h-full min-w-0 space-y-2 transition-colors hover:border-brand hover:shadow-sm">
+                <div className="flex min-w-0 items-start justify-between gap-3">
+                  <div className="min-w-0 flex-1">
                     <h3 className="truncate text-sm font-semibold">
                       {business.name}
                     </h3>
@@ -42,7 +42,9 @@ export function MapBusinessList({ businesses, title }: MapBusinessListProps) {
                   </div>
                   <MapPin className="h-4 w-4 shrink-0 text-brand" />
                 </div>
-                <p className="text-sm leading-6 text-muted">{locationText}</p>
+                <p className="line-clamp-2 text-sm leading-6 text-muted">
+                  {locationText}
+                </p>
               </Card>
             </Link>
           );

@@ -17,7 +17,7 @@ export function ProductMenuCard({ product }: ProductMenuCardProps) {
 
   return (
     <article className="flex min-w-0 gap-3 rounded-2xl border border-border/70 bg-white p-3 shadow-sm">
-      <div className="relative h-24 w-24 shrink-0 overflow-hidden rounded-2xl bg-slate-100">
+      <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-2xl bg-slate-100 sm:h-24 sm:w-24">
         {imageUrl ? (
           <Image
             alt={product.name}
@@ -53,7 +53,7 @@ export function ProductMenuCard({ product }: ProductMenuCardProps) {
             {product.description}
           </p>
         ) : null}
-        <div className="flex flex-wrap items-end gap-2">
+        <div className="flex min-w-0 flex-wrap items-end gap-2">
           {currentPrice ? (
             <span className="text-lg font-extrabold text-foreground">
               {currentPrice}

@@ -12,6 +12,8 @@ import {
   UserRound,
 } from "lucide-react";
 
+import { GoogleAuthButton } from "@/components/auth/GoogleAuthButton";
+import { BrandLogo } from "@/components/layout/brand-logo";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -87,7 +89,10 @@ export function SignupForm() {
     });
 
     if (error) {
-      setStatus({ type: "error", message: getSignupErrorMessage(error.message) });
+      setStatus({
+        type: "error",
+        message: getSignupErrorMessage(error.message),
+      });
       setIsLoading(false);
       return;
     }
@@ -146,6 +151,7 @@ export function SignupForm() {
             <Link
               className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border border-border px-4 text-sm font-medium hover:bg-surface"
               href="/businesses"
+              prefetch={false}
             >
               Seguir explorando
             </Link>
@@ -156,10 +162,10 @@ export function SignupForm() {
   }
 
   return (
-    <div className="mx-auto grid max-w-5xl gap-5 lg:grid-cols-[0.95fr_1.05fr]">
-      <div className="space-y-4">
+    <div className="mx-auto grid max-w-5xl min-w-0 gap-5 lg:grid-cols-[0.95fr_1.05fr]">
+      <div className="min-w-0 space-y-4">
         <Card className="space-y-3">
-          <img src="/brand/logo.svg" alt="Garemo Logo" className="h-12 w-auto mb-2 drop-shadow-sm" />
+          <BrandLogo />
           <p className="text-sm font-medium uppercase text-brand">
             Registro publico
           </p>
@@ -170,16 +176,15 @@ export function SignupForm() {
             Compra talento universitario
           </p>
           <p className="text-sm leading-6 text-muted">
-            Elige comprador o emprendedor. El rol admin no se puede solicitar ni
-            activar desde esta pantalla; solo la administracion de Garemo lo asigna manualmente
-            cuando corresponde.
+            Elige comprador o emprendedor. El rol admin no se puede solicitar
+            ni activar desde esta pantalla.
           </p>
         </Card>
 
         <div className="grid gap-3">
           <Card className="flex gap-3">
             <UserRound className="mt-0.5 h-5 w-5 shrink-0 text-brand" />
-            <div className="space-y-1">
+            <div className="min-w-0 space-y-1">
               <h2 className="text-sm font-semibold">Comprador</h2>
               <p className="text-sm leading-6 text-muted">
                 Guarda favoritos, deja calificaciones y revisa tu historial.
@@ -187,30 +192,30 @@ export function SignupForm() {
               </p>
             </div>
           </Card>
-          <Card className="flex gap-3 hover:border-brand/30 transition-colors shadow-sm">
+          <Card className="flex gap-3 shadow-sm transition-colors hover:border-brand/30">
             <Store className="mt-0.5 h-5 w-5 shrink-0 text-brand" />
-            <div className="space-y-1">
+            <div className="min-w-0 space-y-1">
               <h2 className="text-sm font-semibold">Emprendedor</h2>
               <p className="text-sm leading-6 text-muted">
-                Publica tu negocio, muestra tus productos y recibe contactos por WhatsApp.
+                Publica tu negocio, muestra tus productos y recibe contactos
+                por WhatsApp.
               </p>
             </div>
           </Card>
           <Card className="flex gap-3">
             <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-brand" />
-            <div className="space-y-1">
+            <div className="min-w-0 space-y-1">
               <h2 className="text-sm font-semibold">Admin protegido</h2>
               <p className="text-sm leading-6 text-muted">
-                Ningun usuario puede convertirse en administrador desde esta
-                pantalla. Los roles permitidos aqui son comprador o
-                emprendedor.
+                Nadie puede convertirse en administrador desde esta pantalla.
+                Los roles permitidos son comprador o emprendedor.
               </p>
             </div>
           </Card>
         </div>
       </div>
 
-      <Card className="space-y-5">
+      <Card className="min-w-0 space-y-5">
         <div className="space-y-2">
           <p className="text-sm font-medium uppercase text-brand">
             Datos de acceso
@@ -220,9 +225,17 @@ export function SignupForm() {
           </h2>
           <p className="text-sm leading-6 text-muted">
             Si Supabase pide confirmar email, veras una pantalla clara antes de
-            entrar. Tu perfil se crea con el rol publico elegido al iniciar
-            sesion confirmado.
+            entrar. Google puede crear el mismo perfil seguro si el proveedor
+            esta configurado.
           </p>
+        </div>
+
+        <GoogleAuthButton role={selectedRole} />
+
+        <div className="flex items-center gap-3 text-xs font-bold uppercase text-muted-foreground">
+          <span className="h-px flex-1 bg-border" />
+          Email
+          <span className="h-px flex-1 bg-border" />
         </div>
 
         <form className="space-y-4" onSubmit={handleSubmit}>
@@ -311,7 +324,7 @@ export function SignupForm() {
         </form>
 
         <div className="rounded-lg border border-border bg-background p-3 text-sm text-muted">
-          ¿Ya tienes cuenta?{" "}
+          Ya tienes cuenta?{" "}
           <Link className="font-medium text-brand hover:underline" href="/login">
             Inicia sesion
           </Link>

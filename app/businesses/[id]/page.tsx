@@ -170,7 +170,7 @@ export default async function BusinessDetailPage({
           Volver al directorio
         </Link>
 
-        <section className="overflow-hidden rounded-[2rem] border border-border/70 bg-surface shadow-sm">
+        <section className="max-w-full overflow-hidden rounded-[1.5rem] border border-border/70 bg-surface shadow-sm sm:rounded-[2rem]">
           <div className="relative min-h-[260px] bg-gradient-to-br from-brand/10 via-amber-50 to-slate-100 sm:min-h-[360px]">
             {coverImageUrl ? (
               <Image
@@ -186,7 +186,7 @@ export default async function BusinessDetailPage({
               </div>
             )}
             <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-slate-950/20 to-transparent" />
-            <div className="absolute inset-x-0 bottom-0 p-5 text-white sm:p-7">
+            <div className="absolute inset-x-0 bottom-0 min-w-0 p-4 text-white sm:p-7">
               <div className="mb-3 flex flex-wrap gap-2">
                 <span className="inline-flex items-center gap-1 rounded-full bg-white/95 px-2.5 py-1 text-xs font-bold text-brand">
                   <Tag className="h-3.5 w-3.5" />
@@ -207,7 +207,7 @@ export default async function BusinessDetailPage({
                 ) : null}
               </div>
               <div className="max-w-3xl space-y-3">
-                <h1 className="text-3xl font-extrabold tracking-tight sm:text-5xl">
+                <h1 className="break-words text-3xl font-extrabold leading-tight sm:text-5xl">
                   {business.name}
                 </h1>
                 <p className="line-clamp-3 text-sm leading-6 text-white/85 sm:text-base">
@@ -229,17 +229,19 @@ export default async function BusinessDetailPage({
             </div>
           </div>
 
-          <div className="grid gap-3 border-t border-border/70 bg-white p-4 sm:grid-cols-[1fr_auto] sm:items-center sm:p-5">
-            <div className="flex flex-wrap gap-2">
-              <a
-                className="inline-flex min-h-12 flex-1 items-center justify-center gap-2 rounded-2xl bg-[#25D366] px-5 text-sm font-extrabold text-white shadow-sm transition-colors hover:bg-[#1ebe5d] sm:flex-none"
-                href={whatsappUrl ?? undefined}
-                rel="noopener noreferrer"
-                target="_blank"
-              >
-                <MessageCircle className="h-5 w-5" />
-                Contactar por WhatsApp
-              </a>
+          <div className="grid min-w-0 gap-3 border-t border-border/70 bg-white p-4 sm:grid-cols-[1fr_auto] sm:items-center sm:p-5">
+            <div className="flex min-w-0 flex-wrap gap-2">
+              {whatsappUrl ? (
+                <a
+                  className="inline-flex min-h-12 flex-1 items-center justify-center gap-2 rounded-2xl bg-[#25D366] px-5 text-sm font-extrabold text-white shadow-sm transition-colors hover:bg-[#1ebe5d] sm:flex-none"
+                  href={whatsappUrl}
+                  rel="noopener noreferrer"
+                  target="_blank"
+                >
+                  <MessageCircle className="h-5 w-5" />
+                  Contactar por WhatsApp
+                </a>
+              ) : null}
               <FavoriteButton businessId={business.id} />
             </div>
             <BusinessActionButtons

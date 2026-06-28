@@ -13,13 +13,13 @@ export default async function MapPage() {
 
   return (
     <PageShell>
-      <div className="space-y-5">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-          <div className="max-w-2xl space-y-2">
+      <div className="min-w-0 space-y-5">
+        <div className="flex min-w-0 flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+          <div className="max-w-2xl min-w-0 space-y-2">
             <p className="text-sm font-medium uppercase text-brand">
               Mapa publico
             </p>
-            <h1 className="text-3xl font-semibold tracking-tight">
+            <h1 className="text-3xl font-semibold leading-tight">
               Negocios visibles cerca del campus
             </h1>
             <p className="text-sm leading-6 text-muted">
@@ -30,6 +30,7 @@ export default async function MapPage() {
           <Link
             className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border border-border bg-surface px-4 text-sm font-medium transition-colors hover:bg-background"
             href="/businesses"
+            prefetch={false}
           >
             <Search className="h-4 w-4" />
             Ver directorio

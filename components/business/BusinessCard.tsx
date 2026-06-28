@@ -61,7 +61,7 @@ export function BusinessCard({ business }: BusinessCardProps) {
     lowestPrice !== null ? `Desde ${formatPrice(lowestPrice)}` : null;
 
   return (
-    <article className="group flex h-full flex-col overflow-hidden rounded-3xl border border-border/70 bg-white shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-brand/30 hover:shadow-xl">
+    <article className="group flex h-full min-w-0 flex-col overflow-hidden rounded-2xl border border-border/70 bg-white shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-brand/30 hover:shadow-xl sm:rounded-3xl">
       <div className="relative">
         <Link
           aria-label={`Ver perfil de ${business.name}`}
@@ -91,7 +91,7 @@ export function BusinessCard({ business }: BusinessCardProps) {
           compact
         />
 
-        <div className="absolute bottom-3 left-3 flex flex-wrap gap-2">
+        <div className="absolute inset-x-3 bottom-3 flex min-w-0 flex-wrap gap-2">
           <BusinessStatusBadge business={business} />
           {business.delivery_available ? (
             <span className="inline-flex items-center gap-1 rounded-full bg-white/95 px-2.5 py-1 text-xs font-bold text-brand shadow-sm">
@@ -102,15 +102,15 @@ export function BusinessCard({ business }: BusinessCardProps) {
         </div>
       </div>
 
-      <div className="flex flex-1 flex-col gap-4 p-4 sm:p-5">
+      <div className="flex flex-1 min-w-0 flex-col gap-3 p-3.5 sm:gap-4 sm:p-5">
         <div className="space-y-2">
           <div className="flex items-start justify-between gap-3">
-            <div className="min-w-0">
+            <div className="min-w-0 flex-1">
               <p className="line-clamp-1 text-xs font-bold uppercase tracking-wide text-brand">
                 {business.category?.name ?? "Categoria"}
               </p>
               <Link href={`/businesses/${business.id}`}>
-                <h2 className="mt-1 line-clamp-2 text-xl font-extrabold leading-tight text-foreground transition-colors group-hover:text-brand">
+                <h2 className="mt-1 line-clamp-2 text-lg font-extrabold leading-tight text-foreground transition-colors group-hover:text-brand sm:text-xl">
                   {business.name}
                 </h2>
               </Link>
@@ -128,13 +128,13 @@ export function BusinessCard({ business }: BusinessCardProps) {
         </div>
 
         {featuredProduct ? (
-          <div className="rounded-2xl border border-border/70 bg-[#fbfaf6] p-3">
-            <div className="flex items-start gap-3">
+          <div className="min-w-0 rounded-2xl border border-border/70 bg-[#fbfaf6] p-3">
+            <div className="flex min-w-0 items-start gap-3">
               <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand/10 text-brand">
                 <ShoppingBag className="h-5 w-5" />
               </span>
               <div className="min-w-0 flex-1">
-                <div className="flex items-start justify-between gap-2">
+                <div className="flex min-w-0 items-start justify-between gap-2">
                   <p className="line-clamp-1 text-sm font-bold text-foreground">
                     {featuredProduct.name}
                   </p>
@@ -173,7 +173,7 @@ export function BusinessCard({ business }: BusinessCardProps) {
             <RatingSummary compact summary={business.trust_summary} />
             <span className="inline-flex min-w-0 items-center gap-1.5 text-muted-foreground">
               <MapPin className="h-4 w-4 shrink-0" />
-              <span className="max-w-36 truncate" title={zone}>
+              <span className="max-w-[9rem] truncate sm:max-w-36" title={zone}>
                 {zone}
               </span>
             </span>
@@ -203,7 +203,7 @@ export function BusinessCard({ business }: BusinessCardProps) {
             </p>
           ) : null}
 
-          <div className="grid grid-cols-[1fr_auto] gap-2">
+          <div className="grid grid-cols-[minmax(0,1fr)_auto] gap-2">
             <Link
               className="inline-flex min-h-11 items-center justify-center gap-2 rounded-2xl bg-brand px-4 text-sm font-bold text-brand-foreground transition-colors hover:bg-brand-hover"
               href={`/businesses/${business.id}`}
