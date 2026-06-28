@@ -1,16 +1,28 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { ChevronDown, LogOut, MapPin, Search, UserCircle } from "lucide-react";
+import {
+  ChevronDown,
+  LogOut,
+  MapPin,
+  Search,
+  ShieldCheck,
+  Store,
+  UserCircle,
+} from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import type { Session } from "@supabase/supabase-js";
 
 import { BrandLogo } from "@/components/layout/brand-logo";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
+import { cn } from "@/lib/utils";
 
 export function AppHeader() {
   const router = useRouter();
+  const desktopMenuRef = useRef<HTMLDivElement>(null);
+  const mobileMenuRef = useRef<HTMLDivElement>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [role, setRole] = useState<string | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -44,6 +56,27 @@ export function AppHeader() {
     return () => subscription.unsubscribe();
   }, []);
 
+  useEffect(() => {
+    if (!menuOpen) {
+      return;
+    }
+
+    const closeOnOutsideClick = (event: MouseEvent) => {
+      const target = event.target as Node;
+
+      if (
+        !mobileMenuRef.current?.contains(target) &&
+        !desktopMenuRef.current?.contains(target)
+      ) {
+        setMenuOpen(false);
+      }
+    };
+
+    window.addEventListener("mousedown", closeOnOutsideClick);
+
+    return () => window.removeEventListener("mousedown", closeOnOutsideClick);
+  }, [menuOpen]);
+
   const handleSignOut = async () => {
     const supabase = createSupabaseBrowserClient();
     await supabase.auth.signOut();
@@ -52,123 +85,230 @@ export function AppHeader() {
   };
 
   const roleLabel =
-    role === "owner" ? "Emprendedor" : role === "admin" ? "Admin" : "Comprador";
+    role === "owner"
+      ? "Emprendedor"
+      : role === "admin"
+        ? "Administrador"
+        : "Comprador";
 
   return (
-    <header className="sticky top-0 z-50 border-b border-border bg-[#fffaf0]/95 shadow-sm backdrop-blur">
-      <div className="mx-auto flex min-h-16 w-full max-w-7xl flex-col gap-3 px-3 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-4">
+    <header className="sticky top-0 z-50 border-b border-brand/10 bg-[#fffaf0]/95 shadow-[0_8px_24px_rgba(11,31,61,0.08)] backdrop-blur-xl">
+      <div className="mx-auto grid w-full max-w-7xl gap-2 px-3 py-2 sm:flex sm:min-h-16 sm:items-center sm:justify-between sm:px-4">
         <div className="flex min-w-0 items-center justify-between gap-3">
-          <BrandLogo className="shrink-0" />
-          <span className="hidden rounded-full bg-accent/20 px-3 py-1 text-xs font-bold text-foreground md:inline-flex">
-            Compra talento universitario
-          </span>
-        </div>
-
-        <nav className="flex w-full max-w-full items-center gap-1.5 overflow-x-auto pb-1 text-sm font-medium text-muted-foreground sm:w-auto sm:justify-end sm:overflow-visible sm:pb-0">
-          <Link
-            className="inline-flex min-h-10 shrink-0 items-center gap-1 rounded-xl px-3 py-2 transition-colors hover:bg-white hover:text-foreground"
-            href="/businesses"
-            prefetch={false}
-          >
-            <Search className="h-4 w-4" />
-            Explorar
-          </Link>
-          <Link
-            className="inline-flex min-h-10 shrink-0 items-center gap-1 rounded-xl px-3 py-2 transition-colors hover:bg-white hover:text-foreground"
-            href="/map"
-            prefetch={false}
-          >
-            <MapPin className="h-4 w-4" />
-            Mapa
-          </Link>
-
-          {isLoading ? (
-            <div className="ml-1 flex shrink-0 items-center gap-2">
-              <div className="h-9 w-16 animate-pulse rounded-lg bg-slate-100" />
-              <div className="h-9 w-24 animate-pulse rounded-lg bg-slate-100" />
-            </div>
-          ) : session ? (
-            <div className="relative ml-1 shrink-0">
-              <button
-                className="inline-flex min-h-10 items-center gap-2 rounded-full border border-border bg-surface px-3 py-1.5 text-sm font-bold text-foreground shadow-sm transition-colors hover:bg-white focus:outline-none focus:ring-2 focus:ring-brand"
-                onClick={() => setMenuOpen((isOpen) => !isOpen)}
-                type="button"
-              >
-                <UserCircle className="h-4 w-4 text-brand" />
-                <span>{roleLabel}</span>
-                <ChevronDown className="h-4 w-4 text-muted-foreground" />
-              </button>
-
-              {menuOpen ? (
-                <div className="absolute right-0 mt-2 w-56 rounded-2xl border border-border bg-surface py-1 shadow-lg">
-                  <Link
-                    className="block px-4 py-2 text-sm text-foreground hover:bg-slate-50"
-                    href="/account"
-                    onClick={() => setMenuOpen(false)}
-                    prefetch={false}
-                  >
-                    Mi perfil
-                  </Link>
-                  {role === "admin" ? (
-                    <Link
-                      className="block px-4 py-2 text-sm text-foreground hover:bg-slate-50"
-                      href="/admin"
-                      onClick={() => setMenuOpen(false)}
-                      prefetch={false}
-                    >
-                      Administracion
-                    </Link>
-                  ) : null}
-                  {role === "owner" ? (
-                    <Link
-                      className="block px-4 py-2 text-sm text-foreground hover:bg-slate-50"
-                      href="/dashboard"
-                      onClick={() => setMenuOpen(false)}
-                      prefetch={false}
-                    >
-                      Panel de mi negocio
-                    </Link>
-                  ) : null}
-                  {role === "buyer" ? (
-                    <Link
-                      className="block px-4 py-2 text-sm text-foreground hover:bg-slate-50"
-                      href="/dashboard"
-                      onClick={() => setMenuOpen(false)}
-                      prefetch={false}
-                    >
-                      Publicar mi negocio
-                    </Link>
-                  ) : null}
-                  <div className="my-1 border-t border-border" />
-                  <button
-                    className="flex w-full items-center gap-2 px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50"
-                    onClick={handleSignOut}
-                    type="button"
-                  >
-                    <LogOut className="h-4 w-4" />
-                    Cerrar sesion
-                  </button>
-                </div>
-              ) : null}
-            </div>
-          ) : (
-            <div className="ml-1 flex shrink-0 items-center gap-2">
+          <BrandLogo showSlogan className="shrink-0" />
+          <div className="relative shrink-0 sm:hidden" ref={mobileMenuRef}>
+            {isLoading ? (
+              <LoadingAccountPill />
+            ) : session ? (
+              <UserMenuButton
+                menuOpen={menuOpen}
+                roleLabel={roleLabel}
+                onToggle={() => setMenuOpen((isOpen) => !isOpen)}
+              />
+            ) : (
               <Link
-                className="inline-flex min-h-10 items-center gap-1 rounded-xl px-3 py-2 transition-colors hover:bg-white hover:text-foreground"
+                className="inline-flex min-h-10 items-center justify-center rounded-full bg-brand px-4 text-sm font-extrabold text-brand-foreground shadow-sm"
                 href="/login"
               >
                 Entrar
               </Link>
-              <Link
-                className="inline-flex min-h-10 items-center gap-1 rounded-xl bg-brand px-3 py-2 text-brand-foreground shadow-sm transition-all hover:bg-brand-hover"
-                href="/signup"
-              >
-                Crear cuenta
-              </Link>
-            </div>
-          )}
-        </nav>
+            )}
+
+            {session && menuOpen ? (
+              <UserDropdown
+                isMobile
+                onSignOut={handleSignOut}
+                role={role}
+                setMenuOpen={setMenuOpen}
+              />
+            ) : null}
+          </div>
+        </div>
+
+        <div className="flex min-w-0 items-center justify-between gap-2 sm:justify-end">
+          <nav className="grid min-w-0 flex-1 grid-cols-2 gap-2 sm:flex sm:flex-none sm:items-center sm:gap-1.5">
+            <NavPill href="/businesses" icon={Search} label="Explorar" />
+            <NavPill href="/map" icon={MapPin} label="Mapa" />
+          </nav>
+
+          <div className="relative hidden shrink-0 sm:block" ref={desktopMenuRef}>
+            {isLoading ? (
+              <LoadingAccountPill />
+            ) : session ? (
+              <UserMenuButton
+                menuOpen={menuOpen}
+                roleLabel={roleLabel}
+                onToggle={() => setMenuOpen((isOpen) => !isOpen)}
+              />
+            ) : (
+              <div className="flex items-center gap-2">
+                <Link
+                  className="inline-flex min-h-10 items-center justify-center rounded-xl px-3 text-sm font-bold text-muted-foreground transition-colors hover:bg-white hover:text-foreground"
+                  href="/login"
+                >
+                  Entrar
+                </Link>
+                <Link
+                  className="inline-flex min-h-10 items-center justify-center rounded-xl bg-brand px-4 text-sm font-extrabold text-brand-foreground shadow-sm transition-colors hover:bg-brand-hover"
+                  href="/signup"
+                >
+                  Crear cuenta
+                </Link>
+              </div>
+            )}
+
+            {session && menuOpen ? (
+              <UserDropdown
+                onSignOut={handleSignOut}
+                role={role}
+                setMenuOpen={setMenuOpen}
+              />
+            ) : null}
+          </div>
+        </div>
       </div>
     </header>
+  );
+}
+
+function NavPill({
+  href,
+  icon: Icon,
+  label,
+}: {
+  href: string;
+  icon: LucideIcon;
+  label: string;
+}) {
+  return (
+    <Link
+      className="inline-flex min-h-10 min-w-0 items-center justify-center gap-2 rounded-2xl bg-white px-3 text-sm font-extrabold text-foreground shadow-sm ring-1 ring-border transition-colors hover:bg-brand hover:text-brand-foreground sm:bg-transparent sm:shadow-none sm:ring-0 sm:hover:bg-white sm:hover:text-brand"
+      href={href}
+      prefetch={false}
+    >
+      <Icon className="h-4 w-4 shrink-0" />
+      <span className="truncate">{label}</span>
+    </Link>
+  );
+}
+
+function LoadingAccountPill() {
+  return (
+    <div className="inline-flex min-h-10 items-center gap-2 rounded-full border border-brand/10 bg-white px-3 text-sm font-extrabold text-muted-foreground shadow-sm">
+      <span className="flex h-7 w-7 shrink-0 animate-pulse items-center justify-center rounded-full bg-brand/10 text-brand">
+        <UserCircle className="h-4 w-4" />
+      </span>
+      <span>Cuenta</span>
+    </div>
+  );
+}
+
+function UserMenuButton({
+  menuOpen,
+  onToggle,
+  roleLabel,
+}: {
+  menuOpen: boolean;
+  onToggle: () => void;
+  roleLabel: string;
+}) {
+  return (
+    <button
+      aria-expanded={menuOpen}
+      className="inline-flex min-h-10 max-w-[10rem] items-center gap-2 rounded-full border border-brand/15 bg-white px-2.5 text-sm font-extrabold text-foreground shadow-sm transition-colors hover:border-brand/30"
+      onClick={onToggle}
+      type="button"
+    >
+      <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-brand/10 text-brand">
+        <UserCircle className="h-4 w-4" />
+      </span>
+      <span className="truncate">{roleLabel}</span>
+      <ChevronDown className="h-4 w-4 shrink-0 text-muted-foreground" />
+    </button>
+  );
+}
+
+function UserDropdown({
+  isMobile = false,
+  onSignOut,
+  role,
+  setMenuOpen,
+}: {
+  isMobile?: boolean;
+  onSignOut: () => void;
+  role: string | null;
+  setMenuOpen: (value: boolean) => void;
+}) {
+  return (
+    <div
+      className={cn(
+        "absolute z-50 mt-2 w-64 overflow-hidden rounded-3xl border border-border bg-white p-2 shadow-2xl",
+        isMobile ? "right-0" : "right-0",
+      )}
+    >
+      <DropdownLink
+        href="/account"
+        icon={UserCircle}
+        label="Mi perfil"
+        setMenuOpen={setMenuOpen}
+      />
+      {role === "owner" ? (
+        <DropdownLink
+          href="/dashboard"
+          icon={Store}
+          label="Panel de mi negocio"
+          setMenuOpen={setMenuOpen}
+        />
+      ) : null}
+      {role === "admin" ? (
+        <DropdownLink
+          href="/admin"
+          icon={ShieldCheck}
+          label="Panel administrador"
+          setMenuOpen={setMenuOpen}
+        />
+      ) : null}
+      {role === "buyer" ? (
+        <DropdownLink
+          href="/dashboard"
+          icon={Store}
+          label="Publicar negocio"
+          setMenuOpen={setMenuOpen}
+        />
+      ) : null}
+      <div className="my-2 border-t border-border" />
+      <button
+        className="flex min-h-11 w-full items-center gap-3 rounded-2xl px-3 text-left text-sm font-bold text-red-600 transition-colors hover:bg-red-50"
+        onClick={onSignOut}
+        type="button"
+      >
+        <LogOut className="h-4 w-4" />
+        Cerrar sesion
+      </button>
+    </div>
+  );
+}
+
+function DropdownLink({
+  href,
+  icon: Icon,
+  label,
+  setMenuOpen,
+}: {
+  href: string;
+  icon: LucideIcon;
+  label: string;
+  setMenuOpen: (value: boolean) => void;
+}) {
+  return (
+    <Link
+      className="flex min-h-11 items-center gap-3 rounded-2xl px-3 text-sm font-bold text-foreground transition-colors hover:bg-[#FFF4E2]"
+      href={href}
+      onClick={() => setMenuOpen(false)}
+      prefetch={false}
+    >
+      <Icon className="h-4 w-4 text-brand" />
+      {label}
+    </Link>
   );
 }

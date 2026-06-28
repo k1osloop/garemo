@@ -1,6 +1,7 @@
 import Link from "next/link";
 import {
   ArrowRight,
+  BookmarkCheck,
   Building2,
   CheckCircle2,
   Clock3,
@@ -11,9 +12,9 @@ import {
   Sparkles,
   Star,
   Store,
+  UserCircle,
 } from "lucide-react";
 
-import { BrandLogo } from "@/components/layout/brand-logo";
 import { PageShell } from "@/components/layout/page-shell";
 import { Card } from "@/components/ui/card";
 import { getActiveBusinesses, getCategories } from "@/lib/supabase/queries";
@@ -37,63 +38,63 @@ export default async function Home() {
   return (
     <PageShell>
       <div className="min-w-0 space-y-10 pb-8">
-        <section className="relative overflow-hidden rounded-[1.5rem] border border-border/50 bg-gradient-to-b from-brand/10 to-transparent p-5 shadow-sm sm:rounded-3xl sm:p-12 lg:p-16">
-          <div className="relative mx-auto max-w-3xl space-y-8 text-center">
-            <div className="flex flex-col items-center space-y-4">
-              <BrandLogo className="justify-center" />
-              <span className="inline-flex rounded-full border border-brand/20 bg-surface px-4 py-1.5 text-sm font-semibold text-brand shadow-sm">
+        <section className="relative overflow-hidden rounded-[1.5rem] border border-brand/10 bg-gradient-to-br from-[#fffaf0] via-white to-brand/10 p-5 shadow-sm sm:rounded-3xl sm:p-10 lg:p-12">
+          <div className="relative grid gap-8 lg:grid-cols-[minmax(0,1fr)_360px] lg:items-center">
+            <div className="min-w-0 space-y-6">
+              <span className="inline-flex rounded-full border border-brand/20 bg-white px-4 py-1.5 text-sm font-extrabold text-brand shadow-sm">
                 Compra talento universitario
               </span>
-              <h1 className="text-4xl font-bold leading-tight text-foreground sm:text-5xl lg:text-6xl">
-                Encuentra emprendimientos y productos cerca de tu universidad
+              <h1 className="text-3xl font-black leading-tight text-foreground sm:text-5xl">
+                Encuentra emprendimientos cerca de tu universidad
               </h1>
-              <p className="mx-auto max-w-2xl text-lg leading-8 text-muted-foreground">
+              <p className="max-w-2xl text-base leading-7 text-muted-foreground sm:text-lg">
                 Apoya a la comunidad universitaria. Explora negocios, revisa el
                 mapa de ubicaciones y contacta directo por WhatsApp sin
                 intermediarios.
               </p>
+
+              <div className="grid gap-3 sm:flex">
+                <Link
+                  className="inline-flex h-12 items-center justify-center gap-2 rounded-2xl bg-brand px-6 text-base font-extrabold text-brand-foreground shadow-md transition-all hover:-translate-y-0.5 hover:bg-brand-hover hover:shadow-lg"
+                  href="/businesses"
+                  prefetch={false}
+                >
+                  <Search className="h-5 w-5" />
+                  Explorar negocios
+                </Link>
+                <Link
+                  className="inline-flex h-12 items-center justify-center gap-2 rounded-2xl border border-border bg-white px-6 text-base font-extrabold text-foreground transition-all hover:border-brand/30 hover:bg-[#FFF4E2]"
+                  href="/map"
+                  prefetch={false}
+                >
+                  <MapPinned className="h-5 w-5 text-brand" />
+                  Ver mapa
+                </Link>
+              </div>
             </div>
 
-            <div className="flex flex-col items-center justify-center gap-4 sm:flex-row">
-              <Link
-                className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-brand px-8 text-base font-medium text-brand-foreground shadow-md transition-all hover:-translate-y-0.5 hover:bg-brand-hover hover:shadow-lg sm:w-auto"
-                href="/businesses"
-                prefetch={false}
-              >
-                <Search className="h-5 w-5" />
-                Explorar negocios
-              </Link>
-              <Link
-                className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-xl border-2 border-border bg-surface px-8 text-base font-medium text-foreground transition-all hover:border-brand/30 hover:bg-slate-50 sm:w-auto"
-                href="/signup"
-              >
-                <Store className="h-5 w-5 text-brand" />
-                Publicar mi negocio
-              </Link>
-            </div>
-
-            <div className="mx-auto grid grid-cols-3 gap-3 border-t border-border/50 pt-8 sm:max-w-xl sm:gap-4">
-              <div className="flex flex-col items-center">
+            <div className="grid grid-cols-3 gap-3 rounded-[1.5rem] border border-border/70 bg-white p-4 shadow-sm">
+              <div className="rounded-2xl bg-brand/10 p-3 text-center">
                 <p className="text-3xl font-bold text-brand">
                   {visibleBusinessCount}
                 </p>
-                <p className="mt-1 text-sm font-medium text-muted-foreground">
+                <p className="mt-1 text-xs font-bold text-muted-foreground">
                   Negocios
                 </p>
               </div>
-              <div className="flex flex-col items-center">
+              <div className="rounded-2xl bg-accent/15 p-3 text-center">
                 <p className="text-3xl font-bold text-brand">
                   {categories.length}
                 </p>
-                <p className="mt-1 text-sm font-medium text-muted-foreground">
+                <p className="mt-1 text-xs font-bold text-muted-foreground">
                   Categorias
                 </p>
               </div>
-              <div className="flex flex-col items-center">
+              <div className="rounded-2xl bg-slate-100 p-3 text-center">
                 <p className="text-3xl font-bold text-brand">
                   {mappedBusinessCount}
                 </p>
-                <p className="mt-1 text-sm font-medium text-muted-foreground">
+                <p className="mt-1 text-xs font-bold text-muted-foreground">
                   En el mapa
                 </p>
               </div>
@@ -101,7 +102,33 @@ export default async function Home() {
           </div>
         </section>
 
-        <section className="mt-12 grid min-w-0 gap-4 sm:grid-cols-3">
+        <section className="grid grid-cols-2 gap-3 sm:grid-cols-5">
+          {[
+            { href: "/businesses", icon: Search, label: "Negocios" },
+            { href: "/map", icon: MapPinned, label: "Mapa" },
+            { href: "/account", icon: BookmarkCheck, label: "Favoritos" },
+            { href: "/signup", icon: Store, label: "Publicar" },
+            { href: "/login", icon: UserCircle, label: "Perfil" },
+          ].map((item) => {
+            const Icon = item.icon;
+
+            return (
+              <Link
+                className="flex min-h-24 flex-col items-center justify-center gap-2 rounded-3xl border border-border/70 bg-white p-3 text-center text-sm font-extrabold text-foreground shadow-sm transition-colors hover:border-brand/30 hover:bg-[#FFF4E2]"
+                href={item.href}
+                key={item.href}
+                prefetch={false}
+              >
+                <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-brand/10 text-brand">
+                  <Icon className="h-5 w-5" />
+                </span>
+                {item.label}
+              </Link>
+            );
+          })}
+        </section>
+
+        <section className="grid min-w-0 gap-4 sm:grid-cols-3">
           <Card className="space-y-3 shadow-sm transition-colors hover:border-brand/30">
             <Search className="h-6 w-6 text-brand" />
             <h2 className="text-lg font-semibold">Busca rapido</h2>

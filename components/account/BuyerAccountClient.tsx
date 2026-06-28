@@ -11,7 +11,6 @@ import {
   ShieldAlert,
   Star,
   Store,
-  UserRound,
   MapPin,
 } from "lucide-react";
 
@@ -317,18 +316,18 @@ export function BuyerAccountClient() {
     <div className="space-y-6">
       {error ? <ErrorState title="No pudimos cargar la cuenta" description={error} /> : null}
 
-      <Card className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between border-brand/20 bg-brand/5 shadow-sm">
-        <div className="space-y-3">
+      <Card className="flex flex-col gap-5 overflow-hidden rounded-[1.75rem] border-brand/20 bg-gradient-to-br from-white via-[#fffaf0] to-brand/10 shadow-sm sm:flex-row sm:items-center sm:justify-between">
+        <div className="min-w-0 space-y-3">
           <div className="flex items-center gap-2">
-            <span className="flex h-8 w-8 items-center justify-center rounded-full bg-brand/20">
-              <UserRound className="h-4 w-4 text-brand" />
+            <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-brand text-lg font-black uppercase text-brand-foreground shadow-sm">
+              {(profile?.full_name ?? userEmail).slice(0, 1)}
             </span>
             <p className="text-xs font-bold uppercase tracking-wider text-brand">
               Perfil de {role === "admin" ? "Administrador" : role === "owner" ? "Emprendedor" : "Comprador"}
             </p>
           </div>
           <div>
-            <h1 className="text-3xl font-bold tracking-tight text-slate-800">
+            <h1 className="break-words text-3xl font-black tracking-tight text-slate-800">
               {profile?.full_name ?? userEmail}
             </h1>
             <p className="mt-1 text-sm font-medium text-muted-foreground">
@@ -340,11 +339,11 @@ export function BuyerAccountClient() {
             {role !== "admin" ? " Guarda negocios para volver rápido y revisa tus calificaciones. Los favoritos son privados y no se usan como ranking público." : ""}
           </p>
         </div>
-        <div className="flex flex-col gap-2 sm:flex-row">
+        <div className="grid gap-2 sm:flex sm:flex-row">
           {role === "admin" && (
             <Link
               href="/admin"
-              className="inline-flex h-9 items-center justify-center rounded-md bg-brand px-4 py-2 text-sm font-medium text-brand-foreground shadow transition-colors hover:bg-brand/90"
+              className="inline-flex min-h-11 items-center justify-center rounded-2xl bg-brand px-4 py-2 text-sm font-extrabold text-brand-foreground shadow transition-colors hover:bg-brand/90"
             >
               Ir a Administración
             </Link>
@@ -352,7 +351,7 @@ export function BuyerAccountClient() {
           {role === "owner" && (
             <Link
               href="/dashboard"
-              className="inline-flex h-9 items-center justify-center rounded-md bg-brand px-4 py-2 text-sm font-medium text-brand-foreground shadow transition-colors hover:bg-brand/90"
+              className="inline-flex min-h-11 items-center justify-center rounded-2xl bg-brand px-4 py-2 text-sm font-extrabold text-brand-foreground shadow transition-colors hover:bg-brand/90"
             >
               Panel de mi negocio
             </Link>
@@ -360,16 +359,47 @@ export function BuyerAccountClient() {
           {role === "buyer" && (
             <Link
               href="/dashboard"
-              className="inline-flex h-9 items-center justify-center rounded-md border border-brand bg-transparent px-4 py-2 text-sm font-medium text-brand shadow-sm transition-colors hover:bg-brand/10"
+              className="inline-flex min-h-11 items-center justify-center rounded-2xl border border-brand bg-white px-4 py-2 text-sm font-extrabold text-brand shadow-sm transition-colors hover:bg-brand/10"
             >
               Publicar mi negocio
             </Link>
           )}
-          <Button onClick={signOut} type="button" variant="outline" className="shrink-0 border-slate-300 hover:bg-slate-100 hover:text-slate-900">
+          <Button onClick={signOut} type="button" variant="outline" className="shrink-0 rounded-2xl border-slate-300 font-extrabold hover:bg-slate-100 hover:text-slate-900">
             <LogOut className="mr-2 h-4 w-4" /> Cerrar sesión
           </Button>
         </div>
       </Card>
+
+      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+        <Card className="rounded-3xl bg-white shadow-sm">
+          <BookmarkCheck className="mb-3 h-5 w-5 text-brand" />
+          <p className="text-2xl font-black text-foreground">
+            {favorites.length}
+          </p>
+          <p className="text-xs font-bold text-muted-foreground">Favoritos</p>
+        </Card>
+        <Card className="rounded-3xl bg-white shadow-sm">
+          <Star className="mb-3 h-5 w-5 text-accent" />
+          <p className="text-2xl font-black text-foreground">
+            {reviews.length}
+          </p>
+          <p className="text-xs font-bold text-muted-foreground">Reseñas</p>
+        </Card>
+        <Card className="rounded-3xl bg-white shadow-sm">
+          <Store className="mb-3 h-5 w-5 text-brand" />
+          <p className="text-sm font-black text-foreground">Publicar</p>
+          <p className="text-xs font-bold text-muted-foreground">
+            Negocio propio
+          </p>
+        </Card>
+        <Card className="rounded-3xl bg-white shadow-sm">
+          <ShieldAlert className="mb-3 h-5 w-5 text-amber-500" />
+          <p className="text-sm font-black text-foreground">Seguro</p>
+          <p className="text-xs font-bold text-muted-foreground">
+            Sin pagos internos
+          </p>
+        </Card>
+      </div>
 
       {role === "owner" ? (
         <Card className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between border-slate-200 bg-white shadow-sm">

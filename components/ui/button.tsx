@@ -27,6 +27,8 @@ export function Button({
           "bg-brand text-brand-foreground hover:bg-brand-hover shadow-sm",
         variant === "secondary" &&
           "border border-border bg-surface text-foreground hover:bg-slate-50 hover:text-foreground shadow-sm",
+        variant === "outline" &&
+          "border border-border bg-white text-foreground shadow-sm hover:border-brand/30 hover:bg-[#FFF4E2]",
         variant === "ghost" &&
           "hover:bg-slate-100 text-foreground",
         variant === "destructive" &&
