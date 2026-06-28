@@ -6,10 +6,15 @@ import type { PublicBusiness } from "@/types/database";
 
 type MapBusinessListProps = {
   businesses: PublicBusiness[];
+  distanceLabels?: Record<string, string>;
   title: string;
 };
 
-export function MapBusinessList({ businesses, title }: MapBusinessListProps) {
+export function MapBusinessList({
+  businesses,
+  distanceLabels = {},
+  title,
+}: MapBusinessListProps) {
   if (businesses.length === 0) {
     return null;
   }
@@ -37,7 +42,9 @@ export function MapBusinessList({ businesses, title }: MapBusinessListProps) {
                       {business.name}
                     </h3>
                     <p className="text-xs text-brand">
-                      {business.category?.name ?? "Categoria"}
+                      {distanceLabels[business.id] ??
+                        business.category?.name ??
+                        "Categoria"}
                     </p>
                   </div>
                   <MapPin className="h-4 w-4 shrink-0 text-brand" />

@@ -17,6 +17,8 @@ import {
   formatPrice,
   getBusinessAvailability,
   getBusinessDisplayImage,
+  getFeaturedProduct,
+  getFeaturedProductBadge,
 } from "@/lib/business-display";
 import { cn } from "@/lib/utils";
 import { BusinessStatusBadge } from "@/components/business/BusinessStatusBadge";
@@ -26,6 +28,7 @@ import type { PublicBusiness } from "@/types/database";
 
 type BusinessCardProps = {
   business: PublicBusiness;
+  distanceLabel?: string;
 };
 
 function getCompactStatusBadge(message: string | null) {
@@ -53,38 +56,22 @@ function getCompactStatusBadge(message: string | null) {
   return "Novedad";
 }
 
-export function BusinessCard({ business }: BusinessCardProps) {
+export function BusinessCard({ business, distanceLabel }: BusinessCardProps) {
   const zone =
     business.location?.campus_zone ??
     business.location?.address_text ??
     "Ubicacion por confirmar";
   const hasWhatsApp = Boolean(business.contact_info?.whatsapp_number);
   const availability = getBusinessAvailability(business);
-  const featuredProduct =
-    business.products.find((product) => product.is_available) ??
-    business.products[0] ??
-    null;
+  const featuredProduct = getFeaturedProduct(business.products);
   const imageUrl = getBusinessDisplayImage(business, featuredProduct);
+  const featuredProductBadge = getFeaturedProductBadge(featuredProduct);
 
-  const lowestPrice = business.products
-    .filter(
-      (product) =>
-        product.is_available &&
-        (product.price !== null || product.offer_price !== null),
-    )
-    .reduce((min, product) => {
-      const productPrice =
-        product.offer_price !== null ? product.offer_price : product.price;
-
-      if (productPrice === null) {
-        return min;
-      }
-
-      return min === null ? productPrice : Math.min(min, productPrice);
-    }, null as number | null);
+  const featuredPrice =
+    featuredProduct?.offer_price ?? featuredProduct?.price ?? null;
 
   const priceLabel =
-    lowestPrice !== null ? `Desde ${formatPrice(lowestPrice)}` : null;
+    featuredPrice !== null ? `Desde ${formatPrice(featuredPrice)}` : null;
   const compactStatusBadge = getCompactStatusBadge(business.status_message);
 
   return (
@@ -154,52 +141,52 @@ export function BusinessCard({ business }: BusinessCardProps) {
           </p>
         </div>
 
-        {featuredProduct ? (
-          <div className="min-w-0 rounded-2xl border border-border/70 bg-[#fbfaf6] p-3">
-            <div className="flex min-w-0 items-start gap-3">
-              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand/10 text-brand">
-                <ShoppingBag className="h-5 w-5" />
-              </span>
-              <div className="min-w-0 flex-1">
-                <div className="flex min-w-0 items-start justify-between gap-2">
-                  <p className="line-clamp-1 text-sm font-bold text-foreground">
-                    {featuredProduct.name}
-                  </p>
-                  <span
-                    className={cn(
-                      "shrink-0 rounded-full px-2 py-0.5 text-[10px] font-bold uppercase",
-                      featuredProduct.is_available
-                        ? "bg-emerald-50 text-emerald-700"
-                        : "bg-slate-100 text-slate-500",
-                    )}
-                  >
-                    {featuredProduct.is_available
-                      ? "Disponible"
-                      : "Agotado"}
+        <div className="min-w-0 rounded-2xl border border-border/70 bg-[#fbfaf6] p-3">
+          <div className="flex min-w-0 items-start gap-3">
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand/10 text-brand">
+              <ShoppingBag className="h-5 w-5" />
+            </span>
+            <div className="min-w-0 flex-1">
+              <div className="flex min-w-0 items-start justify-between gap-2">
+                <p className="line-clamp-1 text-sm font-bold text-foreground">
+                  {featuredProduct?.name ?? "Catalogo en preparacion"}
+                </p>
+                <span
+                  className={cn(
+                    "shrink-0 rounded-full px-2 py-0.5 text-[10px] font-bold uppercase",
+                    featuredProduct?.is_available
+                      ? "bg-emerald-50 text-emerald-700"
+                      : "bg-slate-100 text-slate-500",
+                  )}
+                >
+                  {featuredProductBadge}
+                </span>
+              </div>
+              <div className="mt-2 flex min-w-0 flex-wrap items-center gap-2">
+                {priceLabel ? (
+                  <span className="text-base font-extrabold text-foreground">
+                    {priceLabel}
                   </span>
-                </div>
-                <div className="mt-2 flex min-w-0 flex-wrap items-center gap-2">
-                  {priceLabel ? (
-                    <span className="text-base font-extrabold text-foreground">
-                      {priceLabel}
-                    </span>
-                  ) : null}
-                  {featuredProduct.stock_label ? (
-                    <span className="rounded-full bg-brand/10 px-2 py-0.5 text-[10px] font-bold uppercase text-brand">
-                      {featuredProduct.stock_label}
-                    </span>
-                  ) : null}
-                  {compactStatusBadge ? (
-                    <span className="inline-flex max-w-full items-center gap-1 rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-bold uppercase text-amber-700">
-                      <Sparkles className="h-3 w-3 shrink-0" />
-                      <span className="truncate">{compactStatusBadge}</span>
-                    </span>
-                  ) : null}
-                </div>
+                ) : (
+                  <span className="text-xs font-bold text-muted-foreground">
+                    Consulta novedades por WhatsApp
+                  </span>
+                )}
+                {featuredProduct?.stock_label ? (
+                  <span className="rounded-full bg-brand/10 px-2 py-0.5 text-[10px] font-bold uppercase text-brand">
+                    {featuredProduct.stock_label}
+                  </span>
+                ) : null}
+                {compactStatusBadge ? (
+                  <span className="inline-flex max-w-full items-center gap-1 rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-bold uppercase text-amber-700">
+                    <Sparkles className="h-3 w-3 shrink-0" />
+                    <span className="truncate">{compactStatusBadge}</span>
+                  </span>
+                ) : null}
               </div>
             </div>
           </div>
-        ) : null}
+        </div>
 
         <div className="mt-auto space-y-3 border-t border-border/60 pt-3">
           <div className="flex flex-wrap items-center justify-between gap-2 text-sm">
@@ -207,7 +194,7 @@ export function BusinessCard({ business }: BusinessCardProps) {
             <span className="inline-flex min-w-0 items-center gap-1.5 text-muted-foreground">
               <MapPin className="h-4 w-4 shrink-0" />
               <span className="max-w-[9rem] truncate sm:max-w-36" title={zone}>
-                {zone}
+                {distanceLabel ?? zone}
               </span>
             </span>
           </div>

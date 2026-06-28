@@ -14,9 +14,13 @@ import {
 
 import {
   availabilityClassName,
+  formatPrice,
   getBusinessAvailability,
   getBusinessCoverImage,
+  getFeaturedProduct,
+  getFeaturedProductBadge,
 } from "@/lib/business-display";
+import { getBusinessHoursStatus } from "@/lib/business-hours";
 import { cn } from "@/lib/utils";
 import { BusinessActionButtons } from "@/components/business/BusinessActionButtons";
 import { BusinessReviewForm } from "@/components/business/BusinessReviewForm";
@@ -154,7 +158,11 @@ export default async function BusinessDetailPage({
 
   const whatsappUrl = buildWhatsAppUrl(business);
   const availability = getBusinessAvailability(business);
+  const hoursStatus = getBusinessHoursStatus(business);
   const coverImageUrl = getBusinessCoverImage(business);
+  const featuredProduct = getFeaturedProduct(business.products);
+  const featuredProductPrice =
+    featuredProduct?.offer_price ?? featuredProduct?.price ?? null;
   const sortedSchedules = buildScheduleFallback(business).sort(
     (first, second) => first.day_of_week - second.day_of_week,
   );
@@ -224,6 +232,10 @@ export default async function BusinessDetailPage({
                     <Clock className="h-4 w-4" />
                     {availability.label}
                   </span>
+                  <span className="inline-flex items-center gap-1.5 rounded-full border border-white/20 bg-white/15 px-3 py-1 text-sm font-bold text-white">
+                    <Clock className="h-4 w-4" />
+                    {hoursStatus.todayLabel}
+                  </span>
                 </div>
               </div>
             </div>
@@ -274,6 +286,32 @@ export default async function BusinessDetailPage({
               id="productos"
               title="Productos destacados"
             >
+              <div className="mb-4 rounded-3xl border border-brand/10 bg-gradient-to-br from-brand/10 via-white to-amber-50 p-4">
+                <div className="flex min-w-0 flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                  <div className="min-w-0">
+                    <p className="text-xs font-extrabold uppercase tracking-wide text-brand">
+                      Producto destacado
+                    </p>
+                    <h2 className="mt-1 line-clamp-1 text-xl font-black text-foreground">
+                      {featuredProduct?.name ?? "Catalogo en preparacion"}
+                    </h2>
+                    <p className="mt-1 line-clamp-2 text-sm leading-6 text-muted-foreground">
+                      {featuredProduct?.description ??
+                        "El emprendimiento aun esta preparando su catalogo publico."}
+                    </p>
+                  </div>
+                  <div className="flex shrink-0 flex-wrap items-center gap-2">
+                    <span className="rounded-full bg-white px-3 py-1 text-xs font-extrabold text-brand shadow-sm">
+                      {getFeaturedProductBadge(featuredProduct)}
+                    </span>
+                    <span className="text-xl font-black text-foreground">
+                      {featuredProductPrice !== null
+                        ? formatPrice(featuredProductPrice)
+                        : "Consultar"}
+                    </span>
+                  </div>
+                </div>
+              </div>
               {business.products.length > 0 ? (
                 <div className="grid gap-3 sm:grid-cols-2">
                   {business.products

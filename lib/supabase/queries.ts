@@ -1,4 +1,5 @@
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
+import { getBusinessHoursStatus } from "@/lib/business-hours";
 import type {
   BusinessImage,
   BusinessTrustSummary,
@@ -346,19 +347,9 @@ export async function searchVisibleBusinesses({
   }
 
   if (isOpen) {
-    filtered = filtered.filter((business) => {
-      // Implement open logic here based on current time and business.schedules
-      // For now, let's assume it's open if there are any schedules configured
-      // as a simple placeholder, or check the current day.
-      if (!business.schedules || business.schedules.length === 0) return true;
-      const today = new Date().getDay(); // 0 is Sunday, 1 is Monday
-      // Supabase schedules day_of_week might be 1-7 or 0-6. Assuming 1=Mon, 7=Sun or 0=Sun.
-      // Let's just say if there's a schedule for today and it's not closed.
-      const sched = business.schedules.find(s => s.day_of_week === today || s.day_of_week === (today === 0 ? 7 : today));
-      if (!sched) return false;
-      if (sched.is_closed) return false;
-      return true;
-    });
+    filtered = filtered.filter(
+      (business) => getBusinessHoursStatus(business).isOpenNow,
+    );
   }
 
   return {

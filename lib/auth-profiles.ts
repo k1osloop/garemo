@@ -21,7 +21,7 @@ export function getRequestedRoleFromUser(user: User): PublicSignupRole | null {
 }
 
 export function getFullNameFromUser(user: User) {
-  const fullName = user.user_metadata?.full_name;
+  const fullName = user.user_metadata?.full_name ?? user.user_metadata?.name;
 
   return typeof fullName === "string" ? fullName : null;
 }

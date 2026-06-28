@@ -1,63 +1,61 @@
 import type { BusinessImage, Product, PublicBusiness } from "@/types/database";
+import { getBusinessHoursStatus } from "@/lib/business-hours";
 
 export type BusinessAvailability = {
   label: string;
   tone: "open" | "closing" | "closed" | "unknown";
 };
 
-function minutesFromTime(value: string) {
-  const [hours, minutes] = value.slice(0, 5).split(":").map(Number);
-
-  return hours * 60 + minutes;
-}
-
-function currentCampusMinutes() {
-  const parts = new Intl.DateTimeFormat("en-US", {
-    hour: "2-digit",
-    hour12: false,
-    minute: "2-digit",
-    timeZone: "America/La_Paz",
-  }).formatToParts(new Date());
-  const hour = Number(parts.find((part) => part.type === "hour")?.value ?? 0);
-  const minute = Number(
-    parts.find((part) => part.type === "minute")?.value ?? 0,
-  );
-
-  return hour * 60 + minute;
-}
-
 export function getBusinessAvailability(
   business: PublicBusiness,
 ): BusinessAvailability {
-  if (!business.opens_at || !business.closes_at) {
-    return {
-      label: "Horario por confirmar",
-      tone: "unknown",
-    };
-  }
-
-  const now = currentCampusMinutes();
-  const opens = minutesFromTime(business.opens_at);
-  const closes = minutesFromTime(business.closes_at);
-
-  if (now < opens || now > closes) {
-    return {
-      label: "Cerrado ahora",
-      tone: "closed",
-    };
-  }
-
-  if (closes - now <= 45) {
-    return {
-      label: "Cierra pronto",
-      tone: "closing",
-    };
-  }
+  const status = getBusinessHoursStatus(business);
 
   return {
-    label: "Abierto ahora",
-    tone: "open",
+    label: status.nextStatusLabel,
+    tone: status.tone,
   };
+}
+
+function productEffectivePrice(product: Product) {
+  return product.offer_price ?? product.price;
+}
+
+export function getFeaturedProduct(products: Product[]) {
+  const availableProducts = products.filter((product) => product.is_available);
+  const offerProduct = availableProducts
+    .filter((product) => product.offer_price !== null)
+    .sort(
+      (first, second) =>
+        (first.offer_price ?? Number.MAX_SAFE_INTEGER) -
+        (second.offer_price ?? Number.MAX_SAFE_INTEGER),
+    )[0];
+
+  if (offerProduct) {
+    return offerProduct;
+  }
+
+  const lowestPriced = availableProducts
+    .filter((product) => productEffectivePrice(product) !== null)
+    .sort(
+      (first, second) =>
+        (productEffectivePrice(first) ?? Number.MAX_SAFE_INTEGER) -
+        (productEffectivePrice(second) ?? Number.MAX_SAFE_INTEGER),
+    )[0];
+
+  return lowestPriced ?? availableProducts[0] ?? products[0] ?? null;
+}
+
+export function getFeaturedProductBadge(product: Product | null) {
+  if (!product) {
+    return "Catalogo en preparacion";
+  }
+
+  if (product.offer_price !== null) {
+    return "Oferta";
+  }
+
+  return product.is_available ? "Disponible" : "Agotado";
 }
 
 export function formatPrice(value: number | null) {

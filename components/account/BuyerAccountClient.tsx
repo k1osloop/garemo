@@ -464,7 +464,7 @@ export function BuyerAccountClient() {
           {favorites.length === 0 ? (
             <EmptyState
               title="Aún no guardaste negocios"
-              description="Explora el directorio y toca el ícono de guardar en los negocios que quieras revisar después."
+              description="Explora emprendimientos y guarda los que mas te interesen para volver rapido desde tu perfil."
             />
           ) : (
             <div className="grid gap-4 sm:grid-cols-2">
@@ -492,7 +492,7 @@ export function BuyerAccountClient() {
                           className="flex-1 inline-flex min-h-9 items-center justify-center rounded-lg bg-slate-100 text-slate-700 text-xs font-semibold hover:bg-slate-200 transition-colors"
                           href={`/businesses/${favorite.business.id}`}
                         >
-                          Ver negocio
+                          Ver perfil
                         </Link>
                         <Button
                           onClick={() => void removeFavorite(favorite.id)}

@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { Bike, MapPinned, Sparkles, Star } from "lucide-react";
 
-import { BusinessGrid } from "@/components/business/BusinessGrid";
+import { BusinessDirectoryClient } from "@/components/business/BusinessDirectoryClient";
 import { MobileFilters } from "@/components/business/MobileFilters";
 import { PageShell } from "@/components/layout/page-shell";
 import { ErrorState } from "@/components/ui/ErrorState";
@@ -162,7 +162,7 @@ export default async function BusinessesPage({
               </div>
             </div>
 
-            <BusinessGrid businesses={businesses} query={query} />
+            <BusinessDirectoryClient businesses={businesses} query={query} />
           </div>
         )}
       </div>

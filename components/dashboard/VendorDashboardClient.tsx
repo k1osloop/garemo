@@ -3,7 +3,16 @@
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { CheckCircle2, Circle, ShieldCheck } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
+import {
+  BarChart3,
+  CheckCircle2,
+  Circle,
+  MousePointerClick,
+  PackageCheck,
+  ShieldCheck,
+  Star,
+} from "lucide-react";
 
 import { DashboardShell } from "@/components/dashboard/DashboardShell";
 import { cn } from "@/lib/utils";
@@ -36,6 +45,7 @@ import {
 import type {
   Business,
   BusinessImage,
+  BusinessTrustSummary,
   Category,
   ContactInfo,
   Location,
@@ -71,6 +81,23 @@ function normalizeBusiness(row: RelatedBusinessRow): PublicBusiness {
     products: row.products ?? [],
     schedules: row.schedules ?? [],
     trust_summary: null,
+  };
+}
+
+function normalizeTrustSummary(summary: {
+  business_id: string;
+  average_rating: number | string | null;
+  review_count: number;
+  whatsapp_click_count: number;
+}): BusinessTrustSummary {
+  const average =
+    summary.average_rating === null ? null : Number(summary.average_rating);
+
+  return {
+    business_id: summary.business_id,
+    average_rating: Number.isFinite(average) ? average : null,
+    review_count: summary.review_count ?? 0,
+    whatsapp_click_count: summary.whatsapp_click_count ?? 0,
   };
 }
 
@@ -259,7 +286,23 @@ export function VendorDashboardClient() {
     }
 
     const rows = (data ?? []) as unknown as RelatedBusinessRow[];
-    setBusiness(rows[0] ? normalizeBusiness(rows[0]) : null);
+    const normalizedBusiness = rows[0] ? normalizeBusiness(rows[0]) : null;
+
+    if (normalizedBusiness) {
+      const { data: trustData } = await supabase.rpc(
+        "get_public_business_trust_summaries",
+      );
+      const summary = (trustData ?? [])
+        .map(normalizeTrustSummary)
+        .find((item) => item.business_id === normalizedBusiness.id);
+
+      setBusiness({
+        ...normalizedBusiness,
+        trust_summary: summary ?? null,
+      });
+    } else {
+      setBusiness(null);
+    }
     setIsLoading(false);
   }, [router, supabase]);
 
@@ -776,6 +819,35 @@ export function VendorDashboardClient() {
             {/* Content Area */}
             <main className="flex-1 min-w-0 pb-12">
               <div className={cn("space-y-5", activeTab !== "resumen" && "hidden")}>
+                <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+                  <MetricCard
+                    icon={PackageCheck}
+                    label="Productos activos"
+                    value={business.products.filter((product) => product.is_available).length}
+                  />
+                  <MetricCard
+                    icon={BarChart3}
+                    label="Productos pausados"
+                    value={business.products.filter((product) => !product.is_available).length}
+                  />
+                  <MetricCard
+                    icon={Star}
+                    label="Rating promedio"
+                    value={
+                      business.trust_summary?.average_rating !== null &&
+                      business.trust_summary?.average_rating !== undefined
+                        ? business.trust_summary.average_rating.toFixed(1)
+                        : "Nuevo"
+                    }
+                    detail={`${business.trust_summary?.review_count ?? 0} resenas`}
+                  />
+                  <MetricCard
+                    icon={MousePointerClick}
+                    label="Clics WhatsApp"
+                    value={business.trust_summary?.whatsapp_click_count ?? 0}
+                  />
+                </div>
+
                 <Card className="grid gap-6 lg:grid-cols-2 shadow-sm border-slate-200">
                   <div className="space-y-4">
                     <div className="flex items-center gap-2 border-b border-border pb-3">
@@ -872,6 +944,33 @@ function createBusinessSlug(name: string) {
   const suffix = Date.now().toString(36).slice(-6);
 
   return `${base || "negocio"}-${suffix}`;
+}
+
+function MetricCard({
+  detail,
+  icon: Icon,
+  label,
+  value,
+}: {
+  detail?: string;
+  icon: LucideIcon;
+  label: string;
+  value: number | string;
+}) {
+  return (
+    <Card className="flex items-center gap-3 border-slate-200 bg-white shadow-sm">
+      <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-brand/10 text-brand">
+        <Icon className="h-5 w-5" />
+      </span>
+      <div className="min-w-0">
+        <p className="text-2xl font-black text-foreground">{value}</p>
+        <p className="text-xs font-extrabold uppercase tracking-wide text-muted-foreground">
+          {label}
+        </p>
+        {detail ? <p className="text-xs text-muted-foreground">{detail}</p> : null}
+      </div>
+    </Card>
+  );
 }
 
 function getProfileChecklist(business: PublicBusiness) {

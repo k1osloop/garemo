@@ -1,71 +1,90 @@
-# Google Auth setup for Garemo
+# Google Auth Setup for Garemo
 
-Google Sign-In is implemented in the frontend as an optional Supabase Auth
-provider. Email and password login remains active and must continue to work.
+This document explains the external configuration needed to make the existing
+Garemo Google Sign-In button work in production.
 
-Status: implemented in frontend, pending external provider activation in
-Google Cloud Console and Supabase Dashboard.
+Do not commit Google Client Secret values, Supabase service role keys, or any
+private API key.
+
+## Current App Behavior
+
+- Email/password login remains the primary supported login method.
+- Google Sign-In is additive and uses Supabase OAuth.
+- OAuth callback route: `/auth/callback`.
+- New OAuth users are completed through the existing secure RPC:
+  `public.create_initial_user_profile(requested_role, requested_full_name)`.
+- Public signup roles remain limited to:
+  - `buyer`
+  - `owner`
+- The frontend does not allow creating `admin`.
 
 ## Google Cloud Console
 
-1. Create a new Google Cloud project or use an existing controlled project.
-2. Configure the OAuth consent screen.
-3. Create an OAuth Client ID with type `Web application`.
-4. Add Authorized JavaScript origins:
-   - `https://www.garemo.online`
-   - `https://garemo.online`
-   - `http://localhost:3000`
-   - `http://127.0.0.1:3001`
-5. Add Authorized redirect URIs using the callback shown by Supabase for the
-   Google Provider. It normally has this format:
-   - `https://<SUPABASE_PROJECT_REF>.supabase.co/auth/v1/callback`
-6. Copy the Google Client ID and Client Secret.
+Create an OAuth Client ID:
 
-Do not commit the Client Secret. Do not paste it into frontend code.
+- Application type: `Web application`
+- Name: `Garemo Web`
+
+Authorized JavaScript origins:
+
+- `https://www.garemo.online`
+- `https://garemo.online`
+- `http://localhost:3000`
+
+Authorized redirect URIs:
+
+- Use the exact Supabase callback shown in Supabase Google Provider settings:
+  `https://<SUPABASE_PROJECT_REF>.supabase.co/auth/v1/callback`
+
+Copy the Client ID and Client Secret only into Supabase Provider settings.
+Do not paste them into the codebase.
 
 ## Supabase
 
-1. Open `Authentication > Providers > Google`.
-2. Enable Google.
-3. Paste the Google Client ID.
-4. Paste the Google Client Secret.
-5. Save.
-6. Open `Authentication > URL Configuration`.
-7. Set Site URL:
-   - `https://www.garemo.online`
-8. Add Redirect URLs:
-   - `https://www.garemo.online/auth/callback`
-   - `https://garemo.online/auth/callback`
-   - `https://www.garemo.online/**`
-   - `https://garemo.online/**`
-   - `http://localhost:3000/auth/callback`
-   - `http://localhost:3000/**`
-   - `http://127.0.0.1:3001/auth/callback`
-   - `http://127.0.0.1:3001/**`
+Go to:
 
-## Garemo app behavior
+`Authentication -> Providers -> Google`
 
-- `/login` and `/signup` show `Continuar con Google`.
-- The app redirect target is `/auth/callback`.
-- New Google users are completed with the existing safe profile RPC.
-- Default role is `buyer`.
-- If signup selected `Emprendedor`, the callback requests role `owner`.
-- The frontend never offers or writes the `admin` role.
-- Existing manual admins keep redirecting to `/admin`.
+Then:
 
-## Validation
+1. Enable Google.
+2. Paste the Google Client ID.
+3. Paste the Google Client Secret.
+4. Save.
 
-1. Confirm email/password login still works.
-2. Click `Continuar con Google` from `/login`.
-3. Complete Google OAuth.
-4. Confirm Garemo redirects according to role:
-   - `buyer` to `/account`
-   - `owner` to `/dashboard`
-   - `admin` to `/admin` only when already assigned manually
-5. Confirm `/signup` only offers `Comprador` and `Emprendedor`.
-6. Confirm no user can create or elevate to `admin` from the frontend.
+Go to:
 
-References:
+`Authentication -> URL Configuration`
 
-- Supabase Google Auth: https://supabase.com/docs/guides/auth/social-login/auth-google
-- Supabase `signInWithOAuth`: https://supabase.com/docs/reference/javascript/auth-signinwithoauth
+Site URL:
+
+- `https://www.garemo.online`
+
+Redirect URLs:
+
+- `https://www.garemo.online/auth/callback`
+- `https://garemo.online/auth/callback`
+- `http://localhost:3000/auth/callback`
+- `https://www.garemo.online/**`
+- `https://garemo.online/**`
+- `http://localhost:3000/**`
+
+## Validation Checklist
+
+1. Open `https://www.garemo.online/login`.
+2. Click `Continuar con Google`.
+3. Select a Google account.
+4. Confirm redirect back to Garemo.
+5. Open `/account`.
+6. Confirm role shown as `Comprador`.
+7. Sign out.
+8. Confirm email/password login still works.
+
+## Security Notes
+
+- Do not touch `auth.users` manually.
+- Do not use `service_role` in the frontend.
+- Do not allow admin creation from Google OAuth.
+- `users_profile` stays protected by RLS.
+- If an OAuth user has no profile, the app uses `auth.uid()` through the
+  existing RPC to create only that user's own buyer/owner profile.

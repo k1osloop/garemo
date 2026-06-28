@@ -4,10 +4,15 @@ import type { PublicBusiness } from "@/types/database";
 
 type BusinessGridProps = {
   businesses: PublicBusiness[];
+  distanceLabels?: Record<string, string>;
   query?: string;
 };
 
-export function BusinessGrid({ businesses, query }: BusinessGridProps) {
+export function BusinessGrid({
+  businesses,
+  distanceLabels = {},
+  query,
+}: BusinessGridProps) {
   if (businesses.length === 0) {
     return (
       <EmptyState
@@ -28,7 +33,11 @@ export function BusinessGrid({ businesses, query }: BusinessGridProps) {
   return (
     <div className="grid min-w-0 gap-4 sm:grid-cols-2 xl:grid-cols-3">
       {businesses.map((business) => (
-        <BusinessCard business={business} key={business.id} />
+        <BusinessCard
+          business={business}
+          distanceLabel={distanceLabels[business.id]}
+          key={business.id}
+        />
       ))}
     </div>
   );

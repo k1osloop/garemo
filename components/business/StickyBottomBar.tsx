@@ -26,7 +26,7 @@ export function StickyBottomBar({
 
   const handleShare = async () => {
     const shareData = {
-      text: `Mira ${businessName} en Garemo`,
+      text: `Conoce este emprendimiento en Garemo: ${businessName}`,
       title: businessName,
       url: window.location.href,
     };
