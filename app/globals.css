@@ -46,6 +46,17 @@ input {
   -webkit-tap-highlight-color: transparent;
 }
 
+.hide-scrollbar,
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.hide-scrollbar::-webkit-scrollbar,
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
 .leaflet-container {
   font-family: inherit;
 }
