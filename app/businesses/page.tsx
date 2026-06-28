@@ -70,7 +70,7 @@ export default async function BusinessesPage({
                 Directorio publico
               </div>
               <div className="max-w-2xl space-y-2">
-                <h1 className="text-3xl font-extrabold leading-tight text-foreground sm:text-4xl">
+                <h1 className="text-2xl font-extrabold leading-tight text-foreground sm:text-4xl">
                   Negocios cerca del campus
                 </h1>
                 <p className="text-base leading-7 text-muted-foreground">
@@ -80,7 +80,7 @@ export default async function BusinessesPage({
                 </p>
               </div>
               <Link
-                className="inline-flex min-h-11 items-center justify-center gap-2 rounded-2xl bg-brand px-4 text-sm font-bold text-brand-foreground transition-colors hover:bg-brand-hover"
+                className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-2xl bg-brand px-4 text-sm font-bold text-brand-foreground transition-colors hover:bg-brand-hover sm:w-auto"
                 href="/map"
               >
                 <MapPinned className="h-4 w-4" />

@@ -29,13 +29,6 @@ function currentCampusMinutes() {
 export function getBusinessAvailability(
   business: PublicBusiness,
 ): BusinessAvailability {
-  if (business.status_message) {
-    return {
-      label: business.status_message,
-      tone: "open",
-    };
-  }
-
   if (!business.opens_at || !business.closes_at) {
     return {
       label: "Horario por confirmar",

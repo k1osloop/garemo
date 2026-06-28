@@ -18,10 +18,11 @@ export const metadata: Metadata = {
     "Directorio universitario mobile-first para descubrir negocios locales.",
   icons: {
     icon: [
+      { url: "/brand/garemo-icon.png", type: "image/png" },
       { url: "/brand/icon.svg", type: "image/svg+xml" },
       { url: "/favicon.ico" },
     ],
-    apple: [{ url: "/brand/icon.svg", type: "image/svg+xml" }],
+    apple: [{ url: "/brand/garemo-icon.png", type: "image/png" }],
   },
 };
 

@@ -9,6 +9,7 @@ import {
   MessageCircle,
   PackageCheck,
   ShoppingBag,
+  Sparkles,
 } from "lucide-react";
 
 import {
@@ -26,6 +27,31 @@ import type { PublicBusiness } from "@/types/database";
 type BusinessCardProps = {
   business: PublicBusiness;
 };
+
+function getCompactStatusBadge(message: string | null) {
+  if (!message) {
+    return null;
+  }
+
+  const normalizedMessage = message.toLowerCase();
+
+  if (
+    normalizedMessage.includes("revision") ||
+    normalizedMessage.includes("revisión")
+  ) {
+    return null;
+  }
+
+  if (
+    normalizedMessage.includes("promo") ||
+    normalizedMessage.includes("oferta") ||
+    normalizedMessage.includes("descuento")
+  ) {
+    return "Promo universitaria";
+  }
+
+  return "Novedad";
+}
 
 export function BusinessCard({ business }: BusinessCardProps) {
   const zone =
@@ -59,6 +85,7 @@ export function BusinessCard({ business }: BusinessCardProps) {
 
   const priceLabel =
     lowestPrice !== null ? `Desde ${formatPrice(lowestPrice)}` : null;
+  const compactStatusBadge = getCompactStatusBadge(business.status_message);
 
   return (
     <article className="group flex h-full min-w-0 flex-col overflow-hidden rounded-2xl border border-border/70 bg-white shadow-sm transition-all duration-300 hover:-translate-y-1 hover:border-brand/30 hover:shadow-xl sm:rounded-3xl">
@@ -91,7 +118,7 @@ export function BusinessCard({ business }: BusinessCardProps) {
           compact
         />
 
-        <div className="absolute inset-x-3 bottom-3 flex min-w-0 flex-wrap gap-2">
+        <div className="absolute inset-x-3 bottom-3 flex min-w-0 flex-wrap gap-1.5">
           <BusinessStatusBadge business={business} />
           {business.delivery_available ? (
             <span className="inline-flex items-center gap-1 rounded-full bg-white/95 px-2.5 py-1 text-xs font-bold text-brand shadow-sm">
@@ -102,7 +129,7 @@ export function BusinessCard({ business }: BusinessCardProps) {
         </div>
       </div>
 
-      <div className="flex flex-1 min-w-0 flex-col gap-3 p-3.5 sm:gap-4 sm:p-5">
+      <div className="flex min-w-0 flex-1 flex-col gap-3 p-3.5 sm:gap-4 sm:p-5">
         <div className="space-y-2">
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0 flex-1">
@@ -151,7 +178,7 @@ export function BusinessCard({ business }: BusinessCardProps) {
                       : "Agotado"}
                   </span>
                 </div>
-                <div className="mt-2 flex flex-wrap items-center gap-2">
+                <div className="mt-2 flex min-w-0 flex-wrap items-center gap-2">
                   {priceLabel ? (
                     <span className="text-base font-extrabold text-foreground">
                       {priceLabel}
@@ -160,6 +187,12 @@ export function BusinessCard({ business }: BusinessCardProps) {
                   {featuredProduct.stock_label ? (
                     <span className="rounded-full bg-brand/10 px-2 py-0.5 text-[10px] font-bold uppercase text-brand">
                       {featuredProduct.stock_label}
+                    </span>
+                  ) : null}
+                  {compactStatusBadge ? (
+                    <span className="inline-flex max-w-full items-center gap-1 rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-bold uppercase text-amber-700">
+                      <Sparkles className="h-3 w-3 shrink-0" />
+                      <span className="truncate">{compactStatusBadge}</span>
                     </span>
                   ) : null}
                 </div>
@@ -196,12 +229,6 @@ export function BusinessCard({ business }: BusinessCardProps) {
               <span className="line-clamp-1">{availability.label}</span>
             </span>
           </div>
-
-          {business.status_message ? (
-            <p className="line-clamp-1 rounded-2xl bg-amber-50 px-3 py-2 text-xs font-bold uppercase tracking-wide text-amber-700">
-              {business.status_message}
-            </p>
-          ) : null}
 
           <div className="grid grid-cols-[minmax(0,1fr)_auto] gap-2">
             <Link
