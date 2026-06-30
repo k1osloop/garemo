@@ -89,6 +89,46 @@ Redirect URLs:
   did not resolve from the test environment (`ERR_NAME_NOT_RESOLVED`).
 - The domain must resolve before final Google Auth validation can be closed.
 
+## Final Domain DNS Status
+
+Vercel project:
+
+- Team/scope: `k1os`
+- Project: `garemo`
+- Project ID: `prj_HsXQNMgzwjOVKkr3m7EKxc6vpMpk`
+
+Vercel aliases found:
+
+- `garemo.online`
+- `www.garemo.online`
+- `garemo.vercel.app`
+
+Vercel verification status on 2026-06-30:
+
+- `garemo.online`: configured correctly and verified for project `garemo`.
+- `www.garemo.online`: configured correctly and verified for project `garemo`.
+
+DNS records reported by Vercel:
+
+- Apex/root:
+  - `A @ 216.198.79.1`
+  - Recommended secondary apex record: `A @ 64.29.17.1`
+- WWW:
+  - `CNAME www 176ad20b7c46f592.vercel-dns-017.com.`
+
+Public DNS resolvers confirmed:
+
+- `garemo.online -> 216.198.79.1`
+- `www.garemo.online -> 176ad20b7c46f592.vercel-dns-017.com.`
+
+Local network note:
+
+- The local router resolver `192.168.0.1` returned NXDOMAIN for both
+  `garemo.online` and `www.garemo.online` during validation.
+- If the browser still cannot open the final domain, use a public DNS resolver
+  such as `1.1.1.1` or `8.8.8.8`, restart the router, or wait for ISP DNS cache
+  propagation.
+
 ## Validation Checklist
 
 1. Open `https://www.garemo.online/login`.
