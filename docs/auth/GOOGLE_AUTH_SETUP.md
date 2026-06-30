@@ -9,8 +9,10 @@ private API key.
 ## Current App Behavior
 
 - Email/password login remains the primary supported login method.
-- Google Sign-In is additive and uses Supabase OAuth.
-- OAuth callback route: `/auth/callback`.
+- Google Sign-In is additive and uses Google Identity Services plus Supabase
+  `signInWithIdToken`.
+- Google POST callback route: `/auth/google/redirect`.
+- Client completion route: `/auth/google/complete`.
 - New OAuth users are completed through the existing secure RPC:
   `public.create_initial_user_profile(requested_role, requested_full_name)`.
 - Public signup roles remain limited to:
@@ -29,12 +31,15 @@ Authorized JavaScript origins:
 
 - `https://www.garemo.online`
 - `https://garemo.online`
+- `https://garemo.vercel.app`
 - `http://localhost:3000`
 
 Authorized redirect URIs:
 
-- Use the exact Supabase callback shown in Supabase Google Provider settings:
-  `https://<SUPABASE_PROJECT_REF>.supabase.co/auth/v1/callback`
+- `https://www.garemo.online/auth/google/redirect`
+- `https://garemo.online/auth/google/redirect`
+- `https://garemo.vercel.app/auth/google/redirect`
+- `http://localhost:3000/auth/google/redirect`
 
 Copy the Client ID and Client Secret only into Supabase Provider settings.
 Do not paste them into the codebase.
@@ -63,11 +68,26 @@ Site URL:
 Redirect URLs:
 
 - `https://www.garemo.online/auth/callback`
+- `https://www.garemo.online/auth/google/complete`
 - `https://garemo.online/auth/callback`
+- `https://garemo.online/auth/google/complete`
+- `https://garemo.vercel.app/auth/callback`
+- `https://garemo.vercel.app/auth/google/complete`
 - `http://localhost:3000/auth/callback`
+- `http://localhost:3000/auth/google/complete`
 - `https://www.garemo.online/**`
 - `https://garemo.online/**`
+- `https://garemo.vercel.app/**`
 - `http://localhost:3000/**`
+
+## Production Validation Status
+
+- `https://garemo.vercel.app` was validated with Google login on 2026-06-30.
+- The tested account `marvinjhohan@gmail.com` completed Google login and was
+  redirected to `/admin` as `Administrador`.
+- `https://www.garemo.online` could not be validated on 2026-06-30 because DNS
+  did not resolve from the test environment (`ERR_NAME_NOT_RESOLVED`).
+- The domain must resolve before final Google Auth validation can be closed.
 
 ## Validation Checklist
 
@@ -79,6 +99,8 @@ Redirect URLs:
 6. Confirm role shown as `Comprador`.
 7. Sign out.
 8. Confirm email/password login still works.
+9. Open `/admin` with the admin test account and confirm the UI says
+   `Administrador`.
 
 ## Security Notes
 
