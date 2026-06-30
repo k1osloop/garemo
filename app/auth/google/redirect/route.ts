@@ -5,7 +5,9 @@ import { getSafeSignupRole } from "@/lib/auth-profiles";
 export async function POST(request: NextRequest) {
   const formData = await request.formData();
   const credential = String(formData.get("credential") ?? "");
-  const role = getSafeSignupRole(request.nextUrl.searchParams.get("role"));
+  const role = getSafeSignupRole(
+    request.cookies.get("garemo_google_role")?.value,
+  );
 
   if (!credential) {
     return htmlResponse(

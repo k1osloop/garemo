@@ -57,8 +57,8 @@ export function GoogleAuthButton({ role = "buyer" }: GoogleAuthButtonProps) {
       return "";
     }
 
-    return `${window.location.origin}/auth/google/redirect?role=${role}`;
-  }, [role]);
+    return `${window.location.origin}/auth/google/redirect`;
+  }, []);
 
   useEffect(() => {
     const existingScript = document.querySelector<HTMLScriptElement>(
@@ -91,6 +91,13 @@ export function GoogleAuthButton({ role = "buyer" }: GoogleAuthButtonProps) {
       return;
     }
 
+    document.cookie = [
+      `garemo_google_role=${role}`,
+      "Path=/",
+      "Max-Age=300",
+      "SameSite=None",
+      "Secure",
+    ].join("; ");
     buttonRef.current.innerHTML = "";
 
     window.google.accounts.id.initialize({
