@@ -1,15 +1,8 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useRouter } from "next/navigation";
 
-import {
-  ensureInitialUserProfile,
-  getFullNameFromUser,
-  getRoleRedirect,
-  type PublicSignupRole,
-} from "@/lib/auth-profiles";
-import { createSupabaseBrowserClient } from "@/lib/supabase/client";
+import { type PublicSignupRole } from "@/lib/auth-profiles";
 
 type GoogleAuthButtonProps = {
   role?: PublicSignupRole;
@@ -22,9 +15,10 @@ type GoogleCredentialResponse = {
 type GoogleAccounts = {
   id: {
     initialize: (options: {
-      callback: (response: GoogleCredentialResponse) => void;
+      callback?: (response: GoogleCredentialResponse) => void;
       client_id: string;
       context?: "signin" | "signup" | "use";
+      login_uri?: string;
       ux_mode?: "popup" | "redirect";
     }) => void;
     renderButton: (
@@ -55,12 +49,16 @@ const GOOGLE_CLIENT_ID =
   "201900849028-9bd8us6kcdm4bkq8j06tu35g0t6up0l4.apps.googleusercontent.com";
 
 export function GoogleAuthButton({ role = "buyer" }: GoogleAuthButtonProps) {
-  const router = useRouter();
-  const supabase = useMemo(() => createSupabaseBrowserClient(), []);
   const buttonRef = useRef<HTMLDivElement | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
   const [scriptReady, setScriptReady] = useState(false);
+  const loginUri = useMemo(() => {
+    if (typeof window === "undefined") {
+      return "";
+    }
+
+    return `${window.location.origin}/auth/google/redirect?role=${role}`;
+  }, [role]);
 
   useEffect(() => {
     const existingScript = document.querySelector<HTMLScriptElement>(
@@ -96,64 +94,10 @@ export function GoogleAuthButton({ role = "buyer" }: GoogleAuthButtonProps) {
     buttonRef.current.innerHTML = "";
 
     window.google.accounts.id.initialize({
-      callback: async (response) => {
-        setError(null);
-        setIsLoading(true);
-
-        if (!response.credential) {
-          setError("Google no devolvio una credencial valida.");
-          setIsLoading(false);
-          return;
-        }
-
-        const { error: signInError } = await supabase.auth.signInWithIdToken({
-          provider: "google",
-          token: response.credential,
-        });
-
-        if (signInError) {
-          setError(
-            "No pudimos iniciar sesion con Google. Usa email y contrasena o intenta de nuevo.",
-          );
-          setIsLoading(false);
-          return;
-        }
-
-        const { data: userResult } = await supabase.auth.getUser();
-
-        if (!userResult.user) {
-          setError("Entraste con Google, pero no pudimos leer tu usuario.");
-          setIsLoading(false);
-          return;
-        }
-
-        const { data: currentRole } = await supabase.rpc("current_app_role");
-
-        if (currentRole) {
-          router.replace(getRoleRedirect(currentRole));
-          return;
-        }
-
-        const { data: profile, error: profileError } =
-          await ensureInitialUserProfile(
-            supabase,
-            role,
-            getFullNameFromUser(userResult.user),
-          );
-
-        if (profileError) {
-          setError(
-            "Entraste con Google, pero falta completar tu perfil sin permisos especiales.",
-          );
-          setIsLoading(false);
-          return;
-        }
-
-        router.replace(getRoleRedirect(profile?.role ?? null));
-      },
       client_id: GOOGLE_CLIENT_ID,
       context: role === "owner" ? "signup" : "signin",
-      ux_mode: "popup",
+      login_uri: loginUri,
+      ux_mode: "redirect",
     });
 
     window.google.accounts.id.renderButton(buttonRef.current, {
@@ -165,12 +109,11 @@ export function GoogleAuthButton({ role = "buyer" }: GoogleAuthButtonProps) {
       type: "standard",
       width: buttonRef.current.offsetWidth || 320,
     });
-  }, [role, router, scriptReady, supabase]);
+  }, [loginUri, role, scriptReady]);
 
   return (
     <div className="space-y-2">
       <div
-        aria-busy={isLoading}
         className="min-h-11 w-full overflow-hidden rounded-lg"
         ref={buttonRef}
       />
