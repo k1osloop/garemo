@@ -97,6 +97,10 @@ export type Database = {
           closes_at: string | null;
           reviewed_at: string | null;
           review_notes: string | null;
+          moderation_reason: string | null;
+          moderation_status_message: string | null;
+          suspended_at: string | null;
+          reactivated_at: string | null;
           delivery_available: boolean;
           pickup_available: boolean;
           delivery_notes: string | null;
@@ -118,6 +122,10 @@ export type Database = {
           closes_at?: string | null;
           reviewed_at?: string | null;
           review_notes?: string | null;
+          moderation_reason?: string | null;
+          moderation_status_message?: string | null;
+          suspended_at?: string | null;
+          reactivated_at?: string | null;
           delivery_available?: boolean;
           pickup_available?: boolean;
           delivery_notes?: string | null;
@@ -139,6 +147,10 @@ export type Database = {
           closes_at?: string | null;
           reviewed_at?: string | null;
           review_notes?: string | null;
+          moderation_reason?: string | null;
+          moderation_status_message?: string | null;
+          suspended_at?: string | null;
+          reactivated_at?: string | null;
           delivery_available?: boolean;
           pickup_available?: boolean;
           delivery_notes?: string | null;
@@ -404,6 +416,46 @@ export type Database = {
           updated_at?: string;
         };
         Relationships: [];
+      };
+      user_notifications: {
+        Row: {
+          id: string;
+          user_id: string;
+          business_id: string | null;
+          type: string;
+          title: string;
+          message: string;
+          status: "unread" | "read";
+          metadata: Json;
+          created_at: string;
+          read_at: string | null;
+        };
+        Insert: {
+          id?: string;
+          user_id: string;
+          business_id?: string | null;
+          type: string;
+          title: string;
+          message: string;
+          status?: "unread" | "read";
+          metadata?: Json;
+          created_at?: string;
+          read_at?: string | null;
+        };
+        Update: {
+          id?: string;
+          user_id?: string;
+          business_id?: string | null;
+          type?: string;
+          title?: string;
+          message?: string;
+          status?: "unread" | "read";
+          metadata?: Json;
+          created_at?: string;
+          read_at?: string | null;
+        };
+        Relationships: [];
+      };
       reports: {
         Row: {
           id: string;
@@ -483,7 +535,6 @@ export type Database = {
         Relationships: [];
       };
     };
-    };
     Views: Record<string, never>;
     Functions: {
       submit_report: {
@@ -500,6 +551,7 @@ export type Database = {
           p_report_id: string;
           p_next_status: Database["public"]["Enums"]["report_status"];
           p_notes?: string;
+          p_business_status?: Database["public"]["Enums"]["business_status"] | null;
         };
         Returns: void;
       };
@@ -509,8 +561,39 @@ export type Database = {
           next_status: Database["public"]["Enums"]["business_status"];
           next_is_verified?: boolean;
           notes?: string | null;
+          reason?: string | null;
         };
         Returns: Database["public"]["Tables"]["businesses"]["Row"];
+      };
+      admin_moderate_business: {
+        Args: {
+          target_business_id: string;
+          next_status: Database["public"]["Enums"]["business_status"];
+          notes?: string | null;
+          reason?: string | null;
+        };
+        Returns: Database["public"]["Tables"]["businesses"]["Row"];
+      };
+      create_user_notification: {
+        Args: {
+          target_user_id: string;
+          target_business_id: string | null;
+          notification_type: string;
+          notification_title: string;
+          notification_message: string;
+          notification_metadata?: Json;
+        };
+        Returns: string;
+      };
+      mark_notification_read: {
+        Args: {
+          notification_id: string;
+        };
+        Returns: Database["public"]["Tables"]["user_notifications"]["Row"];
+      };
+      mark_all_my_notifications_read: {
+        Args: Record<string, never>;
+        Returns: number;
       };
       current_app_role: {
         Args: Record<string, never>;
@@ -606,6 +689,8 @@ export type BusinessReview =
 export type WhatsAppClick =
   Database["public"]["Tables"]["whatsapp_clicks"]["Row"];
 export type Favorite = Database["public"]["Tables"]["favorites"]["Row"];
+export type UserNotification =
+  Database["public"]["Tables"]["user_notifications"]["Row"];
 
 export type BusinessTrustSummary = {
   business_id: string;

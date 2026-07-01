@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
@@ -24,7 +24,7 @@ const reportReasons = [
   { value: "closed", label: "Negocio cerrado" },
   { value: "abusive", label: "Mal trato / Abusivo" },
   { value: "spam", label: "Spam" },
-  { value: "misleading", label: "Precio enganoso" },
+  { value: "misleading", label: "Producto o precio enganoso" },
   { value: "other", label: "Otro" },
 ];
 
@@ -50,10 +50,6 @@ export function ReportModal({
 
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
-
-    return () => {
-      document.body.style.overflow = previousOverflow;
-    };
     const supabase = createSupabaseBrowserClient();
 
     void supabase.auth.getUser().then(async ({ data: userResult }) => {
@@ -72,19 +68,15 @@ export function ReportModal({
         .limit(1);
 
       if (existingReportError) {
-        console.debug("Garemo report existing-check skipped", {
-          code: existingReportError.code,
-          message: existingReportError.message,
-          details: existingReportError.details,
-          hint: existingReportError.hint,
-          targetType,
-          targetId,
-        });
         return;
       }
 
       setHasExistingReport((data ?? []).length > 0);
     });
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+    };
   }, [isOpen, targetId, targetType]);
 
   if (!isOpen) return null;
@@ -119,18 +111,6 @@ export function ReportModal({
     });
 
     if (rpcError) {
-      console.error("Garemo submit_report failed", {
-        rpc: "submit_report",
-        payload,
-        userId: userResult.user.id,
-        error: {
-          code: rpcError.code,
-          message: rpcError.message,
-          details: rpcError.details,
-          hint: rpcError.hint,
-        },
-      });
-
       if (
         rpcError.message.includes("REPORT_OWN_BUSINESS") ||
         rpcError.message.includes("Cannot report your own")
@@ -142,7 +122,7 @@ export function ReportModal({
         rpcError.message.includes("duplicate key")
       ) {
         setHasExistingReport(true);
-        setError("Ya enviaste un reporte para este negocio. Lo estamos revisando.");
+        setError("Ya reportaste este negocio. Gracias por ayudarnos a revisarlo.");
       } else if (
         rpcError.code === "42501" ||
         rpcError.message.includes("REPORT_AUTH_REQUIRED")
@@ -203,16 +183,16 @@ export function ReportModal({
                 </svg>
               </div>
               <h3 className="text-lg font-medium text-slate-900">
-                Reporte enviado ✓
+                Reporte enviado
               </h3>
               <p className="mt-3 text-sm leading-6 text-slate-500">
-                Gracias por ayudarnos a mantener Garemo seguro. Revisaremos tu
-                reporte pronto.
+                Gracias por tu reporte. Revisaremos este negocio para mantener
+                segura la comunidad.
               </p>
             </div>
             <div className="shrink-0 border-t border-border bg-background p-4 pb-[calc(1rem+env(safe-area-inset-bottom))]">
               <Button className="min-h-12 w-full" onClick={onClose}>
-                Reporte enviado ✓
+                Reporte enviado
               </Button>
             </div>
           </>
@@ -229,8 +209,7 @@ export function ReportModal({
 
               {hasExistingReport ? (
                 <div className="rounded-md border border-amber-100 bg-amber-50 p-3 text-sm leading-6 text-amber-700">
-                  Ya enviaste un reporte para este negocio. Lo estamos
-                  revisando.
+                  Ya reportaste este negocio. Gracias por ayudarnos a revisarlo.
                 </div>
               ) : null}
 
@@ -306,7 +285,7 @@ export function ReportModal({
                   type="submit"
                 >
                   {success || hasExistingReport
-                    ? "Reporte enviado ✓"
+                    ? "Reporte enviado"
                     : isSubmitting
                       ? "Enviando..."
                       : "Enviar reporte"}

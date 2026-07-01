@@ -3,13 +3,21 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { CheckCircle2, ShieldAlert, XCircle } from "lucide-react";
+import {
+  Ban,
+  CheckCircle2,
+  Eye,
+  RefreshCw,
+  ShieldAlert,
+  XCircle,
+} from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { ErrorState } from "@/components/ui/ErrorState";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
+import { cn } from "@/lib/utils";
 import type {
   Business,
   Category,
@@ -19,10 +27,7 @@ import type {
   Product,
 } from "@/types/database";
 
-type ReviewStatus = Extract<
-  Database["public"]["Enums"]["business_status"],
-  "active" | "rejected" | "hidden" | "pending_review"
->;
+type BusinessStatus = Database["public"]["Enums"]["business_status"];
 
 type AdminBusinessRow = Business & {
   category?: Category | Category[] | null;
@@ -37,6 +42,11 @@ type AdminBusiness = Business & {
   location: Location | null;
   products: Product[];
 };
+
+type RejectDialogState = {
+  business: AdminBusiness;
+  mode: "reject" | "needs_changes";
+} | null;
 
 const adminBusinessSelect = `
   id,
@@ -53,6 +63,13 @@ const adminBusinessSelect = `
   closes_at,
   reviewed_at,
   review_notes,
+  moderation_reason,
+  moderation_status_message,
+  suspended_at,
+  reactivated_at,
+  delivery_available,
+  pickup_available,
+  delivery_notes,
   created_at,
   updated_at,
   category:categories (
@@ -101,6 +118,26 @@ const adminBusinessSelect = `
   )
 `;
 
+const rejectionReasons = [
+  "Informacion incompleta",
+  "Ubicacion no valida",
+  "Productos no claros",
+  "Contacto invalido",
+  "Imagen o contenido inapropiado",
+  "Posible fraude",
+  "Otro",
+];
+
+const visibleStatuses: BusinessStatus[] = [
+  "pending_review",
+  "under_review",
+  "rejected",
+  "hidden",
+  "draft",
+  "active",
+  "approved",
+];
+
 function firstOrNull<T>(value: T | T[] | null | undefined): T | null {
   if (Array.isArray(value)) {
     return value[0] ?? null;
@@ -119,6 +156,36 @@ function normalizeBusiness(row: AdminBusinessRow): AdminBusiness {
   };
 }
 
+function getStatusLabel(status: BusinessStatus) {
+  const labels: Record<BusinessStatus, string> = {
+    active: "Activo en Garemo",
+    approved: "Verificado por Garemo",
+    draft: "Borrador",
+    hidden: "No disponible por verificacion",
+    pending_review: "Pendiente de revision",
+    rejected: "Necesita correcciones",
+    under_review: "En revision por reportes",
+  };
+
+  return labels[status] ?? "En revision";
+}
+
+function getStatusClassName(status: BusinessStatus) {
+  if (status === "active" || status === "approved") {
+    return "bg-emerald-50 text-emerald-700 ring-emerald-100";
+  }
+
+  if (status === "pending_review" || status === "draft") {
+    return "bg-amber-50 text-amber-700 ring-amber-100";
+  }
+
+  if (status === "under_review") {
+    return "bg-orange-50 text-orange-700 ring-orange-100";
+  }
+
+  return "bg-red-50 text-red-700 ring-red-100";
+}
+
 export function AdminReviewClient() {
   const router = useRouter();
   const supabase = useMemo(() => createSupabaseBrowserClient(), []);
@@ -133,6 +200,10 @@ export function AdminReviewClient() {
   const [verifiedByBusiness, setVerifiedByBusiness] = useState<
     Record<string, boolean>
   >({});
+  const [statusMessage, setStatusMessage] = useState<string | null>(null);
+  const [rejectDialog, setRejectDialog] = useState<RejectDialogState>(null);
+  const [rejectReason, setRejectReason] = useState(rejectionReasons[0]);
+  const [rejectComment, setRejectComment] = useState("");
 
   const loadAdminQueue = useCallback(async () => {
     setIsLoading(true);
@@ -150,7 +221,9 @@ export function AdminReviewClient() {
       await supabase.rpc("current_app_role");
 
     if (roleError) {
-      setError("No pudimos verificar tu acceso. Revisa que el SQL de revision este aplicado.");
+      setError(
+        "No pudimos verificar tu acceso. Revisa que el SQL de moderacion este aplicado.",
+      );
       setIsLoading(false);
       return;
     }
@@ -166,12 +239,13 @@ export function AdminReviewClient() {
     const { data, error: queueError } = await supabase
       .from("businesses")
       .select(adminBusinessSelect)
-      .eq("status", "pending_review")
-      .order("created_at", { ascending: true });
+      .in("status", visibleStatuses)
+      .order("created_at", { ascending: false })
+      .limit(80);
 
     if (queueError) {
       setError(
-        "No pudimos cargar negocios pendientes. Puede faltar ejecutar el SQL de Sprint 2E.",
+        "No pudimos cargar negocios para revision. Puede faltar ejecutar el SQL de moderacion.",
       );
       setIsLoading(false);
       return;
@@ -190,29 +264,77 @@ export function AdminReviewClient() {
     return () => window.clearTimeout(timer);
   }, [loadAdminQueue]);
 
-  async function reviewBusiness(
-    businessId: string,
-    nextStatus: ReviewStatus,
-    nextIsVerified: boolean,
-  ) {
+  async function reviewBusiness({
+    businessId,
+    nextStatus,
+    nextIsVerified,
+    notes,
+    reason,
+    successMessage,
+  }: {
+    businessId: string;
+    nextStatus: BusinessStatus;
+    nextIsVerified: boolean;
+    notes?: string | null;
+    reason?: string | null;
+    successMessage: string;
+  }) {
     setIsReviewing(businessId);
     setError(null);
+    setStatusMessage(null);
 
     const { error: reviewError } = await supabase.rpc("admin_review_business", {
       target_business_id: businessId,
       next_status: nextStatus,
       next_is_verified: nextIsVerified,
-      notes: notesByBusiness[businessId] ?? null,
+      notes: notes ?? null,
+      reason: reason ?? null,
     });
 
     if (reviewError) {
-      setError("No pudimos guardar la revision. Solo una cuenta autorizada puede aprobar o rechazar.");
+      setError(
+        "No pudimos guardar la revision. Solo una cuenta autorizada puede aprobar, rechazar o suspender.",
+      );
       setIsReviewing(null);
       return;
     }
 
+    setStatusMessage(successMessage);
     await loadAdminQueue();
     setIsReviewing(null);
+  }
+
+  function openRejectDialog(business: AdminBusiness) {
+    setRejectDialog({ business, mode: "reject" });
+    setRejectReason(rejectionReasons[0]);
+    setRejectComment(notesByBusiness[business.id] ?? "");
+  }
+
+  async function confirmReject() {
+    if (!rejectDialog) {
+      return;
+    }
+
+    const comment = rejectComment.trim();
+
+    if (comment.length < 10) {
+      setError("Escribe una observacion clara para que el emprendedor pueda corregir.");
+      return;
+    }
+
+    const businessId = rejectDialog.business.id;
+
+    await reviewBusiness({
+      businessId,
+      nextStatus: "rejected",
+      nextIsVerified: false,
+      notes: comment,
+      reason: rejectReason,
+      successMessage: "Negocio rechazado y emprendedor notificado.",
+    });
+
+    setRejectDialog(null);
+    setRejectComment("");
   }
 
   if (isLoading) {
@@ -238,80 +360,110 @@ export function AdminReviewClient() {
         <ErrorState title="No se pudo revisar" description={error} />
       ) : null}
 
-      <Card className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between border-brand/20 bg-brand/5 shadow-sm">
+      {statusMessage ? (
+        <Card className="border-emerald-200 bg-emerald-50 text-sm font-bold text-emerald-800">
+          {statusMessage}
+        </Card>
+      ) : null}
+
+      <Card className="flex flex-col gap-4 border-brand/20 bg-brand/5 shadow-sm sm:flex-row sm:items-center sm:justify-between">
         <div className="space-y-2">
           <div className="flex items-center gap-2">
             <span className="flex h-8 w-8 items-center justify-center rounded-full bg-brand/20">
               <ShieldAlert className="h-4 w-4 text-brand" />
             </span>
-            <h2 className="text-xl font-bold tracking-tight text-slate-800">Negocios pendientes</h2>
+            <h2 className="text-xl font-bold tracking-tight text-slate-800">
+              Moderacion de negocios
+            </h2>
           </div>
-          <p className="text-sm leading-relaxed text-slate-600 max-w-3xl">
-            Revisa identidad/contacto, categoría, ubicación y productos antes de
-            aprobar. Aprobar publica el negocio en directorio y mapa si tiene
-            ubicación.
+          <p className="max-w-3xl text-sm leading-relaxed text-slate-600">
+            Aprueba, rechaza con motivo, suspende por revision o reactiva
+            negocios sin eliminar datos. Cada decision importante notifica al
+            emprendedor dentro de Garemo.
           </p>
         </div>
+        <Button
+          className="gap-2"
+          onClick={() => void loadAdminQueue()}
+          type="button"
+          variant="outline"
+        >
+          <RefreshCw className="h-4 w-4" />
+          Actualizar
+        </Button>
       </Card>
 
       {businesses.length === 0 ? (
         <EmptyState
-          title="No hay negocios pendientes"
-          description="Cuando un emprendedor cree su primer negocio, aparecerá aquí para revisión."
+          title="No hay negocios para revisar"
+          description="Cuando un emprendedor cree o actualice su negocio, aparecera aqui para moderacion."
         />
       ) : (
         <div className="grid gap-6">
           {businesses.map((business) => {
             const isBusy = isReviewing === business.id;
             const shouldVerify = verifiedByBusiness[business.id] ?? true;
+            const note = notesByBusiness[business.id] ?? "";
 
             return (
-              <Card className="space-y-5 shadow-sm bg-white" key={business.id}>
-                <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between border-b border-slate-100 pb-4">
-                  <div className="space-y-1.5">
-                    <p className="text-[10px] font-bold uppercase tracking-wider text-brand bg-brand/10 inline-block px-2 py-0.5 rounded">
-                      {business.category?.name ?? "Sin categoría"} • {business.status}
-                    </p>
-                    <h3 className="text-2xl font-bold text-slate-800">{business.name}</h3>
-                    <p className="text-sm leading-relaxed text-slate-600 max-w-2xl">
+              <Card className="space-y-5 bg-white shadow-sm" key={business.id}>
+                <div className="flex flex-col gap-4 border-b border-slate-100 pb-4 sm:flex-row sm:items-start sm:justify-between">
+                  <div className="min-w-0 space-y-2">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span
+                        className={cn(
+                          "inline-flex rounded-full px-3 py-1 text-xs font-black ring-1",
+                          getStatusClassName(business.status),
+                        )}
+                      >
+                        {getStatusLabel(business.status)}
+                      </span>
+                      <span className="inline-flex rounded-full bg-brand/10 px-3 py-1 text-xs font-black text-brand">
+                        {business.category?.name ?? "Sin categoria"}
+                      </span>
+                    </div>
+                    <h3 className="break-words text-2xl font-bold text-slate-800">
+                      {business.name}
+                    </h3>
+                    <p className="max-w-2xl text-sm leading-relaxed text-slate-600">
                       {business.description}
                     </p>
+                    {business.moderation_status_message ? (
+                      <p className="rounded-2xl border border-amber-100 bg-amber-50 p-3 text-sm leading-6 text-amber-900">
+                        Observacion previa: {business.moderation_status_message}
+                      </p>
+                    ) : null}
                   </div>
                   <Link
-                    className="inline-flex min-h-10 items-center justify-center rounded-xl bg-slate-100 text-slate-700 text-sm font-semibold hover:bg-slate-200 transition-colors px-4 shrink-0"
+                    className="inline-flex min-h-10 shrink-0 items-center justify-center gap-2 rounded-xl bg-slate-100 px-4 text-sm font-semibold text-slate-700 transition-colors hover:bg-slate-200"
                     href={`/businesses/${business.id}`}
                     target="_blank"
                   >
-                    Ver público
+                    <Eye className="h-4 w-4" />
+                    Ver publico
                   </Link>
                 </div>
 
                 <div className="grid gap-4 text-sm sm:grid-cols-3">
-                  <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
-                    <p className="text-xs font-bold uppercase tracking-wider text-slate-500">Contacto</p>
-                    <p className="mt-1 font-medium text-slate-800">
-                      {business.contact_info?.whatsapp_number ?? "Sin WhatsApp"}
-                    </p>
-                  </div>
-                  <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
-                    <p className="text-xs font-bold uppercase tracking-wider text-slate-500">Ubicación</p>
-                    <p className="mt-1 font-medium text-slate-800">
-                      {business.location?.address_text ?? "Sin ubicación"}
-                    </p>
-                  </div>
-                  <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
-                    <p className="text-xs font-bold uppercase tracking-wider text-slate-500">Productos</p>
-                    <p className="mt-1 font-medium text-slate-800">
-                      {business.products.length} productos cargados
-                    </p>
-                  </div>
+                  <InfoBox
+                    label="Contacto"
+                    value={business.contact_info?.whatsapp_number ?? "Sin WhatsApp"}
+                  />
+                  <InfoBox
+                    label="Ubicacion"
+                    value={business.location?.address_text ?? "Sin ubicacion"}
+                  />
+                  <InfoBox
+                    label="Productos"
+                    value={`${business.products.length} productos cargados`}
+                  />
                 </div>
 
                 <div className="space-y-4 pt-2">
                   <label className="grid gap-2 text-sm font-bold text-slate-800">
-                    Notas de revisión
+                    Nota admin
                     <textarea
-                      className="min-h-24 rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-normal text-slate-700 outline-none placeholder:text-slate-400 focus:border-brand focus:ring-2 focus:ring-brand/20 transition-all shadow-sm"
+                      className="min-h-24 rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-normal text-slate-700 shadow-sm outline-none transition-all placeholder:text-slate-400 focus:border-brand focus:ring-2 focus:ring-brand/20"
                       maxLength={1000}
                       onChange={(event) =>
                         setNotesByBusiness((current) => ({
@@ -319,15 +471,15 @@ export function AdminReviewClient() {
                           [business.id]: event.target.value,
                         }))
                       }
-                      placeholder="Motivo de aprobación, rechazo o datos pendientes."
-                      value={notesByBusiness[business.id] ?? ""}
+                      placeholder="Explica aprobacion, rechazo, suspension o pasos pendientes."
+                      value={note}
                     />
                   </label>
 
-                  <label className="flex items-center gap-3 text-sm font-semibold text-slate-700 cursor-pointer bg-slate-50 p-3 rounded-lg border border-slate-100">
+                  <label className="flex cursor-pointer items-center gap-3 rounded-lg border border-slate-100 bg-slate-50 p-3 text-sm font-semibold text-slate-700">
                     <input
                       checked={shouldVerify}
-                      className="h-4 w-4 accent-brand rounded border-slate-300"
+                      className="h-4 w-4 rounded border-slate-300 accent-brand"
                       onChange={(event) =>
                         setVerifiedByBusiness((current) => ({
                           ...current,
@@ -339,29 +491,74 @@ export function AdminReviewClient() {
                     Marcar como verificado manualmente al aprobar
                   </label>
 
-                  <div className="flex flex-col gap-3 sm:flex-row pt-2">
+                  <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
                     <Button
+                      className="min-h-11 gap-2 bg-emerald-600 text-white shadow-sm hover:bg-emerald-700"
                       disabled={isBusy}
                       onClick={() =>
-                        void reviewBusiness(business.id, "active", shouldVerify)
+                        void reviewBusiness({
+                          businessId: business.id,
+                          nextStatus: "approved",
+                          nextIsVerified: shouldVerify,
+                          notes: note || "Aprobado por revision manual de Garemo.",
+                          reason: "approved",
+                          successMessage: "Negocio aprobado y emprendedor notificado.",
+                        })
                       }
                       type="button"
-                      className="gap-2 bg-emerald-600 hover:bg-emerald-700 text-white min-h-11 shadow-sm"
                     >
                       <CheckCircle2 className="h-4 w-4" />
-                      {isBusy ? "Revisando..." : "Aprobar negocio"}
+                      {isBusy ? "Revisando..." : "Aprobar"}
                     </Button>
                     <Button
+                      className="min-h-11 gap-2 border-red-200 text-red-600 shadow-sm hover:border-red-300 hover:bg-red-50 hover:text-red-700"
                       disabled={isBusy}
-                      onClick={() =>
-                        void reviewBusiness(business.id, "rejected", false)
-                      }
+                      onClick={() => openRejectDialog(business)}
                       type="button"
                       variant="outline"
-                      className="gap-2 text-red-600 border-red-200 hover:bg-red-50 hover:text-red-700 hover:border-red-300 min-h-11 shadow-sm"
                     >
                       <XCircle className="h-4 w-4" />
                       Rechazar
+                    </Button>
+                    <Button
+                      className="min-h-11 gap-2 border-orange-200 text-orange-700 shadow-sm hover:border-orange-300 hover:bg-orange-50"
+                      disabled={isBusy}
+                      onClick={() =>
+                        void reviewBusiness({
+                          businessId: business.id,
+                          nextStatus: "under_review",
+                          nextIsVerified: false,
+                          notes:
+                            note ||
+                            "Tu negocio esta en revision temporal mientras verificamos reportes o informacion pendiente.",
+                          reason: "admin_review",
+                          successMessage: "Negocio suspendido temporalmente y emprendedor notificado.",
+                        })
+                      }
+                      type="button"
+                      variant="outline"
+                    >
+                      <Ban className="h-4 w-4" />
+                      Suspender
+                    </Button>
+                    <Button
+                      className="min-h-11 gap-2"
+                      disabled={isBusy}
+                      onClick={() =>
+                        void reviewBusiness({
+                          businessId: business.id,
+                          nextStatus: "approved",
+                          nextIsVerified: shouldVerify,
+                          notes: note || "Negocio reactivado por revision admin.",
+                          reason: "reactivated",
+                          successMessage: "Negocio reactivado y emprendedor notificado.",
+                        })
+                      }
+                      type="button"
+                      variant="outline"
+                    >
+                      <RefreshCw className="h-4 w-4" />
+                      Reactivar
                     </Button>
                   </div>
                 </div>
@@ -370,6 +567,86 @@ export function AdminReviewClient() {
           })}
         </div>
       )}
+
+      {rejectDialog ? (
+        <div className="fixed inset-0 z-50 flex items-end justify-center bg-slate-950/50 p-0 backdrop-blur-sm sm:items-center sm:p-4">
+          <button
+            aria-label="Cerrar rechazo"
+            className="absolute inset-0"
+            onClick={() => setRejectDialog(null)}
+            type="button"
+          />
+          <Card className="relative w-full rounded-b-none rounded-t-3xl bg-white shadow-2xl sm:max-w-lg sm:rounded-3xl">
+            <div className="space-y-4">
+              <div>
+                <p className="text-xs font-black uppercase tracking-wide text-red-600">
+                  Rechazar negocio
+                </p>
+                <h3 className="mt-1 text-2xl font-black text-slate-900">
+                  {rejectDialog.business.name}
+                </h3>
+                <p className="mt-2 text-sm leading-6 text-muted-foreground">
+                  El emprendedor recibira esta observacion dentro de Garemo para
+                  corregir su informacion.
+                </p>
+              </div>
+              <label className="grid gap-2 text-sm font-bold text-slate-800">
+                Motivo principal
+                <select
+                  className="min-h-11 rounded-xl border border-slate-200 bg-white px-3 text-sm font-semibold outline-none focus:border-brand focus:ring-2 focus:ring-brand/20"
+                  onChange={(event) => setRejectReason(event.target.value)}
+                  value={rejectReason}
+                >
+                  {rejectionReasons.map((reason) => (
+                    <option key={reason} value={reason}>
+                      {reason}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label className="grid gap-2 text-sm font-bold text-slate-800">
+                Comentario obligatorio
+                <textarea
+                  className="min-h-32 rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-normal outline-none focus:border-brand focus:ring-2 focus:ring-brand/20"
+                  maxLength={1000}
+                  onChange={(event) => setRejectComment(event.target.value)}
+                  placeholder="Explica que debe corregir el emprendedor."
+                  value={rejectComment}
+                />
+              </label>
+              <div className="grid gap-2 sm:grid-cols-2">
+                <Button
+                  className="min-h-11"
+                  onClick={() => setRejectDialog(null)}
+                  type="button"
+                  variant="outline"
+                >
+                  Cancelar
+                </Button>
+                <Button
+                  className="min-h-11 bg-red-600 text-white hover:bg-red-700"
+                  disabled={isReviewing === rejectDialog.business.id}
+                  onClick={() => void confirmReject()}
+                  type="button"
+                >
+                  Rechazar y notificar
+                </Button>
+              </div>
+            </div>
+          </Card>
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
+function InfoBox({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
+      <p className="text-xs font-bold uppercase tracking-wider text-slate-500">
+        {label}
+      </p>
+      <p className="mt-1 break-words font-medium text-slate-800">{value}</p>
     </div>
   );
 }

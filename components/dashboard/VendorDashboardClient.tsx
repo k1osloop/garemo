@@ -1,11 +1,13 @@
-"use client";
+﻿"use client";
 
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { LucideIcon } from "lucide-react";
 import {
+  AlertTriangle,
   BarChart3,
+  Ban,
   CheckCircle2,
   Circle,
   MousePointerClick,
@@ -28,6 +30,7 @@ import {
   VendorProductList,
 } from "@/components/dashboard/VendorProductList";
 import type { VendorProductFormValues } from "@/components/dashboard/VendorProductForm";
+import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { ErrorState } from "@/components/ui/ErrorState";
@@ -114,6 +117,12 @@ const vendorBusinessSelect = `
   status_message,
   opens_at,
   closes_at,
+  reviewed_at,
+  review_notes,
+  moderation_reason,
+  moderation_status_message,
+  suspended_at,
+  reactivated_at,
   delivery_available,
   pickup_available,
   delivery_notes,
@@ -643,7 +652,7 @@ export function VendorDashboardClient() {
         // uploadProductImage handles uploading and updating the product row
         await uploadProductImage(targetProductId, image_file);
       } catch {
-        setError("El producto se guardó, pero hubo un error al subir la imagen.");
+        setError("El producto se guardÃ³, pero hubo un error al subir la imagen.");
         await loadDashboard(false);
         setIsSaving(false);
         return false;
@@ -666,7 +675,7 @@ export function VendorDashboardClient() {
       .eq("business_id", business.id);
 
     if (error) {
-      setError("No se pudo eliminar el producto. Si ya está en uso, te recomendamos pausarlo en lugar de eliminarlo.");
+      setError("No se pudo eliminar el producto. Si ya estÃ¡ en uso, te recomendamos pausarlo en lugar de eliminarlo.");
     }
     await loadDashboard(false);
     setIsSaving(false);
@@ -692,7 +701,7 @@ export function VendorDashboardClient() {
 
     if (imageError) {
       await supabase.storage.from("garemo-images").remove([uploaded.path]);
-      throw new Error("La imagen subió, pero no pudimos guardar metadata.");
+      throw new Error("La imagen subiÃ³, pero no pudimos guardar metadata.");
     }
 
     await loadDashboard(false);
@@ -719,7 +728,7 @@ export function VendorDashboardClient() {
 
     if (productError) {
       await supabase.storage.from("garemo-images").remove([uploaded.path]);
-      throw new Error("La imagen subió, pero no pudimos guardar el producto.");
+      throw new Error("La imagen subiÃ³, pero no pudimos guardar el producto.");
     }
 
     await loadDashboard(false);
@@ -750,7 +759,7 @@ export function VendorDashboardClient() {
           <h2 className="text-lg font-semibold">Completa tu perfil primero</h2>
           <p className="text-sm leading-6 text-muted">
             Tu cuenta de Auth existe, pero aun no tiene perfil Garemo activo.
-            Crea una cuenta pública como comprador o emprendedor para activar un
+            Crea una cuenta pÃºblica como comprador o emprendedor para activar un
             perfil sin permisos especiales.
           </p>
           <Link
@@ -780,6 +789,11 @@ export function VendorDashboardClient() {
 
       {accessState !== "allowed" ? null : business ? (
         <div className="space-y-6">
+          <BusinessModerationAlert
+            business={business}
+            onEdit={() => setActiveTab("perfil")}
+          />
+
           <div className="flex flex-col lg:flex-row gap-6">
             {/* Sidebar Navigation */}
             <aside className="lg:w-64 shrink-0">
@@ -787,7 +801,7 @@ export function VendorDashboardClient() {
                 {[
                   { id: "resumen", label: "Resumen" },
                   { id: "perfil", label: "Perfil del negocio" },
-                  { id: "ubicacion", label: "Ubicación y horarios" },
+                  { id: "ubicacion", label: "UbicaciÃ³n y horarios" },
                   { id: "productos", label: "Productos" },
                 ].map((tab) => (
                   <button
@@ -855,14 +869,12 @@ export function VendorDashboardClient() {
                       <div>
                         <h2 className="text-sm font-medium uppercase text-muted-foreground tracking-wider">Estado Actual</h2>
                         <p className="text-base font-bold text-slate-800">
-                          {business.status === "pending_review" ? "En revisión" : business.status === "active" ? "Activo y visible" : business.status}
+                          {getDashboardStatusLabel(business.status)}
                         </p>
                       </div>
                     </div>
                     <p className="text-sm leading-6 text-muted-foreground">
-                      {business.status === "active" 
-                        ? "Tu negocio está aprobado. Tus productos se publicarán automáticamente en la plataforma una vez creados y activados." 
-                        : "Tus productos están guardados, pero se verán públicamente cuando Garemo apruebe tu negocio."}
+                      {getDashboardStatusDescription(business.status)}
                     </p>
                   </div>
                   <div className="rounded-xl border border-border bg-slate-50 p-4">
@@ -911,7 +923,7 @@ export function VendorDashboardClient() {
         <div className="space-y-4">
           <EmptyState
             title="Crea tu negocio"
-            description="Puedes crear tu primer negocio desde este panel. Nacerá como pendiente de revisión y podrás añadir fotos, productos y delivery una vez guardes los datos básicos."
+            description="Puedes crear tu primer negocio desde este panel. NacerÃ¡ como pendiente de revisiÃ³n y podrÃ¡s aÃ±adir fotos, productos y delivery una vez guardes los datos bÃ¡sicos."
           />
           <VendorCreateBusinessForm
             categories={categories}
@@ -944,6 +956,118 @@ function createBusinessSlug(name: string) {
   const suffix = Date.now().toString(36).slice(-6);
 
   return `${base || "negocio"}-${suffix}`;
+}
+
+function getDashboardStatusLabel(status: PublicBusiness["status"]) {
+  const labels: Record<PublicBusiness["status"], string> = {
+    active: "Activo en Garemo",
+    approved: "Verificado por Garemo",
+    draft: "Borrador",
+    hidden: "No disponible por verificacion",
+    pending_review: "Pendiente de revision",
+    rejected: "Necesita correcciones",
+    under_review: "En revision por reportes",
+  };
+
+  return labels[status] ?? "En revision";
+}
+
+function getDashboardStatusDescription(status: PublicBusiness["status"]) {
+  if (status === "active" || status === "approved") {
+    return "Tu negocio esta aprobado. Tus productos visibles pueden encontrarse en el directorio y mapa de Garemo.";
+  }
+
+  if (status === "pending_review" || status === "draft") {
+    return "Tus datos estan guardados. Garemo revisara tu negocio antes de mostrarlo como verificado.";
+  }
+
+  if (status === "under_review") {
+    return "Tu negocio esta suspendido temporalmente mientras el administrador revisa reportes o informacion pendiente.";
+  }
+
+  return "Tu negocio necesita correcciones antes de volver a estar visible en Garemo.";
+}
+
+function BusinessModerationAlert({
+  business,
+  onEdit,
+}: {
+  business: PublicBusiness;
+  onEdit: () => void;
+}) {
+  if (business.status === "active" || business.status === "approved") {
+    return (
+      <Card className="flex flex-col gap-3 border-emerald-200 bg-emerald-50 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex gap-3">
+          <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-emerald-600" />
+          <div>
+            <h2 className="font-black text-emerald-900">Activo en Garemo</h2>
+            <p className="text-sm leading-6 text-emerald-800">
+              Tu emprendimiento ya puede aparecer en el directorio y mapa si tiene datos publicos completos.
+            </p>
+          </div>
+        </div>
+      </Card>
+    );
+  }
+
+  if (business.status === "pending_review" || business.status === "draft") {
+    return (
+      <Card className="flex flex-col gap-3 border-amber-200 bg-amber-50 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex gap-3">
+          <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-amber-600" />
+          <div>
+            <h2 className="font-black text-amber-900">Pendiente de revision</h2>
+            <p className="text-sm leading-6 text-amber-800">
+              Puedes seguir completando informacion mientras Garemo revisa tu negocio.
+            </p>
+          </div>
+        </div>
+        <Button onClick={onEdit} type="button" variant="outline">
+          Editar informacion
+        </Button>
+      </Card>
+    );
+  }
+
+  if (business.status === "under_review") {
+    return (
+      <Card className="flex flex-col gap-3 border-orange-200 bg-orange-50 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex gap-3">
+          <Ban className="mt-0.5 h-5 w-5 shrink-0 text-orange-700" />
+          <div>
+            <h2 className="font-black text-orange-950">Tu negocio esta en revision</h2>
+            <p className="text-sm leading-6 text-orange-900">
+              {business.moderation_status_message ??
+                "Tu negocio fue suspendido temporalmente mientras el administrador revisa el caso."}
+            </p>
+          </div>
+        </div>
+        <Button onClick={onEdit} type="button" variant="outline">
+          Ver observaciones
+        </Button>
+      </Card>
+    );
+  }
+
+  return (
+    <Card className="flex flex-col gap-3 border-red-200 bg-red-50 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex gap-3">
+        <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-red-600" />
+        <div>
+          <h2 className="font-black text-red-950">Tu negocio necesita correcciones</h2>
+          <p className="text-sm leading-6 text-red-900">
+            {business.moderation_status_message ??
+              business.review_notes ??
+              "El administrador encontro observaciones. Corrige tu informacion y vuelve a solicitar revision."}
+          </p>
+        </div>
+      </div>
+      <Button onClick={onEdit} type="button" variant="outline">
+        Editar informacion
+      </Button>
+    </Card>
+  );
 }
 
 function MetricCard({

@@ -1,8 +1,9 @@
-"use client";
+﻿"use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   BarChart3,
+  Bell,
   Building2,
   ClipboardList,
   Package,
@@ -29,8 +30,12 @@ type AdminMetrics = {
     public_visible?: MetricValue;
     pending?: MetricValue;
     rejected_or_reviewing?: MetricValue;
+    rejected?: MetricValue;
+    under_review?: MetricValue;
+    suspended?: MetricValue;
     without_location?: MetricValue;
     without_products?: MetricValue;
+    with_3_unique_reports?: MetricValue;
   } | null;
   products?: {
     total?: MetricValue;
@@ -54,6 +59,7 @@ type AdminMetrics = {
   reports?: {
     total?: MetricValue;
     pending?: MetricValue;
+    active?: MetricValue;
     reviewing?: MetricValue;
     resolved?: MetricValue;
     dismissed?: MetricValue;
@@ -64,6 +70,13 @@ type AdminMetrics = {
     without_image?: MetricValue;
     without_description?: MetricValue;
     without_category?: MetricValue;
+  } | null;
+  notifications?: {
+    total?: MetricValue;
+    unread?: MetricValue;
+    sent_approved?: MetricValue;
+    sent_rejected?: MetricValue;
+    sent_suspended?: MetricValue;
   } | null;
 };
 
@@ -159,7 +172,7 @@ export function AdminMetricsClient() {
     }
 
     if (role !== "admin") {
-      setError("Esta sección solo está disponible para cuentas autorizadas.");
+      setError("Esta secciÃ³n solo esta disponible para cuentas autorizadas.");
       setIsLoading(false);
       return;
     }
@@ -168,7 +181,7 @@ export function AdminMetricsClient() {
       await supabase.rpc("get_admin_metrics");
 
     if (metricsError) {
-      setError("No pudimos cargar las métricas. Verifica que el SQL esté aplicado.");
+      setError("No pudimos cargar las mÃ©tricas. Verifica que el SQL este aplicado.");
       setIsLoading(false);
       return;
     }
@@ -188,13 +201,13 @@ export function AdminMetricsClient() {
   if (isLoading) {
     return (
       <Card>
-        <p className="text-sm text-muted">Cargando métricas reales...</p>
+        <p className="text-sm text-muted">Cargando mÃ©tricas reales...</p>
       </Card>
     );
   }
 
   if (error) {
-    return <ErrorState title="No se pudieron cargar métricas" description={error} />;
+    return <ErrorState title="No se pudieron cargar mÃ©tricas" description={error} />;
   }
 
   const businesses = metrics?.businesses;
@@ -203,6 +216,7 @@ export function AdminMetricsClient() {
   const reviews = metrics?.reviews;
   const reports = metrics?.reports;
   const quality = metrics?.quality;
+  const notifications = metrics?.notifications;
 
   return (
     <div className="space-y-7">
@@ -210,15 +224,15 @@ export function AdminMetricsClient() {
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <p className="text-xs font-extrabold uppercase tracking-wide text-brand">
-              Métricas
+              Metricas
             </p>
             <h2 className="mt-1 text-2xl font-black tracking-tight text-slate-800">
               Salud del marketplace
             </h2>
           </div>
           <p className="max-w-xl text-sm leading-6 text-muted-foreground">
-            Datos agregados para revisar crecimiento, moderación y calidad del
-            directorio sin exponer información sensible a usuarios públicos.
+            Datos agregados para revisar crecimiento, moderacion y calidad del
+            directorio sin exponer informacion sensible a usuarios publicos.
           </p>
         </div>
       </Card>
@@ -229,10 +243,12 @@ export function AdminMetricsClient() {
           { label: "Aprobados o activos", value: businesses?.public_visible },
           { label: "Pendientes", value: businesses?.pending },
           {
-            label: "Rechazados o en revisión",
+            label: "Rechazados o en revision",
             value: businesses?.rejected_or_reviewing,
           },
-          { label: "Sin ubicación", value: businesses?.without_location },
+          { label: "Suspendidos", value: businesses?.suspended },
+          { label: "Con 3+ reportes unicos", value: businesses?.with_3_unique_reports },
+          { label: "Sin ubicacion", value: businesses?.without_location },
           { label: "Sin productos", value: businesses?.without_products },
         ]}
         icon={Building2}
@@ -265,17 +281,17 @@ export function AdminMetricsClient() {
 
       <MetricSection
         cards={[
-          { label: "Total reseñas", value: reviews?.total },
+          { label: "Total resenas", value: reviews?.total },
           { label: "Rating promedio", value: reviews?.average_rating },
         ]}
         icon={Star}
-        title="Reseñas"
+        title="ReseÃ±as"
       />
 
       {reviews?.top_businesses?.length ? (
         <section className="space-y-3">
           <h3 className="text-sm font-black uppercase tracking-wide text-slate-500">
-            Negocios con más reseñas
+            Negocios con mas resenas
           </h3>
           <div className="grid gap-3 lg:grid-cols-2">
             {reviews.top_businesses.map((business) => (
@@ -299,7 +315,8 @@ export function AdminMetricsClient() {
         cards={[
           { label: "Total reportes", value: reports?.total },
           { label: "Pendientes", value: reports?.pending },
-          { label: "En revisión", value: reports?.reviewing },
+          { label: "Activos", value: reports?.active },
+          { label: "En revision", value: reports?.reviewing },
           { label: "Resueltos", value: reports?.resolved },
           { label: "Descartados", value: reports?.dismissed },
         ]}
@@ -309,11 +326,23 @@ export function AdminMetricsClient() {
 
       <MetricSection
         cards={[
+          { label: "Total notificaciones", value: notifications?.total },
+          { label: "No leidas", value: notifications?.unread },
+          { label: "Aprobaciones enviadas", value: notifications?.sent_approved },
+          { label: "Rechazos enviados", value: notifications?.sent_rejected },
+          { label: "Suspensiones enviadas", value: notifications?.sent_suspended },
+        ]}
+        icon={Bell}
+        title="Notificaciones"
+      />
+
+      <MetricSection
+        cards={[
           { label: "Sin horarios", value: quality?.without_schedules },
           { label: "Sin WhatsApp", value: quality?.without_whatsapp },
           { label: "Sin imagen", value: quality?.without_image },
-          { label: "Sin descripción", value: quality?.without_description },
-          { label: "Sin categoría", value: quality?.without_category },
+          { label: "Sin descripcion", value: quality?.without_description },
+          { label: "Sin categoria", value: quality?.without_category },
         ]}
         icon={ShieldCheck}
         title="Calidad de datos"
@@ -321,3 +350,4 @@ export function AdminMetricsClient() {
     </div>
   );
 }
+

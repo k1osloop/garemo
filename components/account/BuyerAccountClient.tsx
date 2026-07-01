@@ -4,6 +4,8 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   BookmarkCheck,
+  Bell,
+  CheckCheck,
   ExternalLink,
   LogOut,
   Search,
@@ -26,7 +28,12 @@ import {
   type AppRole,
 } from "@/lib/auth-profiles";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
-import type { BusinessReview, Favorite, UserProfile } from "@/types/database";
+import type {
+  BusinessReview,
+  Favorite,
+  UserNotification,
+  UserProfile,
+} from "@/types/database";
 type FavoriteBusiness = {
   id: string;
   name: string;
@@ -134,6 +141,20 @@ const reviewSelect = `
     status
   )
 `;
+
+const notificationSelect = `
+  id,
+  user_id,
+  business_id,
+  type,
+  title,
+  message,
+  status,
+  metadata,
+  created_at,
+  read_at
+`;
+
 export function BuyerAccountClient() {
   const router = useRouter();
   const supabase = useMemo(() => createSupabaseBrowserClient(), []);
@@ -142,6 +163,7 @@ export function BuyerAccountClient() {
   const [isLoading, setIsLoading] = useState(true);
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [reviews, setReviews] = useState<AccountReview[]>([]);
+  const [notifications, setNotifications] = useState<UserNotification[]>([]);
   const [role, setRole] = useState<AppRole | null>(null);
   const [userEmail, setUserEmail] = useState("");
   const [userId, setUserId] = useState("");
@@ -186,7 +208,11 @@ export function BuyerAccountClient() {
       setIsLoading(false);
       return;
     }
-    const [{ data: favoriteData, error: favoriteError }, { data: reviewData, error: reviewError }] =
+    const [
+      { data: favoriteData, error: favoriteError },
+      { data: reviewData, error: reviewError },
+      { data: notificationData, error: notificationError },
+    ] =
       await Promise.all([
         supabase
           .from("favorites")
@@ -198,6 +224,12 @@ export function BuyerAccountClient() {
           .select(reviewSelect)
           .eq("user_id", user.id)
           .order("created_at", { ascending: false }),
+        supabase
+          .from("user_notifications")
+          .select(notificationSelect)
+          .eq("user_id", user.id)
+          .order("created_at", { ascending: false })
+          .limit(20),
       ]);
     if (favoriteError) {
       setError("No pudimos cargar tus favoritos. Revisa que el SQL de Sprint 3D este aplicado.");
@@ -209,12 +241,18 @@ export function BuyerAccountClient() {
       setIsLoading(false);
       return;
     }
+    if (notificationError) {
+      setError("No pudimos cargar tus notificaciones. Revisa que el SQL de moderacion este aplicado.");
+      setIsLoading(false);
+      return;
+    }
     setFavorites(
       ((favoriteData ?? []) as unknown as FavoriteRow[]).map(normalizeFavorite),
     );
     setReviews(
       ((reviewData ?? []) as unknown as ReviewRow[]).map(normalizeReview),
     );
+    setNotifications((notificationData ?? []) as UserNotification[]);
     setIsLoading(false);
   }, [router, supabase]);
   useEffect(() => {
@@ -246,6 +284,51 @@ export function BuyerAccountClient() {
       current.filter((favorite) => favorite.id !== favoriteId),
     );
   }
+
+  async function markNotificationRead(notificationId: string) {
+    setError(null);
+    const { error: markError } = await supabase.rpc("mark_notification_read", {
+      notification_id: notificationId,
+    });
+
+    if (markError) {
+      setError("No pudimos marcar la notificacion como leida.");
+      return;
+    }
+
+    setNotifications((current) =>
+      current.map((notification) =>
+        notification.id === notificationId
+          ? {
+              ...notification,
+              status: "read",
+              read_at: notification.read_at ?? new Date().toISOString(),
+            }
+          : notification,
+      ),
+    );
+  }
+
+  async function markAllNotificationsRead() {
+    setError(null);
+    const { error: markError } = await supabase.rpc(
+      "mark_all_my_notifications_read",
+    );
+
+    if (markError) {
+      setError("No pudimos marcar tus notificaciones como leidas.");
+      return;
+    }
+
+    const now = new Date().toISOString();
+    setNotifications((current) =>
+      current.map((notification) => ({
+        ...notification,
+        status: "read",
+        read_at: notification.read_at ?? now,
+      })),
+    );
+  }
   if (isLoading) {
     return (
       <Card>
@@ -258,6 +341,9 @@ export function BuyerAccountClient() {
   const roleLabel = roleLabels[safeRole];
   const roleTitle = roleProfileTitles[safeRole];
   const roleDescription = roleDescriptions[safeRole];
+  const unreadNotifications = notifications.filter(
+    (notification) => notification.status === "unread",
+  ).length;
   return (
     <div className="space-y-6">
       {error ? <ErrorState title="No pudimos cargar la cuenta" description={error} /> : null}
@@ -340,12 +426,91 @@ export function BuyerAccountClient() {
         </Card>
         <Card className="rounded-3xl bg-white shadow-sm">
           <ShieldAlert className="mb-3 h-5 w-5 text-amber-500" />
-          <p className="text-sm font-black text-foreground">Seguro</p>
+          <p className="text-2xl font-black text-foreground">
+            {unreadNotifications}
+          </p>
           <p className="text-xs font-bold text-muted-foreground">
-            Sin pagos internos
+            Notificaciones
           </p>
         </Card>
       </div>
+
+      <Card className="space-y-4 rounded-3xl bg-white shadow-sm">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h2 className="flex items-center gap-2 text-xl font-bold text-slate-800">
+              <Bell className="h-5 w-5 text-brand" />
+              Notificaciones
+            </h2>
+            <p className="mt-1 text-sm leading-6 text-muted-foreground">
+              Avisos importantes sobre tu cuenta, negocio y reportes.
+            </p>
+          </div>
+          {unreadNotifications > 0 ? (
+            <Button
+              className="gap-2 rounded-2xl"
+              onClick={() => void markAllNotificationsRead()}
+              type="button"
+              variant="outline"
+            >
+              <CheckCheck className="h-4 w-4" />
+              Marcar todo como leido
+            </Button>
+          ) : null}
+        </div>
+
+        {notifications.length === 0 ? (
+          <EmptyState
+            title="No tienes notificaciones nuevas"
+            description="Cuando Garemo revise tu negocio o un reporte importante, lo veras aqui."
+          />
+        ) : (
+          <div className="grid gap-3">
+            {notifications.map((notification) => (
+              <article
+                className={cn(
+                  "rounded-2xl border p-4",
+                  notification.status === "unread"
+                    ? "border-brand/20 bg-brand/5"
+                    : "border-slate-100 bg-slate-50",
+                )}
+                key={notification.id}
+              >
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                  <div className="space-y-1">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <h3 className="font-black text-slate-800">
+                        {notification.title}
+                      </h3>
+                      {notification.status === "unread" ? (
+                        <span className="rounded-full bg-brand px-2 py-0.5 text-[10px] font-black uppercase text-brand-foreground">
+                          Nueva
+                        </span>
+                      ) : null}
+                    </div>
+                    <p className="text-sm leading-6 text-muted-foreground">
+                      {notification.message}
+                    </p>
+                    <p className="text-xs font-semibold text-slate-400">
+                      {new Date(notification.created_at).toLocaleDateString("es-BO")}
+                    </p>
+                  </div>
+                  {notification.status === "unread" ? (
+                    <Button
+                      className="shrink-0"
+                      onClick={() => void markNotificationRead(notification.id)}
+                      type="button"
+                      variant="outline"
+                    >
+                      Marcar leida
+                    </Button>
+                  ) : null}
+                </div>
+              </article>
+            ))}
+          </div>
+        )}
+      </Card>
       {role === "owner" ? (
         <Card className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between border-slate-200 bg-white shadow-sm">
           <div className="space-y-2">
