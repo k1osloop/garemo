@@ -8,6 +8,8 @@ import {
   AlertTriangle,
   BarChart3,
   Ban,
+  Bell,
+  CheckCheck,
   CheckCircle2,
   Circle,
   MousePointerClick,
@@ -55,6 +57,7 @@ import type {
   Product,
   PublicBusiness,
   Schedule,
+  UserNotification,
 } from "@/types/database";
 
 type RelatedBusinessRow = Business & {
@@ -203,6 +206,7 @@ export function VendorDashboardClient() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [userId, setUserId] = useState("");
   const [userEmail, setUserEmail] = useState("");
+  const [notifications, setNotifications] = useState<UserNotification[]>([]);
   const [accessState, setAccessState] = useState<
     "allowed" | "missing_profile" | "not_owner"
   >("allowed");
@@ -252,12 +256,14 @@ export function VendorDashboardClient() {
 
     if (!resolvedRole) {
       setAccessState("missing_profile");
+      setNotifications([]);
       setIsLoading(false);
       return;
     }
 
     if (resolvedRole !== "owner") {
       setAccessState("not_owner");
+      setNotifications([]);
       setIsLoading(false);
       return;
     }
@@ -297,6 +303,17 @@ export function VendorDashboardClient() {
     const rows = (data ?? []) as unknown as RelatedBusinessRow[];
     const normalizedBusiness = rows[0] ? normalizeBusiness(rows[0]) : null;
 
+    const { data: notificationData } = await supabase
+      .from("user_notifications")
+      .select(
+        "id, user_id, business_id, type, title, message, status, metadata, created_at, read_at",
+      )
+      .eq("user_id", userResult.user.id)
+      .order("created_at", { ascending: false })
+      .limit(5);
+
+    setNotifications((notificationData ?? []) as UserNotification[]);
+
     if (normalizedBusiness) {
       const { data: trustData } = await supabase.rpc(
         "get_public_business_trust_summaries",
@@ -314,6 +331,49 @@ export function VendorDashboardClient() {
     }
     setIsLoading(false);
   }, [router, supabase]);
+
+  async function markNotificationRead(notificationId: string) {
+    const { error: markError } = await supabase.rpc("mark_notification_read", {
+      notification_id: notificationId,
+    });
+
+    if (markError) {
+      setError("No pudimos marcar la notificacion como leida.");
+      return;
+    }
+
+    setNotifications((current) =>
+      current.map((notification) =>
+        notification.id === notificationId
+          ? {
+              ...notification,
+              status: "read",
+              read_at: notification.read_at ?? new Date().toISOString(),
+            }
+          : notification,
+      ),
+    );
+  }
+
+  async function markAllNotificationsRead() {
+    const { error: markError } = await supabase.rpc(
+      "mark_all_my_notifications_read",
+    );
+
+    if (markError) {
+      setError("No pudimos marcar tus notificaciones como leidas.");
+      return;
+    }
+
+    const readAt = new Date().toISOString();
+    setNotifications((current) =>
+      current.map((notification) => ({
+        ...notification,
+        status: "read",
+        read_at: notification.read_at ?? readAt,
+      })),
+    );
+  }
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
@@ -793,6 +853,11 @@ export function VendorDashboardClient() {
             business={business}
             onEdit={() => setActiveTab("perfil")}
           />
+          <DashboardNotificationsSummary
+            notifications={notifications}
+            onMarkAllRead={markAllNotificationsRead}
+            onMarkRead={markNotificationRead}
+          />
 
           <div className="flex flex-col lg:flex-row gap-6">
             {/* Sidebar Navigation */}
@@ -1039,7 +1104,7 @@ function BusinessModerationAlert({
             <h2 className="font-black text-orange-950">Tu negocio esta en revision</h2>
             <p className="text-sm leading-6 text-orange-900">
               {business.moderation_status_message ??
-                "Tu negocio fue suspendido temporalmente mientras el administrador revisa el caso."}
+                "Recibimos reportes de la comunidad y el negocio fue suspendido temporalmente mientras se revisa."}
             </p>
           </div>
         </div>
@@ -1066,6 +1131,105 @@ function BusinessModerationAlert({
       <Button onClick={onEdit} type="button" variant="outline">
         Editar informacion
       </Button>
+    </Card>
+  );
+}
+
+function DashboardNotificationsSummary({
+  notifications,
+  onMarkAllRead,
+  onMarkRead,
+}: {
+  notifications: UserNotification[];
+  onMarkAllRead: () => void;
+  onMarkRead: (notificationId: string) => void;
+}) {
+  const unreadCount = notifications.filter(
+    (notification) => notification.status === "unread",
+  ).length;
+
+  if (notifications.length === 0) {
+    return null;
+  }
+
+  return (
+    <Card className="space-y-4 border-brand/15 bg-white shadow-sm">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex items-start gap-3">
+          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-brand/10 text-brand">
+            <Bell className="h-5 w-5" />
+          </span>
+          <div>
+            <h2 className="font-black text-slate-900">Notificaciones del negocio</h2>
+            <p className="text-sm leading-6 text-muted-foreground">
+              {unreadCount > 0
+                ? `${unreadCount} aviso${unreadCount === 1 ? "" : "s"} sin leer sobre tu negocio o reportes.`
+                : "Tus avisos importantes estan al dia."}
+            </p>
+          </div>
+        </div>
+        {unreadCount > 0 ? (
+          <Button
+            className="gap-2 rounded-2xl"
+            onClick={onMarkAllRead}
+            type="button"
+            variant="outline"
+          >
+            <CheckCheck className="h-4 w-4" />
+            Marcar todo como leido
+          </Button>
+        ) : null}
+      </div>
+
+      <div className="grid gap-3">
+        {notifications.slice(0, 3).map((notification) => (
+          <article
+            className={cn(
+              "rounded-2xl border p-4",
+              notification.status === "unread"
+                ? "border-brand/20 bg-brand/5"
+                : "border-slate-100 bg-slate-50",
+            )}
+            key={notification.id}
+          >
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+              <div className="space-y-1">
+                <div className="flex flex-wrap items-center gap-2">
+                  <h3 className="font-black text-slate-800">
+                    {notification.title}
+                  </h3>
+                  <span
+                    className={cn(
+                      "rounded-full px-2 py-0.5 text-[10px] font-black uppercase",
+                      notification.status === "unread"
+                        ? "bg-brand text-brand-foreground"
+                        : "bg-slate-200 text-slate-600",
+                    )}
+                  >
+                    {notification.status === "unread" ? "Nueva" : "Leida"}
+                  </span>
+                </div>
+                <p className="text-sm leading-6 text-muted-foreground">
+                  {notification.message}
+                </p>
+                <p className="text-xs font-semibold text-slate-400">
+                  {new Date(notification.created_at).toLocaleDateString("es-BO")}
+                </p>
+              </div>
+              {notification.status === "unread" ? (
+                <Button
+                  className="shrink-0"
+                  onClick={() => onMarkRead(notification.id)}
+                  type="button"
+                  variant="outline"
+                >
+                  Marcar leida
+                </Button>
+              ) : null}
+            </div>
+          </article>
+        ))}
+      </div>
     </Card>
   );
 }

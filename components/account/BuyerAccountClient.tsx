@@ -486,7 +486,11 @@ export function BuyerAccountClient() {
                         <span className="rounded-full bg-brand px-2 py-0.5 text-[10px] font-black uppercase text-brand-foreground">
                           Nueva
                         </span>
-                      ) : null}
+                      ) : (
+                        <span className="rounded-full bg-slate-200 px-2 py-0.5 text-[10px] font-black uppercase text-slate-600">
+                          Leida
+                        </span>
+                      )}
                     </div>
                     <p className="text-sm leading-6 text-muted-foreground">
                       {notification.message}

@@ -77,6 +77,7 @@ type AdminMetrics = {
     sent_approved?: MetricValue;
     sent_rejected?: MetricValue;
     sent_suspended?: MetricValue;
+    sent_reactivated?: MetricValue;
   } | null;
 };
 
@@ -331,6 +332,7 @@ export function AdminMetricsClient() {
           { label: "Aprobaciones enviadas", value: notifications?.sent_approved },
           { label: "Rechazos enviados", value: notifications?.sent_rejected },
           { label: "Suspensiones enviadas", value: notifications?.sent_suspended },
+          { label: "Reactivaciones enviadas", value: notifications?.sent_reactivated },
         ]}
         icon={Bell}
         title="Notificaciones"

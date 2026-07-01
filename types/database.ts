@@ -422,7 +422,7 @@ export type Database = {
           id: string;
           user_id: string;
           business_id: string | null;
-          type: string;
+          type: UserNotificationType;
           title: string;
           message: string;
           status: "unread" | "read";
@@ -434,7 +434,7 @@ export type Database = {
           id?: string;
           user_id: string;
           business_id?: string | null;
-          type: string;
+          type: UserNotificationType;
           title: string;
           message: string;
           status?: "unread" | "read";
@@ -446,7 +446,7 @@ export type Database = {
           id?: string;
           user_id?: string;
           business_id?: string | null;
-          type?: string;
+          type?: UserNotificationType;
           title?: string;
           message?: string;
           status?: "unread" | "read";
@@ -585,6 +585,27 @@ export type Database = {
         };
         Returns: string;
       };
+      admin_create_notification: {
+        Args: {
+          target_user_id: string;
+          business_id: string | null;
+          notification_type: UserNotificationType;
+          notification_title: string;
+          notification_message: string;
+          notification_metadata?: Json;
+        };
+        Returns: string;
+      };
+      create_business_notification_for_owner: {
+        Args: {
+          target_business_id: string;
+          notification_type: UserNotificationType;
+          notification_title: string;
+          notification_message: string;
+          notification_metadata?: Json;
+        };
+        Returns: string;
+      };
       mark_notification_read: {
         Args: {
           notification_id: string;
@@ -691,6 +712,15 @@ export type WhatsAppClick =
 export type Favorite = Database["public"]["Tables"]["favorites"]["Row"];
 export type UserNotification =
   Database["public"]["Tables"]["user_notifications"]["Row"];
+export type UserNotificationType =
+  | "business_approved"
+  | "business_rejected"
+  | "business_needs_changes"
+  | "business_suspended"
+  | "business_reactivated"
+  | "business_reported"
+  | "report_resolved"
+  | "profile_warning";
 
 export type BusinessTrustSummary = {
   business_id: string;
