@@ -2,8 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { LogIn, Search, ShieldCheck, Store } from "lucide-react";
-import type { User } from "@supabase/supabase-js";
+import { LogIn, Search, Store } from "lucide-react";
 
 import { GoogleAuthButton } from "@/components/auth/GoogleAuthButton";
 import { BrandLogo } from "@/components/layout/brand-logo";
@@ -11,10 +10,8 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import {
-  ensureInitialUserProfile,
-  getFullNameFromUser,
-  getRequestedRoleFromUser,
-  getRoleRedirect,
+  getCurrentUserProfile,
+  getPostLoginRedirect,
 } from "@/lib/auth-profiles";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 
@@ -25,28 +22,16 @@ export function LoginForm() {
   const supabase = useMemo(() => createSupabaseBrowserClient(), []);
 
   const redirectAuthenticatedUser = useCallback(
-    async (user: User) => {
-      const { data: currentRole } = await supabase.rpc("current_app_role");
+    async () => {
+      const { profile, error: profileReadError } =
+        await getCurrentUserProfile(supabase);
 
-      if (currentRole) {
-        router.replace(getRoleRedirect(currentRole));
+      if (profileReadError) {
+        setError("Entraste, pero no pudimos revisar tu perfil.");
         return;
       }
 
-      const requestedRole = getRequestedRoleFromUser(user);
-
-      if (requestedRole) {
-        const { data: profile } = await ensureInitialUserProfile(
-          supabase,
-          requestedRole,
-          getFullNameFromUser(user),
-        );
-
-        router.replace(getRoleRedirect(profile?.role ?? null));
-        return;
-      }
-
-      router.replace("/account");
+      router.replace(getPostLoginRedirect(profile));
     },
     [router, supabase],
   );
@@ -57,7 +42,7 @@ export function LoginForm() {
         return;
       }
 
-      await redirectAuthenticatedUser(data.user);
+      await redirectAuthenticatedUser();
     });
   }, [redirectAuthenticatedUser, supabase]);
 
@@ -95,7 +80,7 @@ export function LoginForm() {
       return;
     }
 
-    await redirectAuthenticatedUser(userResult.user);
+    await redirectAuthenticatedUser();
   }
 
   return (
@@ -113,7 +98,7 @@ export function LoginForm() {
             Compra talento universitario
           </p>
           <p className="text-sm leading-6 text-muted">
-            Garemo te redirige a la vista correcta segun tu rol.
+            Si tu cuenta es nueva, primero eliges como quieres usar Garemo.
           </p>
         </Card>
 
@@ -135,17 +120,6 @@ export function LoginForm() {
               </h2>
               <p className="text-sm leading-6 text-muted">
                 Administra tu perfil, productos y revisa tus estadisticas.
-              </p>
-            </div>
-          </Card>
-          <Card className="flex gap-3 shadow-sm transition-colors hover:border-brand/30">
-            <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-brand" />
-            <div className="min-w-0 space-y-1">
-              <h2 className="text-sm font-semibold">
-                Administrador - Revision segura
-              </h2>
-              <p className="text-sm leading-6 text-muted">
-                Acceso exclusivo para revision y moderacion.
               </p>
             </div>
           </Card>

@@ -13,12 +13,40 @@ private API key.
   `signInWithIdToken`.
 - Google POST callback route: `/auth/google/redirect`.
 - Client completion route: `/auth/google/complete`.
+- New Google users without a completed profile are sent to
+  `/onboarding/role` to choose `Comprador` or `Emprendedor`.
 - New OAuth users are completed through the existing secure RPC:
   `public.create_initial_user_profile(requested_role, requested_full_name)`.
 - Public signup roles remain limited to:
   - `buyer`
   - `owner`
 - The frontend does not allow creating `admin`.
+
+## Public Role Onboarding
+
+Sprint 7H adds a public role onboarding screen:
+
+- Route: `/onboarding/role`
+- Public options:
+  - `Comprador`
+  - `Emprendedor`
+- No UI exposes an admin choice.
+- Existing admin profiles continue to redirect to `/admin`.
+
+Before deploying the onboarding flow, run:
+
+```text
+supabase/sprint_7h_public_onboarding.sql
+```
+
+That SQL adds:
+
+- `users_profile.onboarding_completed`
+- `users_profile.selected_role_at`
+- `public.update_my_role(selected_role text)`
+
+The RPC only accepts `buyer` or `owner`, uses `auth.uid()`, and never grants
+administrator access.
 
 ## Google Cloud Console
 

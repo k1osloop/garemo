@@ -5,10 +5,8 @@ import { useRouter } from "next/navigation";
 import { Loader2, ShieldAlert } from "lucide-react";
 
 import {
-  ensureInitialUserProfile,
-  getFullNameFromUser,
-  getRoleRedirect,
-  getSafeSignupRole,
+  getCurrentUserProfile,
+  getPostLoginRedirect,
 } from "@/lib/auth-profiles";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 
@@ -22,9 +20,6 @@ export function GoogleRedirectCompleteClient() {
 
     const completeGoogleAuth = async () => {
       const credential = sessionStorage.getItem("garemo_google_credential");
-      const role = getSafeSignupRole(
-        sessionStorage.getItem("garemo_google_role"),
-      );
 
       sessionStorage.removeItem("garemo_google_credential");
       sessionStorage.removeItem("garemo_google_role");
@@ -46,36 +41,23 @@ export function GoogleRedirectCompleteClient() {
         return;
       }
 
-      const { data: userResult } = await supabase.auth.getUser();
+      const { error: profileReadError, profile, user } =
+        await getCurrentUserProfile(supabase);
 
-      if (!userResult.user) {
+      if (!user) {
         setError("Entraste con Google, pero no pudimos leer tu usuario.");
         return;
       }
 
-      const { data: currentRole } = await supabase.rpc("current_app_role");
-
-      if (currentRole) {
-        router.replace(getRoleRedirect(currentRole));
-        return;
-      }
-
-      const { data: profile, error: profileError } =
-        await ensureInitialUserProfile(
-          supabase,
-          role,
-          getFullNameFromUser(userResult.user),
-        );
-
-      if (profileError) {
+      if (profileReadError) {
         setError(
-          "Entraste con Google, pero falta completar tu perfil sin permisos especiales.",
+          "Entraste con Google, pero no pudimos revisar tu perfil. Intenta de nuevo.",
         );
         return;
       }
 
       if (isMounted) {
-        router.replace(getRoleRedirect(profile?.role ?? null));
+        router.replace(getPostLoginRedirect(profile));
       }
     };
 

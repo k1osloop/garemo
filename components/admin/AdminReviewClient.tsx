@@ -150,7 +150,7 @@ export function AdminReviewClient() {
       await supabase.rpc("current_app_role");
 
     if (roleError) {
-      setError("No pudimos verificar tu rol. Revisa que el SQL admin este aplicado.");
+      setError("No pudimos verificar tu acceso. Revisa que el SQL de revision este aplicado.");
       setIsLoading(false);
       return;
     }
@@ -206,7 +206,7 @@ export function AdminReviewClient() {
     });
 
     if (reviewError) {
-      setError("No pudimos guardar la revision. Solo admin activo puede aprobar o rechazar.");
+      setError("No pudimos guardar la revision. Solo una cuenta autorizada puede aprobar o rechazar.");
       setIsReviewing(null);
       return;
     }
@@ -227,7 +227,7 @@ export function AdminReviewClient() {
     return (
       <ErrorState
         title="Acceso denegado"
-        description="Esta ruta solo esta disponible para usuarios con rol admin activo."
+        description="Esta ruta solo esta disponible para cuentas autorizadas."
       />
     );
   }

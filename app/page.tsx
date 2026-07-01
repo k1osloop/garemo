@@ -294,13 +294,12 @@ export default async function Home() {
             <Clock3 className="mt-0.5 h-5 w-5 shrink-0 text-brand" />
             <div className="space-y-1">
               <h2 className="text-base font-semibold">
-                Cuentas y roles en piloto
+                Cuentas en piloto
               </h2>
               <p className="text-sm leading-6 text-muted">
-                Compradores pueden crear cuenta para guardar favoritos.
-                Emprendedores autenticados pueden crear/editar su negocio
-                propio. Administradores revisan negocios con controles seguros
-                antes de publicar.
+                Compradores pueden guardar favoritos. Emprendedores
+                autenticados pueden crear y editar su negocio propio. Las
+                publicaciones pasan por una revision segura antes de aparecer.
               </p>
             </div>
           </div>

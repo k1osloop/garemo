@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import {
   ChevronDown,
   LogOut,
@@ -21,6 +21,7 @@ import { cn } from "@/lib/utils";
 
 export function AppHeader() {
   const router = useRouter();
+  const pathname = usePathname();
   const desktopMenuRef = useRef<HTMLDivElement>(null);
   const mobileMenuRef = useRef<HTMLDivElement>(null);
   const [session, setSession] = useState<Session | null>(null);
@@ -90,6 +91,11 @@ export function AppHeader() {
       : role === "admin"
         ? "Administrador"
         : "Comprador";
+  const hideMobileTopNav =
+    pathname.startsWith("/account") ||
+    pathname.startsWith("/dashboard") ||
+    pathname.startsWith("/admin") ||
+    pathname.startsWith("/onboarding");
 
   return (
     <header className="sticky top-0 z-50 border-b border-brand/10 bg-[#fffaf0]/95 shadow-[0_8px_24px_rgba(11,31,61,0.08)] backdrop-blur-xl">
@@ -125,7 +131,12 @@ export function AppHeader() {
           </div>
         </div>
 
-        <div className="flex min-w-0 items-center justify-between gap-2 sm:justify-end">
+        <div
+          className={cn(
+            "flex min-w-0 items-center justify-between gap-2 sm:flex sm:justify-end",
+            hideMobileTopNav && "hidden",
+          )}
+        >
           <nav className="grid min-w-0 flex-1 grid-cols-2 gap-2 sm:flex sm:flex-none sm:items-center sm:gap-1.5">
             <NavPill href="/businesses" icon={Search} label="Explorar" />
             <NavPill href="/map" icon={MapPin} label="Mapa" />

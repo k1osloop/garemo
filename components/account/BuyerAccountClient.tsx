@@ -1,5 +1,4 @@
 "use client";
-
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -13,20 +12,21 @@ import {
   Store,
   MapPin,
 } from "lucide-react";
-
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { ErrorState } from "@/components/ui/ErrorState";
 import {
-  ensureInitialUserProfile,
-  getFullNameFromUser,
-  getRequestedRoleFromUser,
+  getCurrentUserProfile,
+  getPostLoginRedirect,
+  roleDescriptions,
+  roleLabels,
+  roleProfileTitles,
+  type AppRole,
 } from "@/lib/auth-profiles";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import type { BusinessReview, Favorite, UserProfile } from "@/types/database";
-
 type FavoriteBusiness = {
   id: string;
   name: string;
@@ -39,11 +39,9 @@ type FavoriteBusiness = {
     | { address_text: string; campus_zone: string | null }[]
     | null;
 };
-
 type FavoriteRow = Favorite & {
   business?: FavoriteBusiness | FavoriteBusiness[] | null;
 };
-
 type AccountFavorite = Favorite & {
   business: {
     id: string;
@@ -54,34 +52,27 @@ type AccountFavorite = Favorite & {
     locationLabel: string;
   } | null;
 };
-
 type ReviewBusiness = {
   id: string;
   name: string;
   status: string;
 };
-
 type ReviewRow = BusinessReview & {
   business?: ReviewBusiness | ReviewBusiness[] | null;
 };
-
 type AccountReview = BusinessReview & {
   business: ReviewBusiness | null;
 };
-
 function firstOrNull<T>(value: T | T[] | null | undefined): T | null {
   if (Array.isArray(value)) {
     return value[0] ?? null;
   }
-
   return value ?? null;
 }
-
 function normalizeFavorite(row: FavoriteRow): AccountFavorite {
   const business = firstOrNull(row.business);
   const category = firstOrNull(business?.category);
   const location = firstOrNull(business?.location);
-
   return {
     ...row,
     business: business
@@ -99,14 +90,12 @@ function normalizeFavorite(row: FavoriteRow): AccountFavorite {
       : null,
   };
 }
-
 function normalizeReview(row: ReviewRow): AccountReview {
   return {
     ...row,
     business: firstOrNull(row.business),
   };
 }
-
 const favoriteSelect = `
   id,
   user_id,
@@ -129,7 +118,6 @@ const favoriteSelect = `
     )
   )
 `;
-
 const reviewSelect = `
   id,
   business_id,
@@ -146,7 +134,6 @@ const reviewSelect = `
     status
   )
 `;
-
 export function BuyerAccountClient() {
   const router = useRouter();
   const supabase = useMemo(() => createSupabaseBrowserClient(), []);
@@ -155,11 +142,10 @@ export function BuyerAccountClient() {
   const [isLoading, setIsLoading] = useState(true);
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [reviews, setReviews] = useState<AccountReview[]>([]);
-  const [role, setRole] = useState<string | null>(null);
+  const [role, setRole] = useState<AppRole | null>(null);
   const [userEmail, setUserEmail] = useState("");
   const [userId, setUserId] = useState("");
   const [isBecomingOwner, setIsBecomingOwner] = useState(false);
-
   const handleBecomeOwner = async () => {
     setIsBecomingOwner(true);
     setError(null);
@@ -173,88 +159,56 @@ export function BuyerAccountClient() {
     
     router.push("/dashboard");
   };
-
   const loadAccount = useCallback(async () => {
     setIsLoading(true);
     setError(null);
-
-    const { data: userResult, error: userError } =
-      await supabase.auth.getUser();
-
-    if (userError || !userResult.user) {
+    const { error: profileReadError, profile: accountProfile, user } =
+      await getCurrentUserProfile(supabase);
+    if (!user) {
       router.replace("/login");
       return;
     }
-
-    setUserEmail(userResult.user.email ?? "Usuario autenticado");
-    setUserId(userResult.user.id);
-
-    const { data: appRole, error: roleError } =
-      await supabase.rpc("current_app_role");
-
-    if (roleError) {
-      setError("No pudimos verificar tu rol de cuenta.");
+    if (profileReadError) {
+      setError("No pudimos revisar tu perfil de cuenta.");
       setIsLoading(false);
       return;
     }
-
-    let resolvedRole = appRole;
-
-    if (!resolvedRole) {
-      const requestedRole = getRequestedRoleFromUser(userResult.user);
-
-      if (requestedRole) {
-        const { data: createdProfile } = await ensureInitialUserProfile(
-          supabase,
-          requestedRole,
-          getFullNameFromUser(userResult.user),
-        );
-
-        resolvedRole = createdProfile?.role ?? null;
-      }
+    if (!accountProfile || accountProfile.onboarding_completed === false) {
+      router.replace(getPostLoginRedirect(accountProfile));
+      return;
     }
-
+    const resolvedRole = accountProfile.role;
+    setUserEmail(user.email ?? accountProfile.email ?? "Usuario autenticado");
+    setUserId(user.id);
     setRole(resolvedRole);
-
-    const { data: profileData } = await supabase
-      .from("users_profile")
-      .select("id,email,full_name,role,phone,status,created_at,updated_at")
-      .eq("id", userResult.user.id)
-      .maybeSingle();
-
-    setProfile((profileData as UserProfile | null) ?? null);
-
+    setProfile(accountProfile as UserProfile);
     if (resolvedRole === "admin") {
       setIsLoading(false);
       return;
     }
-
     const [{ data: favoriteData, error: favoriteError }, { data: reviewData, error: reviewError }] =
       await Promise.all([
         supabase
           .from("favorites")
           .select(favoriteSelect)
-          .eq("user_id", userResult.user.id)
+          .eq("user_id", user.id)
           .order("created_at", { ascending: false }),
         supabase
           .from("business_reviews")
           .select(reviewSelect)
-          .eq("user_id", userResult.user.id)
+          .eq("user_id", user.id)
           .order("created_at", { ascending: false }),
       ]);
-
     if (favoriteError) {
       setError("No pudimos cargar tus favoritos. Revisa que el SQL de Sprint 3D este aplicado.");
       setIsLoading(false);
       return;
     }
-
     if (reviewError) {
       setError("No pudimos cargar tu historial de calificaciones.");
       setIsLoading(false);
       return;
     }
-
     setFavorites(
       ((favoriteData ?? []) as unknown as FavoriteRow[]).map(normalizeFavorite),
     );
@@ -263,45 +217,35 @@ export function BuyerAccountClient() {
     );
     setIsLoading(false);
   }, [router, supabase]);
-
   useEffect(() => {
     const timer = window.setTimeout(() => {
       void loadAccount();
     }, 0);
-
     return () => window.clearTimeout(timer);
   }, [loadAccount]);
-
   async function signOut() {
     const { error: signOutError } = await supabase.auth.signOut();
-
     if (signOutError) {
       setError("No pudimos cerrar sesion. Intenta nuevamente.");
       return;
     }
-
     router.replace("/login");
   }
-
   async function removeFavorite(favoriteId: string) {
     setError(null);
-
     const { error: deleteError } = await supabase
       .from("favorites")
       .delete()
       .eq("id", favoriteId)
       .eq("user_id", userId);
-
     if (deleteError) {
       setError("No pudimos quitar este favorito.");
       return;
     }
-
     setFavorites((current) =>
       current.filter((favorite) => favorite.id !== favoriteId),
     );
   }
-
   if (isLoading) {
     return (
       <Card>
@@ -309,34 +253,37 @@ export function BuyerAccountClient() {
       </Card>
     );
   }
-
-
-
+  const safeRole = role ?? "buyer";
+  const displayName = profile?.full_name ?? userEmail;
+  const roleLabel = roleLabels[safeRole];
+  const roleTitle = roleProfileTitles[safeRole];
+  const roleDescription = roleDescriptions[safeRole];
   return (
     <div className="space-y-6">
       {error ? <ErrorState title="No pudimos cargar la cuenta" description={error} /> : null}
-
       <Card className="flex flex-col gap-5 overflow-hidden rounded-[1.75rem] border-brand/20 bg-gradient-to-br from-white via-[#fffaf0] to-brand/10 shadow-sm sm:flex-row sm:items-center sm:justify-between">
         <div className="min-w-0 space-y-3">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3">
             <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-brand text-lg font-black uppercase text-brand-foreground shadow-sm">
-              {(profile?.full_name ?? userEmail).slice(0, 1)}
+              {displayName.slice(0, 1)}
             </span>
             <p className="text-xs font-bold uppercase tracking-wider text-brand">
-              Perfil de {role === "admin" ? "Administrador" : role === "owner" ? "Emprendedor" : "Comprador"}
+              {roleTitle}
             </p>
+            <span className="rounded-full bg-white px-3 py-1 text-xs font-black text-brand shadow-sm ring-1 ring-brand/15">
+              {roleLabel}
+            </span>
           </div>
           <div>
             <h1 className="break-words text-3xl font-black tracking-tight text-slate-800">
-              {profile?.full_name ?? userEmail}
+              {displayName}
             </h1>
             <p className="mt-1 text-sm font-medium text-muted-foreground">
-              {userEmail} • Rol: <span className="uppercase text-slate-600">{role === "owner" ? "emprendedor" : role === "admin" ? "administrador" : role ?? "comprador"}</span>
+              {userEmail}
             </p>
           </div>
           <p className="max-w-2xl text-sm leading-relaxed text-slate-600">
-            Gestiona tu cuenta y configuración.
-            {role !== "admin" ? " Guarda negocios para volver rápido y revisa tus calificaciones. Los favoritos son privados y no se usan como ranking público." : ""}
+            {roleDescription}
           </p>
         </div>
         <div className="grid gap-2 sm:flex sm:flex-row">
@@ -345,7 +292,7 @@ export function BuyerAccountClient() {
               href="/admin"
               className="inline-flex min-h-11 items-center justify-center rounded-2xl bg-brand px-4 py-2 text-sm font-extrabold text-brand-foreground shadow transition-colors hover:bg-brand/90"
             >
-              Ir a Administración
+              Panel administrador
             </Link>
           )}
           {role === "owner" && (
@@ -369,7 +316,6 @@ export function BuyerAccountClient() {
           </Button>
         </div>
       </Card>
-
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         <Card className="rounded-3xl bg-white shadow-sm">
           <BookmarkCheck className="mb-3 h-5 w-5 text-brand" />
@@ -400,7 +346,6 @@ export function BuyerAccountClient() {
           </p>
         </Card>
       </div>
-
       {role === "owner" ? (
         <Card className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between border-slate-200 bg-white shadow-sm">
           <div className="space-y-2">
@@ -421,7 +366,6 @@ export function BuyerAccountClient() {
           </Link>
         </Card>
       ) : null}
-
       {role === "buyer" ? (
         <Card className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between bg-brand/5 border-brand/20">
           <div className="space-y-1.5">
@@ -442,7 +386,6 @@ export function BuyerAccountClient() {
           </Button>
         </Card>
       ) : null}
-
       <div className="grid lg:grid-cols-[1.2fr_0.8fr] gap-6">
         <section className="space-y-4">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -460,7 +403,6 @@ export function BuyerAccountClient() {
               Explorar
             </Link>
           </div>
-
           {favorites.length === 0 ? (
             <EmptyState
               title="Aún no guardaste negocios"
@@ -514,7 +456,6 @@ export function BuyerAccountClient() {
             </div>
           )}
         </section>
-
         <section className="space-y-4">
           <div>
             <h2 className="flex items-center gap-2 text-xl font-bold text-slate-800">
@@ -525,7 +466,6 @@ export function BuyerAccountClient() {
               Historial de calificaciones dejadas.
             </p>
           </div>
-
           {reviews.length === 0 ? (
             <EmptyState
               title="Sin calificaciones"
@@ -566,7 +506,6 @@ export function BuyerAccountClient() {
           )}
         </section>
       </div>
-
       <Card className="flex items-start gap-4 border-l-4 border-l-amber-400 bg-amber-50/50 p-5">
         <ShieldAlert className="mt-0.5 h-6 w-6 text-amber-500 shrink-0" />
         <div className="space-y-1 text-amber-900">

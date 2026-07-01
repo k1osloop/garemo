@@ -17,6 +17,8 @@ export type Database = {
           role: Database["public"]["Enums"]["user_role"];
           phone: string | null;
           status: Database["public"]["Enums"]["user_status"];
+          onboarding_completed: boolean;
+          selected_role_at: string | null;
           created_at: string;
           updated_at: string;
         };
@@ -27,6 +29,8 @@ export type Database = {
           role?: Database["public"]["Enums"]["user_role"];
           phone?: string | null;
           status?: Database["public"]["Enums"]["user_status"];
+          onboarding_completed?: boolean;
+          selected_role_at?: string | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -37,6 +41,8 @@ export type Database = {
           role?: Database["public"]["Enums"]["user_role"];
           phone?: string | null;
           status?: Database["public"]["Enums"]["user_status"];
+          onboarding_completed?: boolean;
+          selected_role_at?: string | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -541,6 +547,12 @@ export type Database = {
       become_owner: {
         Args: Record<string, never>;
         Returns: undefined;
+      };
+      update_my_role: {
+        Args: {
+          selected_role: "buyer" | "owner";
+        };
+        Returns: Database["public"]["Tables"]["users_profile"]["Row"];
       };
       search_businesses: {
         Args: {

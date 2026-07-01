@@ -7,7 +7,6 @@ import {
   ArrowRight,
   CheckCircle2,
   MailCheck,
-  ShieldCheck,
   Store,
   UserRound,
 } from "lucide-react";
@@ -136,8 +135,7 @@ export function SignupForm() {
             <p className="text-sm leading-6 text-muted">
               Enviamos un enlace a {status.email}. Cuando confirmes el email,
               vuelve a iniciar sesion. Garemo creara tu perfil como{" "}
-              {status.role === "owner" ? "emprendedor" : "comprador"} sin
-              permisos admin.
+              {status.role === "owner" ? "emprendedor" : "comprador"}.
             </p>
           </div>
           <div className="grid gap-2 sm:grid-cols-2">
@@ -176,8 +174,8 @@ export function SignupForm() {
             Compra talento universitario
           </p>
           <p className="text-sm leading-6 text-muted">
-            Elige comprador o emprendedor. El rol admin no se puede solicitar
-            ni activar desde esta pantalla.
+            Elige comprador o emprendedor. Las cuentas de revision se gestionan
+            por un proceso interno seguro.
           </p>
         </Card>
 
@@ -199,16 +197,6 @@ export function SignupForm() {
               <p className="text-sm leading-6 text-muted">
                 Publica tu negocio, muestra tus productos y recibe contactos
                 por WhatsApp.
-              </p>
-            </div>
-          </Card>
-          <Card className="flex gap-3">
-            <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-brand" />
-            <div className="min-w-0 space-y-1">
-              <h2 className="text-sm font-semibold">Admin protegido</h2>
-              <p className="text-sm leading-6 text-muted">
-                Nadie puede convertirse en administrador desde esta pantalla.
-                Los roles permitidos son comprador o emprendedor.
               </p>
             </div>
           </Card>

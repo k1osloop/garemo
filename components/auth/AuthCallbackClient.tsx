@@ -5,10 +5,8 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Loader2, ShieldAlert } from "lucide-react";
 
 import {
-  ensureInitialUserProfile,
-  getFullNameFromUser,
-  getRoleRedirect,
-  getSafeSignupRole,
+  getCurrentUserProfile,
+  getPostLoginRedirect,
 } from "@/lib/auth-profiles";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 
@@ -37,37 +35,21 @@ export function AuthCallbackClient() {
         return;
       }
 
-      const { data: userResult } = await supabase.auth.getUser();
+      const { error: profileReadError, profile, user } =
+        await getCurrentUserProfile(supabase);
 
-      if (!userResult.user) {
+      if (!user) {
         setError("Entraste, pero no pudimos leer tu usuario.");
         return;
       }
 
-      const { data: currentRole } = await supabase.rpc("current_app_role");
-
-      if (currentRole) {
-        router.replace(getRoleRedirect(currentRole));
-        return;
-      }
-
-      const requestedRole = getSafeSignupRole(searchParams.get("role"));
-      const { data: profile, error: profileError } =
-        await ensureInitialUserProfile(
-          supabase,
-          requestedRole,
-          getFullNameFromUser(userResult.user),
-        );
-
-      if (profileError) {
-        setError(
-          "La cuenta entro con Google, pero falta completar el perfil sin permisos especiales.",
-        );
+      if (profileReadError) {
+        setError("Entraste, pero no pudimos revisar tu perfil.");
         return;
       }
 
       if (isMounted) {
-        router.replace(getRoleRedirect(profile?.role ?? null));
+        router.replace(getPostLoginRedirect(profile));
       }
     };
 

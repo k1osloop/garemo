@@ -751,7 +751,7 @@ export function VendorDashboardClient() {
           <p className="text-sm leading-6 text-muted">
             Tu cuenta de Auth existe, pero aun no tiene perfil Garemo activo.
             Crea una cuenta pública como comprador o emprendedor para activar un
-            perfil sin permisos admin.
+            perfil sin permisos especiales.
           </p>
           <Link
             className="inline-flex min-h-10 items-center justify-center rounded-lg bg-brand px-3 text-sm font-medium text-brand-foreground hover:bg-teal-800"
