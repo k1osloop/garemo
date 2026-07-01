@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { BarChart3, ClipboardCheck, ShieldCheck } from "lucide-react";
 
+import { AdminMetricsClient } from "./AdminMetricsClient";
 import { AdminReportsClient } from "./AdminReportsClient";
 import { AdminReviewClient } from "./AdminReviewClient";
 
@@ -15,7 +16,7 @@ const tabs: {
 }[] = [
   { id: "businesses", label: "Negocios por verificar", icon: ClipboardCheck },
   { id: "reports", label: "Reportes", icon: ShieldCheck },
-  { id: "metrics", label: "Metricas", icon: BarChart3 },
+  { id: "metrics", label: "Métricas", icon: BarChart3 },
 ];
 
 export function AdminDashboardClient() {
@@ -60,12 +61,7 @@ export function AdminDashboardClient() {
 
       {activeTab === "businesses" ? <AdminReviewClient /> : null}
       {activeTab === "reports" ? <AdminReportsClient /> : null}
-      {activeTab === "metrics" ? (
-        <div className="rounded-3xl border border-dashed border-border bg-white p-6 text-sm leading-6 text-muted-foreground">
-          Metricas simples quedan listas para un siguiente sprint cuando se
-          consoliden consultas agregadas de negocios, reportes y reviews.
-        </div>
-      ) : null}
+      {activeTab === "metrics" ? <AdminMetricsClient /> : null}
     </div>
   );
 }

@@ -27,6 +27,7 @@ import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 type SignupStatus =
   | { type: "idle" }
   | { type: "confirm_email"; email: string; role: PublicSignupRole }
+  | { type: "existing_account"; email: string }
   | { type: "error"; message: string };
 
 export function SignupForm() {
@@ -75,6 +76,27 @@ export function SignupForm() {
       return;
     }
 
+    const { data: emailAlreadyExists, error: emailCheckError } =
+      await supabase.rpc("is_registered_email", {
+        candidate_email: email,
+      });
+
+    if (emailCheckError) {
+      setStatus({
+        type: "error",
+        message:
+          "No pudimos validar el correo en este momento. Intenta nuevamente.",
+      });
+      setIsLoading(false);
+      return;
+    }
+
+    if (emailAlreadyExists) {
+      setStatus({ type: "existing_account", email });
+      setIsLoading(false);
+      return;
+    }
+
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
@@ -92,6 +114,16 @@ export function SignupForm() {
         type: "error",
         message: getSignupErrorMessage(error.message),
       });
+      setIsLoading(false);
+      return;
+    }
+
+    if (
+      data.user &&
+      Array.isArray(data.user.identities) &&
+      data.user.identities.length === 0
+    ) {
+      setStatus({ type: "existing_account", email });
       setIsLoading(false);
       return;
     }
@@ -116,6 +148,37 @@ export function SignupForm() {
     }
 
     router.replace(getRoleRedirect(profile?.role ?? null));
+  }
+
+  if (status.type === "existing_account") {
+    return (
+      <div className="mx-auto max-w-2xl">
+        <Card className="space-y-5 text-center">
+          <span className="mx-auto flex h-12 w-12 items-center justify-center rounded-lg bg-amber-100 text-amber-700">
+            <MailCheck className="h-6 w-6" />
+          </span>
+          <div className="space-y-2">
+            <p className="text-sm font-medium uppercase text-brand">
+              Cuenta existente
+            </p>
+            <h1 className="text-2xl font-semibold tracking-tight">
+              Ya existe una cuenta con este correo
+            </h1>
+            <p className="text-sm leading-6 text-muted">
+              Ya existe una cuenta con este correo. Inicia sesión para
+              continuar. Tu tipo de cuenta actual se mantiene protegido.
+            </p>
+          </div>
+          <Link
+            className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-brand px-4 text-sm font-medium text-brand-foreground hover:bg-teal-800"
+            href={`/login?email=${encodeURIComponent(status.email)}`}
+          >
+            Ir a iniciar sesión
+            <ArrowRight className="h-4 w-4" />
+          </Link>
+        </Card>
+      </div>
+    );
   }
 
   if (status.type === "confirm_email") {
@@ -226,7 +289,7 @@ export function SignupForm() {
           <span className="h-px flex-1 bg-border" />
         </div>
 
-        <form className="space-y-4" onSubmit={handleSubmit}>
+        <form className="space-y-4" method="post" onSubmit={handleSubmit}>
           <fieldset className="grid gap-3">
             <legend className="text-sm font-medium">Tipo de cuenta</legend>
             <div className="grid gap-3 sm:grid-cols-2">
@@ -326,16 +389,24 @@ function getSignupErrorMessage(message: string) {
   const lower = message.toLowerCase();
 
   if (lower.includes("already registered") || lower.includes("already exists")) {
-    return "Este email ya tiene una cuenta. Inicia sesion o usa otro correo.";
+    return "Ya existe una cuenta con este correo. Inicia sesión para continuar.";
+  }
+
+  if (lower.includes("invalid email") || lower.includes("email address")) {
+    return "Ingresa un correo valido.";
   }
 
   if (lower.includes("password")) {
-    return "La contrasena no cumple los requisitos. Usa al menos 8 caracteres.";
+    return "Usa una contrasena mas segura.";
   }
 
   if (lower.includes("rate limit")) {
     return "Demasiados intentos. Espera un momento y vuelve a probar.";
   }
 
-  return "No pudimos crear la cuenta. Revisa los datos e intenta de nuevo.";
+  if (lower.includes("signup disabled")) {
+    return "El registro no esta disponible en este momento.";
+  }
+
+  return "No pudimos completar la accion. Intenta nuevamente.";
 }

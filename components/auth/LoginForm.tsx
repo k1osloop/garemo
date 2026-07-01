@@ -18,6 +18,13 @@ import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 export function LoginForm() {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
+  const [initialEmail] = useState(() => {
+    if (typeof window === "undefined") {
+      return "";
+    }
+
+    return new URLSearchParams(window.location.search).get("email") ?? "";
+  });
   const [isLoading, setIsLoading] = useState(false);
   const supabase = useMemo(() => createSupabaseBrowserClient(), []);
 
@@ -151,6 +158,8 @@ export function LoginForm() {
         <form className="space-y-4" method="post" onSubmit={handleSubmit}>
           <Input
             autoComplete="email"
+            defaultValue={initialEmail}
+            key={initialEmail || "email"}
             label="Email"
             name="email"
             placeholder="tu@email.com"

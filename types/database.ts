@@ -516,6 +516,16 @@ export type Database = {
         Args: Record<string, never>;
         Returns: Database["public"]["Enums"]["user_role"] | null;
       };
+      is_registered_email: {
+        Args: {
+          candidate_email: string;
+        };
+        Returns: boolean;
+      };
+      get_admin_metrics: {
+        Args: Record<string, never>;
+        Returns: Json;
+      };
       create_initial_user_profile: {
         Args: {
           requested_role: Database["public"]["Enums"]["user_role"];
