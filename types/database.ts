@@ -425,7 +425,7 @@ export type Database = {
           type: UserNotificationType;
           title: string;
           message: string;
-          status: "unread" | "read";
+          status: NotificationStatus;
           metadata: Json;
           created_at: string;
           read_at: string | null;
@@ -437,7 +437,7 @@ export type Database = {
           type: UserNotificationType;
           title: string;
           message: string;
-          status?: "unread" | "read";
+          status?: NotificationStatus;
           metadata?: Json;
           created_at?: string;
           read_at?: string | null;
@@ -449,10 +449,109 @@ export type Database = {
           type?: UserNotificationType;
           title?: string;
           message?: string;
-          status?: "unread" | "read";
+          status?: NotificationStatus;
           metadata?: Json;
           created_at?: string;
           read_at?: string | null;
+        };
+        Relationships: [];
+      };
+      email_events: {
+        Row: {
+          id: string;
+          user_id: string | null;
+          business_id: string | null;
+          notification_id: string | null;
+          moderation_thread_id: string | null;
+          event_type: string;
+          recipient_email: string;
+          subject: string;
+          provider: string;
+          provider_message_id: string | null;
+          status: EmailEventStatus;
+          attempts: number;
+          last_error: string | null;
+          metadata: Json;
+          created_at: string;
+          updated_at: string;
+          sent_at: string | null;
+        };
+        Insert: {
+          id?: string;
+          user_id?: string | null;
+          business_id?: string | null;
+          notification_id?: string | null;
+          moderation_thread_id?: string | null;
+          event_type: string;
+          recipient_email: string;
+          subject: string;
+          provider?: string;
+          provider_message_id?: string | null;
+          status?: EmailEventStatus;
+          attempts?: number;
+          last_error?: string | null;
+          metadata?: Json;
+          created_at?: string;
+          updated_at?: string;
+          sent_at?: string | null;
+        };
+        Update: {
+          id?: string;
+          user_id?: string | null;
+          business_id?: string | null;
+          notification_id?: string | null;
+          moderation_thread_id?: string | null;
+          event_type?: string;
+          recipient_email?: string;
+          subject?: string;
+          provider?: string;
+          provider_message_id?: string | null;
+          status?: EmailEventStatus;
+          attempts?: number;
+          last_error?: string | null;
+          metadata?: Json;
+          created_at?: string;
+          updated_at?: string;
+          sent_at?: string | null;
+        };
+        Relationships: [];
+      };
+      admin_audit_logs: {
+        Row: {
+          id: string;
+          actor_id: string | null;
+          business_id: string | null;
+          target_user_id: string | null;
+          action: string;
+          entity_type: string;
+          entity_id: string | null;
+          summary: string;
+          metadata: Json;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          actor_id?: string | null;
+          business_id?: string | null;
+          target_user_id?: string | null;
+          action: string;
+          entity_type: string;
+          entity_id?: string | null;
+          summary: string;
+          metadata?: Json;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          actor_id?: string | null;
+          business_id?: string | null;
+          target_user_id?: string | null;
+          action?: string;
+          entity_type?: string;
+          entity_id?: string | null;
+          summary?: string;
+          metadata?: Json;
+          created_at?: string;
         };
         Relationships: [];
       };
@@ -772,6 +871,24 @@ export type Database = {
         };
         Returns: boolean;
       };
+      archive_notification: {
+        Args: {
+          notification_id: string;
+        };
+        Returns: boolean;
+      };
+      record_admin_audit_log: {
+        Args: {
+          target_action: string;
+          target_entity_type: string;
+          target_entity_id?: string | null;
+          target_business_id?: string | null;
+          target_user_id?: string | null;
+          target_summary?: string | null;
+          target_metadata?: Json;
+        };
+        Returns: string;
+      };
       create_initial_user_profile: {
         Args: {
           requested_role: Database["public"]["Enums"]["user_role"];
@@ -854,6 +971,11 @@ export type WhatsAppClick =
 export type Favorite = Database["public"]["Tables"]["favorites"]["Row"];
 export type UserNotification =
   Database["public"]["Tables"]["user_notifications"]["Row"];
+export type EmailEvent = Database["public"]["Tables"]["email_events"]["Row"];
+export type AdminAuditLog =
+  Database["public"]["Tables"]["admin_audit_logs"]["Row"];
+export type NotificationStatus = "unread" | "read" | "archived";
+export type EmailEventStatus = "queued" | "sent" | "failed" | "skipped";
 export type ModerationThread =
   Database["public"]["Tables"]["moderation_threads"]["Row"];
 export type ModerationMessage =

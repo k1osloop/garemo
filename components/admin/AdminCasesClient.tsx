@@ -7,6 +7,7 @@ import { ModerationThreadCenter } from "@/components/moderation/ModerationThread
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { ErrorState } from "@/components/ui/ErrorState";
+import { sendTransactionalEmailFromClient } from "@/lib/email/client";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import type { ModerationThreadWithMessages } from "@/types/database";
 
@@ -70,6 +71,19 @@ export function AdminCasesClient() {
     if (sendError) {
       setError("No pudimos enviar el mensaje del caso.");
       return;
+    }
+
+    const thread = threads.find((item) => item.id === threadId);
+
+    if (thread?.owner_id) {
+      await sendTransactionalEmailFromClient(supabase, {
+        businessId: thread.business_id,
+        businessName: thread.business_name,
+        eventType: "moderation_case",
+        message,
+        moderationThreadId: thread.id,
+        targetUserId: thread.owner_id,
+      });
     }
 
     setStatusMessage("Mensaje enviado al emprendedor.");

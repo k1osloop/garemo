@@ -9,6 +9,7 @@ import {
   Package,
   ShieldCheck,
   Star,
+  Download,
   UsersRound,
 } from "lucide-react";
 
@@ -48,6 +49,7 @@ type AdminMetrics = {
     buyers?: MetricValue;
     owners?: MetricValue;
     admins?: MetricValue;
+    growth_7d?: MetricValue;
     onboarding_complete?: MetricValue;
     onboarding_pending?: MetricValue;
   } | null;
@@ -74,6 +76,7 @@ type AdminMetrics = {
   notifications?: {
     total?: MetricValue;
     unread?: MetricValue;
+    archived?: MetricValue;
     messages_total?: MetricValue;
     messages_unread_owner?: MetricValue;
     threads_open?: MetricValue;
@@ -82,6 +85,23 @@ type AdminMetrics = {
     sent_rejected?: MetricValue;
     sent_suspended?: MetricValue;
     sent_reactivated?: MetricValue;
+  } | null;
+  email?: {
+    total?: MetricValue;
+    sent?: MetricValue;
+    failed?: MetricValue;
+    queued?: MetricValue;
+  } | null;
+  audit?: {
+    admin_actions_total?: MetricValue;
+    admin_actions_24h?: MetricValue;
+  } | null;
+  growth?: {
+    businesses_7d?: MetricValue;
+    products_7d?: MetricValue;
+    reviews_7d?: MetricValue;
+    reports_7d?: MetricValue;
+    contacts_7d?: MetricValue;
   } | null;
 };
 
@@ -222,6 +242,45 @@ export function AdminMetricsClient() {
   const reports = metrics?.reports;
   const quality = metrics?.quality;
   const notifications = metrics?.notifications;
+  const email = metrics?.email;
+  const audit = metrics?.audit;
+  const growth = metrics?.growth;
+
+  function exportMetricsCsv() {
+    if (!metrics) return;
+
+    const rows = Object.entries(metrics).flatMap(([section, value]) => {
+      if (!value || Array.isArray(value) || typeof value !== "object") {
+        return [];
+      }
+
+      return Object.entries(value as Record<string, unknown>)
+        .filter(([, metricValue]) => typeof metricValue !== "object")
+        .map(([metric, metricValue]) => [
+          section,
+          metric,
+          metricValue ?? unavailableLabel,
+        ]);
+    });
+
+    const csv = [
+      ["section", "metric", "value"],
+      ...rows,
+    ]
+      .map((row) =>
+        row.map((cell) => `"${String(cell).replaceAll('"', '""')}"`).join(","),
+      )
+      .join("\n");
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `garemo-admin-metrics-${new Date()
+      .toISOString()
+      .slice(0, 10)}.csv`;
+    link.click();
+    URL.revokeObjectURL(url);
+  }
 
   return (
     <div className="space-y-7">
@@ -239,6 +298,14 @@ export function AdminMetricsClient() {
             Datos agregados para revisar crecimiento, moderacion y calidad del
             directorio sin exponer informacion sensible a usuarios publicos.
           </p>
+          <button
+            className="inline-flex min-h-10 items-center justify-center gap-2 rounded-2xl border border-brand/20 bg-white px-4 text-sm font-black text-brand shadow-sm hover:bg-brand/5"
+            onClick={exportMetricsCsv}
+            type="button"
+          >
+            <Download className="h-4 w-4" />
+            Exportar CSV
+          </button>
         </div>
       </Card>
 
@@ -282,6 +349,7 @@ export function AdminMetricsClient() {
           { label: "Compradores", value: users?.buyers },
           { label: "Emprendedores", value: users?.owners },
           { label: "Administradores", value: users?.admins },
+          { label: "Crecimiento 7 dias", value: users?.growth_7d },
           { label: "Onboarding completo", value: users?.onboarding_complete },
           { label: "Onboarding pendiente", value: users?.onboarding_pending },
         ]}
@@ -338,6 +406,7 @@ export function AdminMetricsClient() {
         cards={[
           { label: "Total notificaciones", value: notifications?.total },
           { label: "No leidas", value: notifications?.unread },
+          { label: "Archivadas", value: notifications?.archived },
           { label: "Mensajes internos", value: notifications?.messages_total },
           { label: "Mensajes pendientes", value: notifications?.messages_unread_owner },
           { label: "Casos abiertos", value: notifications?.threads_open },
@@ -349,6 +418,31 @@ export function AdminMetricsClient() {
         ]}
         icon={Bell}
         title="Notificaciones"
+      />
+
+      <MetricSection
+        cards={[
+          { label: "Emails registrados", value: email?.total },
+          { label: "Enviados", value: email?.sent },
+          { label: "Fallidos", value: email?.failed },
+          { label: "En cola", value: email?.queued },
+          { label: "Acciones admin", value: audit?.admin_actions_total },
+          { label: "Acciones admin 24h", value: audit?.admin_actions_24h },
+        ]}
+        icon={Bell}
+        title="Email y auditoria"
+      />
+
+      <MetricSection
+        cards={[
+          { label: "Negocios 7 dias", value: growth?.businesses_7d },
+          { label: "Productos 7 dias", value: growth?.products_7d },
+          { label: "Resenas 7 dias", value: growth?.reviews_7d },
+          { label: "Reportes 7 dias", value: growth?.reports_7d },
+          { label: "Contactos 7 dias", value: growth?.contacts_7d },
+        ]}
+        icon={BarChart3}
+        title="Crecimiento"
       />
 
       <MetricSection

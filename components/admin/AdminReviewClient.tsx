@@ -16,6 +16,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { ErrorState } from "@/components/ui/ErrorState";
+import { sendTransactionalEmailFromClient } from "@/lib/email/client";
 import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
 import type {
@@ -280,6 +281,8 @@ export function AdminReviewClient() {
     nextIsVerified,
     notes,
     reason,
+    targetUserId,
+    businessName,
     successMessage,
   }: {
     businessId: string;
@@ -287,6 +290,8 @@ export function AdminReviewClient() {
     nextIsVerified: boolean;
     notes?: string | null;
     reason?: string | null;
+    targetUserId?: string | null;
+    businessName?: string | null;
     successMessage: string;
   }) {
     setIsReviewing(businessId);
@@ -307,6 +312,23 @@ export function AdminReviewClient() {
       );
       setIsReviewing(null);
       return;
+    }
+
+    if (targetUserId) {
+      const eventType =
+        nextStatus === "approved" || nextStatus === "active"
+          ? "business_approved"
+          : nextStatus === "rejected"
+            ? "business_needs_changes"
+            : "moderation_case";
+
+      await sendTransactionalEmailFromClient(supabase, {
+        businessId,
+        businessName,
+        eventType,
+        message: notes ?? null,
+        targetUserId,
+      });
     }
 
     setStatusMessage(successMessage);
@@ -344,11 +366,13 @@ export function AdminReviewClient() {
 
     await reviewBusiness({
       businessId,
+      businessName: rejectDialog.business.name,
       nextStatus: "rejected",
       nextIsVerified: false,
       notes,
       reason: rejectReason,
       successMessage: "Verificacion devuelta y emprendedor notificado.",
+      targetUserId: rejectDialog.business.owner_id,
     });
 
     setRejectDialog(null);
@@ -517,11 +541,13 @@ export function AdminReviewClient() {
                       onClick={() =>
                         void reviewBusiness({
                           businessId: business.id,
+                          businessName: business.name,
                           nextStatus: "approved",
                           nextIsVerified: shouldVerify,
                           notes: note || "Aprobado por revision manual de Garemo.",
                           reason: "approved",
                           successMessage: "Negocio aprobado y emprendedor notificado.",
+                          targetUserId: business.owner_id,
                         })
                       }
                       type="button"
@@ -545,6 +571,7 @@ export function AdminReviewClient() {
                       onClick={() =>
                         void reviewBusiness({
                           businessId: business.id,
+                          businessName: business.name,
                           nextStatus: "under_review",
                           nextIsVerified: false,
                           notes:
@@ -552,6 +579,7 @@ export function AdminReviewClient() {
                             "Tu negocio esta en revision temporal mientras verificamos reportes o informacion pendiente.",
                           reason: "admin_review",
                           successMessage: "Negocio suspendido temporalmente y emprendedor notificado.",
+                          targetUserId: business.owner_id,
                         })
                       }
                       type="button"
@@ -566,11 +594,13 @@ export function AdminReviewClient() {
                       onClick={() =>
                         void reviewBusiness({
                           businessId: business.id,
+                          businessName: business.name,
                           nextStatus: "approved",
                           nextIsVerified: shouldVerify,
                           notes: note || "Negocio reactivado por revision admin.",
                           reason: "reactivated",
                           successMessage: "Negocio reactivado y emprendedor notificado.",
+                          targetUserId: business.owner_id,
                         })
                       }
                       type="button"

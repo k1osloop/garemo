@@ -16,6 +16,7 @@ import { BrandLogo } from "@/components/layout/brand-logo";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { sendTransactionalEmailFromClient } from "@/lib/email/client";
 import {
   ensureInitialUserProfile,
   getRoleRedirect,
@@ -146,6 +147,15 @@ export function SignupForm() {
       setIsLoading(false);
       return;
     }
+
+    await sendTransactionalEmailFromClient(supabase, {
+      eventType: "welcome",
+      message:
+        role === "owner"
+          ? "Tu cuenta emprendedora esta lista. Crea tu negocio y espera la revision de Garemo para aparecer en el directorio."
+          : "Tu cuenta compradora esta lista. Ya puedes guardar favoritos, calificar negocios y contactar emprendimientos universitarios.",
+      targetUserId: profile?.id ?? data.user.id,
+    });
 
     router.replace(getRoleRedirect(profile?.role ?? null));
   }

@@ -169,6 +169,9 @@ export function BuyerAccountClient() {
   const [moderationThreads, setModerationThreads] = useState<
     ModerationThreadWithMessages[]
   >([]);
+  const [notificationFilter, setNotificationFilter] = useState<
+    "all" | "unread" | "read" | "archived"
+  >("all");
   const [role, setRole] = useState<AppRole | null>(null);
   const [userEmail, setUserEmail] = useState("");
   const [userId, setUserId] = useState("");
@@ -346,6 +349,30 @@ export function BuyerAccountClient() {
     );
   }
 
+  async function archiveNotification(notificationId: string) {
+    setError(null);
+    const { error: archiveError } = await supabase.rpc("archive_notification", {
+      notification_id: notificationId,
+    });
+
+    if (archiveError) {
+      setError("No pudimos archivar la notificacion.");
+      return;
+    }
+
+    setNotifications((current) =>
+      current.map((notification) =>
+        notification.id === notificationId
+          ? {
+              ...notification,
+              read_at: notification.read_at ?? new Date().toISOString(),
+              status: "archived",
+            }
+          : notification,
+      ),
+    );
+  }
+
   async function replyModerationThread(threadId: string, message: string) {
     setError(null);
     const { error: replyError } = await supabase.rpc(
@@ -393,6 +420,27 @@ export function BuyerAccountClient() {
   const unreadNotifications = notifications.filter(
     (notification) => notification.status === "unread",
   ).length;
+  const unreadMessages = moderationThreads.reduce(
+    (total, thread) => total + thread.unread_count,
+    0,
+  );
+  const filteredNotifications = notifications.filter((notification) =>
+    notificationFilter === "all"
+      ? notification.status !== "archived"
+      : notification.status === notificationFilter,
+  );
+  const groupedNotifications = filteredNotifications.reduce<
+    Record<string, UserNotification[]>
+  >((groups, notification) => {
+    const key = new Date(notification.created_at).toLocaleDateString("es-BO", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+    });
+    groups[key] ??= [];
+    groups[key].push(notification);
+    return groups;
+  }, {});
   return (
     <div className="space-y-6">
       {error ? <ErrorState title="No pudimos cargar la cuenta" description={error} /> : null}
@@ -476,10 +524,10 @@ export function BuyerAccountClient() {
         <Card className="rounded-3xl bg-white shadow-sm">
           <ShieldAlert className="mb-3 h-5 w-5 text-amber-500" />
           <p className="text-2xl font-black text-foreground">
-            {unreadNotifications}
+            {unreadNotifications + unreadMessages}
           </p>
           <p className="text-xs font-bold text-muted-foreground">
-            Notificaciones
+            Pendientes
           </p>
         </Card>
       </div>
@@ -507,15 +555,46 @@ export function BuyerAccountClient() {
             </Button>
           ) : null}
         </div>
+        <div className="flex gap-2 overflow-x-auto pb-1">
+          {[
+            ["all", "Todas"],
+            ["unread", "No leidas"],
+            ["read", "Leidas"],
+            ["archived", "Archivadas"],
+          ].map(([value, label]) => (
+            <button
+              className={cn(
+                "shrink-0 rounded-full px-3 py-2 text-xs font-black transition-colors",
+                notificationFilter === value
+                  ? "bg-brand text-brand-foreground"
+                  : "bg-slate-100 text-slate-600 hover:bg-slate-200",
+              )}
+              key={value}
+              onClick={() =>
+                setNotificationFilter(
+                  value as "all" | "unread" | "read" | "archived",
+                )
+              }
+              type="button"
+            >
+              {label}
+            </button>
+          ))}
+        </div>
 
-        {notifications.length === 0 ? (
+        {filteredNotifications.length === 0 ? (
           <EmptyState
             title="No tienes notificaciones nuevas"
             description="Cuando Garemo revise tu negocio o un reporte importante, lo veras aqui."
           />
         ) : (
-          <div className="grid gap-3">
-            {notifications.map((notification) => (
+          <div className="grid gap-5">
+            {Object.entries(groupedNotifications).map(([dateLabel, items]) => (
+              <div className="space-y-3" key={dateLabel}>
+                <p className="text-xs font-black uppercase tracking-wide text-slate-400">
+                  {dateLabel}
+                </p>
+                {items.map((notification) => (
               <article
                 className={cn(
                   "rounded-2xl border p-4",
@@ -534,6 +613,10 @@ export function BuyerAccountClient() {
                       {notification.status === "unread" ? (
                         <span className="rounded-full bg-brand px-2 py-0.5 text-[10px] font-black uppercase text-brand-foreground">
                           Nueva
+                        </span>
+                      ) : notification.status === "archived" ? (
+                        <span className="rounded-full bg-slate-900 px-2 py-0.5 text-[10px] font-black uppercase text-white">
+                          Archivada
                         </span>
                       ) : (
                         <span className="rounded-full bg-slate-200 px-2 py-0.5 text-[10px] font-black uppercase text-slate-600">
@@ -558,8 +641,20 @@ export function BuyerAccountClient() {
                       Marcar leida
                     </Button>
                   ) : null}
+                  {notification.status !== "archived" ? (
+                    <Button
+                      className="shrink-0"
+                      onClick={() => void archiveNotification(notification.id)}
+                      type="button"
+                      variant="ghost"
+                    >
+                      Archivar
+                    </Button>
+                  ) : null}
                 </div>
               </article>
+                ))}
+              </div>
             ))}
           </div>
         )}

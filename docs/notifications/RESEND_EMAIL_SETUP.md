@@ -1,6 +1,10 @@
 # Resend Email Setup
 
-Garemo already uses internal notifications as the source of truth for moderation events. Real email delivery should be added only after the email provider is configured and secrets exist outside the frontend.
+Garemo uses internal notifications as the source of truth for moderation
+events. Sprint 7M adds a server-side Resend integration that mirrors selected
+events by email when `RESEND_API_KEY` is configured. If the key is missing, the
+app records the event as `skipped` in `email_events` and keeps the in-app
+notification flow working.
 
 ## Provider
 
@@ -11,27 +15,30 @@ Free plan reference for planning:
 - 3,000 emails per month
 - 100 emails per day
 
-## Events To Email Later
+## Events Covered
 
 - Business approved
 - Business rejected or needs corrections
-- Business suspended or under review
-- Business reactivated
-- Report resolved or dismissed
+- Nueva notificacion interna.
+- Nuevo caso o mensaje de moderacion.
+- Recuperacion de contrasena through Supabase Auth SMTP.
+- Bienvenida after app profile creation when a confirmed session exists.
 - Moderation case opened by admin
 - Admin message sent to an entrepreneur
 - Entrepreneur reply received by admin
 
 Email is secondary. The app must always write the internal `user_notifications` row first so the owner can see the message in `/account` and `/dashboard`.
 
-Sprint 7L also adds internal moderation threads. These threads are the primary operational inbox for verification returns, report follow-up, suspension/reactivation, and admin-to-entrepreneur messages. Email should only mirror a thread/message after the database write succeeds.
+Moderation threads remain the primary operational inbox for verification
+returns, report follow-up, suspension/reactivation, and
+admin-to-entrepreneur messages. Email only mirrors a database event after the
+database write succeeds.
 
 ## Secure Architecture
 
 Use one server-side path only:
 
-- Supabase Edge Function, or
-- Next.js server-side API route
+- `app/api/email/transactional/route.ts`
 
 Do not call Resend from browser code. Do not expose `RESEND_API_KEY` in any `NEXT_PUBLIC_` variable.
 
@@ -39,14 +46,21 @@ Required secret:
 
 ```text
 RESEND_API_KEY
+GAREMO_EMAIL_FROM
 ```
 
 Keep it in:
 
-- Supabase Edge Function secrets, if using Edge Functions
 - Vercel Environment Variables, if using a server-side API route
 
 Never commit the key to Git.
+
+Optional public analytics variables live separately:
+
+```text
+NEXT_PUBLIC_GA_MEASUREMENT_ID
+NEXT_PUBLIC_CLARITY_PROJECT_ID
+```
 
 ## Domain Requirements
 
@@ -59,18 +73,20 @@ Before enabling real sends:
    - `no-reply@garemo.online`
    - `onboarding@garemo.online`
 5. Confirm Supabase Auth SMTP uses a sender from `garemo.online`, not a generic sandbox sender.
+6. Confirm SPF, DKIM, and DMARC in Resend before enabling production sends.
 
-## Edge Function Shape
+## Server Route Shape
 
-If implemented with Supabase Edge Functions later, the function should:
+The Next.js route should:
 
 1. Read `RESEND_API_KEY` from environment secrets.
 2. Require an authenticated admin/server-side call.
 3. Accept only a known moderation event type.
 4. Load the notification/business/user data server-side.
-5. Load the moderation thread/message when the event is case-based.
-6. Send a short human email.
-7. Return generic errors to the client.
+5. Reject arbitrary recipient email from the browser.
+6. Log `email_events` before send.
+7. Send branded HTML through Resend.
+8. Return generic errors to the client.
 
 Do not let normal users pass arbitrary `to`, `subject`, or HTML content.
 
@@ -111,6 +127,20 @@ Tienes un mensaje de Garemo
 El equipo de Garemo dejo una observacion sobre tu negocio. Entra a tu cuenta para responder o corregir la informacion solicitada.
 ```
 
+## QA Checklist
+
+1. Confirm `RESEND_API_KEY` exists in Vercel, not in the frontend.
+2. Confirm `GAREMO_EMAIL_FROM` uses `garemo.online`.
+3. Trigger a business approval and confirm `email_events.status = sent`.
+4. Trigger a rejection/corrections flow and confirm owner receives email.
+5. Trigger a moderation message and confirm the owner receives email.
+6. Trigger password recovery and confirm Supabase Auth SMTP sends from the
+   verified Garemo sender.
+7. Confirm failures are logged as `failed` or `skipped`, without exposing
+   secrets to the browser.
+
 ## Current Status
 
-Email sending is intentionally pending. Sprint 7L keeps internal notifications and moderation threads working first. Real email delivery should be enabled only after the verified sender, provider secret, retry strategy, and abuse limits are ready.
+Sprint 7M code path is implemented. Real delivery remains blocked until
+`RESEND_API_KEY` and verified sender settings are present in the deployment
+environment.
