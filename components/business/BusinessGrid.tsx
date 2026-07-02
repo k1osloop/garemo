@@ -32,11 +32,12 @@ export function BusinessGrid({
 
   return (
     <div className="grid min-w-0 gap-4 sm:grid-cols-2 xl:grid-cols-3">
-      {businesses.map((business) => (
+      {businesses.map((business, index) => (
         <BusinessCard
           business={business}
           distanceLabel={distanceLabels[business.id]}
           key={business.id}
+          priorityImage={index < 3}
         />
       ))}
     </div>

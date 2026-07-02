@@ -29,6 +29,7 @@ import type { PublicBusiness } from "@/types/database";
 type BusinessCardProps = {
   business: PublicBusiness;
   distanceLabel?: string;
+  priorityImage?: boolean;
 };
 
 function getCompactStatusBadge(message: string | null) {
@@ -56,7 +57,11 @@ function getCompactStatusBadge(message: string | null) {
   return "Novedad";
 }
 
-export function BusinessCard({ business, distanceLabel }: BusinessCardProps) {
+export function BusinessCard({
+  business,
+  distanceLabel,
+  priorityImage = false,
+}: BusinessCardProps) {
   const zone =
     business.location?.campus_zone ??
     business.location?.address_text ??
@@ -87,6 +92,7 @@ export function BusinessCard({ business, distanceLabel }: BusinessCardProps) {
                 alt={featuredProduct?.name ?? business.name}
                 className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
                 height={360}
+                priority={priorityImage}
                 src={imageUrl}
                 width={576}
               />
