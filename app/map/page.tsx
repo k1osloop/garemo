@@ -1,4 +1,5 @@
 import Link from "next/link";
+import type { Metadata } from "next";
 import { Search } from "lucide-react";
 
 import { PageShell } from "@/components/layout/page-shell";
@@ -7,6 +8,26 @@ import { ErrorState } from "@/components/ui/ErrorState";
 import { getActiveBusinesses } from "@/lib/supabase/queries";
 
 export const dynamic = "force-dynamic";
+
+export const metadata: Metadata = {
+  alternates: {
+    canonical: "/map",
+  },
+  description:
+    "Encuentra en el mapa negocios universitarios visibles cerca del campus y abre sus perfiles publicos en Garemo.",
+  openGraph: {
+    description:
+      "Mapa publico de emprendimientos universitarios con ubicaciones visibles y enlaces al detalle del negocio.",
+    title: "Mapa de negocios universitarios | Garemo",
+    url: "https://www.garemo.online/map",
+  },
+  title: "Mapa de negocios universitarios",
+  twitter: {
+    description:
+      "Encuentra negocios universitarios cercanos en el mapa publico de Garemo.",
+    title: "Mapa de negocios universitarios | Garemo",
+  },
+};
 
 export default async function MapPage() {
   const businessesResult = await getActiveBusinesses();

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import type { Metadata } from "next";
 import { Bike, MapPinned, Sparkles, Star } from "lucide-react";
 
 import { BusinessDirectoryClient } from "@/components/business/BusinessDirectoryClient";
@@ -12,6 +13,26 @@ import {
 } from "@/lib/supabase/queries";
 
 export const dynamic = "force-dynamic";
+
+export const metadata: Metadata = {
+  alternates: {
+    canonical: "/businesses",
+  },
+  description:
+    "Explora negocios, productos y servicios universitarios en Garemo. Busca por categoria, producto, promociones y disponibilidad cerca del campus.",
+  openGraph: {
+    description:
+      "Directorio publico de negocios universitarios con productos, ubicacion, confianza y contacto por WhatsApp.",
+    title: "Directorio de negocios universitarios | Garemo",
+    url: "https://www.garemo.online/businesses",
+  },
+  title: "Directorio de negocios universitarios",
+  twitter: {
+    description:
+      "Explora productos, servicios y emprendimientos universitarios cerca del campus.",
+    title: "Directorio de negocios universitarios | Garemo",
+  },
+};
 
 type BusinessesPageProps = {
   searchParams?: Promise<{
