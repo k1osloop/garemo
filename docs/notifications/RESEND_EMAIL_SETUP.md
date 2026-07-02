@@ -18,8 +18,13 @@ Free plan reference for planning:
 - Business suspended or under review
 - Business reactivated
 - Report resolved or dismissed
+- Moderation case opened by admin
+- Admin message sent to an entrepreneur
+- Entrepreneur reply received by admin
 
 Email is secondary. The app must always write the internal `user_notifications` row first so the owner can see the message in `/account` and `/dashboard`.
+
+Sprint 7L also adds internal moderation threads. These threads are the primary operational inbox for verification returns, report follow-up, suspension/reactivation, and admin-to-entrepreneur messages. Email should only mirror a thread/message after the database write succeeds.
 
 ## Secure Architecture
 
@@ -63,8 +68,9 @@ If implemented with Supabase Edge Functions later, the function should:
 2. Require an authenticated admin/server-side call.
 3. Accept only a known moderation event type.
 4. Load the notification/business/user data server-side.
-5. Send a short human email.
-6. Return generic errors to the client.
+5. Load the moderation thread/message when the event is case-based.
+6. Send a short human email.
+7. Return generic errors to the client.
 
 Do not let normal users pass arbitrary `to`, `subject`, or HTML content.
 
@@ -98,6 +104,13 @@ Tu negocio fue reactivado
 Tu negocio vuelve a estar visible en Garemo.
 ```
 
+Moderation case:
+
+```text
+Tienes un mensaje de Garemo
+El equipo de Garemo dejo una observacion sobre tu negocio. Entra a tu cuenta para responder o corregir la informacion solicitada.
+```
+
 ## Current Status
 
-Email sending is intentionally pending. Sprint 7K prepares the architecture and keeps internal notifications working first.
+Email sending is intentionally pending. Sprint 7L keeps internal notifications and moderation threads working first. Real email delivery should be enabled only after the verified sender, provider secret, retry strategy, and abuse limits are ready.

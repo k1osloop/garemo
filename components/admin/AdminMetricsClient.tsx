@@ -74,6 +74,10 @@ type AdminMetrics = {
   notifications?: {
     total?: MetricValue;
     unread?: MetricValue;
+    messages_total?: MetricValue;
+    messages_unread_owner?: MetricValue;
+    threads_open?: MetricValue;
+    threads_closed?: MetricValue;
     sent_approved?: MetricValue;
     sent_rejected?: MetricValue;
     sent_suspended?: MetricValue;
@@ -247,10 +251,15 @@ export function AdminMetricsClient() {
             label: "Rechazados o en revision",
             value: businesses?.rejected_or_reviewing,
           },
+          { label: "Necesitan correcciones", value: businesses?.rejected },
+          { label: "En revision", value: businesses?.under_review },
           { label: "Suspendidos", value: businesses?.suspended },
           { label: "Con 3+ reportes unicos", value: businesses?.with_3_unique_reports },
           { label: "Sin ubicacion", value: businesses?.without_location },
           { label: "Sin productos", value: businesses?.without_products },
+          { label: "Sin horarios", value: quality?.without_schedules },
+          { label: "Sin WhatsApp", value: quality?.without_whatsapp },
+          { label: "Sin descripcion", value: quality?.without_description },
         ]}
         icon={Building2}
         title="Negocios"
@@ -329,6 +338,10 @@ export function AdminMetricsClient() {
         cards={[
           { label: "Total notificaciones", value: notifications?.total },
           { label: "No leidas", value: notifications?.unread },
+          { label: "Mensajes internos", value: notifications?.messages_total },
+          { label: "Mensajes pendientes", value: notifications?.messages_unread_owner },
+          { label: "Casos abiertos", value: notifications?.threads_open },
+          { label: "Casos cerrados", value: notifications?.threads_closed },
           { label: "Aprobaciones enviadas", value: notifications?.sent_approved },
           { label: "Rechazos enviados", value: notifications?.sent_rejected },
           { label: "Suspensiones enviadas", value: notifications?.sent_suspended },

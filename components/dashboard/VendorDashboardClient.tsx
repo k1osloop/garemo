@@ -32,6 +32,7 @@ import {
   VendorProductList,
 } from "@/components/dashboard/VendorProductList";
 import type { VendorProductFormValues } from "@/components/dashboard/VendorProductForm";
+import { ModerationThreadCenter } from "@/components/moderation/ModerationThreadCenter";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/EmptyState";
@@ -54,6 +55,7 @@ import type {
   Category,
   ContactInfo,
   Location,
+  ModerationThreadWithMessages,
   Product,
   PublicBusiness,
   Schedule,
@@ -207,6 +209,9 @@ export function VendorDashboardClient() {
   const [userId, setUserId] = useState("");
   const [userEmail, setUserEmail] = useState("");
   const [notifications, setNotifications] = useState<UserNotification[]>([]);
+  const [moderationThreads, setModerationThreads] = useState<
+    ModerationThreadWithMessages[]
+  >([]);
   const [accessState, setAccessState] = useState<
     "allowed" | "missing_profile" | "not_owner"
   >("allowed");
@@ -257,6 +262,7 @@ export function VendorDashboardClient() {
     if (!resolvedRole) {
       setAccessState("missing_profile");
       setNotifications([]);
+      setModerationThreads([]);
       setIsLoading(false);
       return;
     }
@@ -264,6 +270,7 @@ export function VendorDashboardClient() {
     if (resolvedRole !== "owner") {
       setAccessState("not_owner");
       setNotifications([]);
+      setModerationThreads([]);
       setIsLoading(false);
       return;
     }
@@ -313,6 +320,13 @@ export function VendorDashboardClient() {
       .limit(5);
 
     setNotifications((notificationData ?? []) as UserNotification[]);
+
+    const { data: moderationData } = await supabase.rpc(
+      "get_my_moderation_threads",
+    );
+    setModerationThreads(
+      (moderationData ?? []) as unknown as ModerationThreadWithMessages[],
+    );
 
     if (normalizedBusiness) {
       const { data: trustData } = await supabase.rpc(
@@ -373,6 +387,36 @@ export function VendorDashboardClient() {
         read_at: notification.read_at ?? readAt,
       })),
     );
+  }
+
+  async function replyModerationThread(threadId: string, message: string) {
+    const { error: replyError } = await supabase.rpc(
+      "owner_reply_moderation_thread",
+      {
+        thread_id: threadId,
+        message,
+      },
+    );
+
+    if (replyError) {
+      setError("No pudimos enviar tu respuesta al equipo de Garemo.");
+      return;
+    }
+
+    await loadDashboard(false);
+  }
+
+  async function markModerationThreadRead(threadId: string) {
+    const { error: readError } = await supabase.rpc("mark_thread_read", {
+      thread_id: threadId,
+    });
+
+    if (readError) {
+      setError("No pudimos marcar el caso como leido.");
+      return;
+    }
+
+    await loadDashboard(false);
   }
 
   useEffect(() => {
@@ -857,6 +901,13 @@ export function VendorDashboardClient() {
             notifications={notifications}
             onMarkAllRead={markAllNotificationsRead}
             onMarkRead={markNotificationRead}
+          />
+          <ModerationThreadCenter
+            mode="owner"
+            onMarkRead={markModerationThreadRead}
+            onReply={replyModerationThread}
+            threads={moderationThreads}
+            title="Mensajes y revisiones de Garemo"
           />
 
           <div className="flex flex-col lg:flex-row gap-6">

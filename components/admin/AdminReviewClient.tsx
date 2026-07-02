@@ -120,12 +120,21 @@ const adminBusinessSelect = `
 
 const rejectionReasons = [
   "Informacion incompleta",
-  "Ubicacion no valida",
-  "Productos no claros",
-  "Contacto invalido",
-  "Imagen o contenido inapropiado",
-  "Posible fraude",
+  "Ubicacion incorrecta",
+  "WhatsApp invalido",
+  "Productos poco claros",
+  "Imagenes no adecuadas",
+  "Categoria incorrecta",
+  "Posible incumplimiento",
   "Otro",
+];
+
+const correctionChecklist = [
+  "Completar descripcion del negocio",
+  "Corregir ubicacion o zona del campus",
+  "Agregar WhatsApp valido",
+  "Mejorar productos, precios o imagenes",
+  "Revisar categoria y tipo de servicio",
 ];
 
 const visibleStatuses: BusinessStatus[] = [
@@ -204,6 +213,7 @@ export function AdminReviewClient() {
   const [rejectDialog, setRejectDialog] = useState<RejectDialogState>(null);
   const [rejectReason, setRejectReason] = useState(rejectionReasons[0]);
   const [rejectComment, setRejectComment] = useState("");
+  const [rejectChecklist, setRejectChecklist] = useState<string[]>([]);
 
   const loadAdminQueue = useCallback(async () => {
     setIsLoading(true);
@@ -293,7 +303,7 @@ export function AdminReviewClient() {
 
     if (reviewError) {
       setError(
-        "No pudimos guardar la revision. Solo una cuenta autorizada puede aprobar, rechazar o suspender.",
+        "No pudimos guardar la revision. Solo una cuenta autorizada puede aprobar, devolver o suspender.",
       );
       setIsReviewing(null);
       return;
@@ -308,6 +318,7 @@ export function AdminReviewClient() {
     setRejectDialog({ business, mode: "reject" });
     setRejectReason(rejectionReasons[0]);
     setRejectComment(notesByBusiness[business.id] ?? "");
+    setRejectChecklist([]);
   }
 
   async function confirmReject() {
@@ -323,18 +334,26 @@ export function AdminReviewClient() {
     }
 
     const businessId = rejectDialog.business.id;
+    const checklistText =
+      rejectChecklist.length > 0
+        ? `\n\nChecklist de correccion:\n${rejectChecklist
+            .map((item) => `- ${item}`)
+            .join("\n")}`
+        : "";
+    const notes = `${comment}${checklistText}`;
 
     await reviewBusiness({
       businessId,
       nextStatus: "rejected",
       nextIsVerified: false,
-      notes: comment,
+      notes,
       reason: rejectReason,
-      successMessage: "Negocio rechazado y emprendedor notificado.",
+      successMessage: "Verificacion devuelta y emprendedor notificado.",
     });
 
     setRejectDialog(null);
     setRejectComment("");
+    setRejectChecklist([]);
   }
 
   if (isLoading) {
@@ -377,7 +396,7 @@ export function AdminReviewClient() {
             </h2>
           </div>
           <p className="max-w-3xl text-sm leading-relaxed text-slate-600">
-            Aprueba, rechaza con motivo, suspende por revision o reactiva
+            Aprueba, devuelve con motivo, suspende por revision o reactiva
             negocios sin eliminar datos. Cada decision importante notifica al
             emprendedor dentro de Garemo.
           </p>
@@ -471,7 +490,7 @@ export function AdminReviewClient() {
                           [business.id]: event.target.value,
                         }))
                       }
-                      placeholder="Explica aprobacion, rechazo, suspension o pasos pendientes."
+                      placeholder="Explica aprobacion, correcciones, suspension o pasos pendientes."
                       value={note}
                     />
                   </label>
@@ -518,7 +537,7 @@ export function AdminReviewClient() {
                       variant="outline"
                     >
                       <XCircle className="h-4 w-4" />
-                      Rechazar
+                      Devolver
                     </Button>
                     <Button
                       className="min-h-11 gap-2 border-orange-200 text-orange-700 shadow-sm hover:border-orange-300 hover:bg-orange-50"
@@ -571,7 +590,7 @@ export function AdminReviewClient() {
       {rejectDialog ? (
         <div className="fixed inset-0 z-50 flex items-end justify-center bg-slate-950/50 p-0 backdrop-blur-sm sm:items-center sm:p-4">
           <button
-            aria-label="Cerrar rechazo"
+            aria-label="Cerrar devolucion"
             className="absolute inset-0"
             onClick={() => setRejectDialog(null)}
             type="button"
@@ -580,14 +599,14 @@ export function AdminReviewClient() {
             <div className="space-y-4">
               <div>
                 <p className="text-xs font-black uppercase tracking-wide text-red-600">
-                  Rechazar negocio
+                  Devolver verificacion
                 </p>
                 <h3 className="mt-1 text-2xl font-black text-slate-900">
                   {rejectDialog.business.name}
                 </h3>
                 <p className="mt-2 text-sm leading-6 text-muted-foreground">
                   El emprendedor recibira esta observacion dentro de Garemo para
-                  corregir su informacion.
+                  corregir su informacion antes de una nueva revision.
                 </p>
               </div>
               <label className="grid gap-2 text-sm font-bold text-slate-800">
@@ -604,6 +623,33 @@ export function AdminReviewClient() {
                   ))}
                 </select>
               </label>
+              <div className="grid gap-2">
+                <p className="text-sm font-bold text-slate-800">
+                  Checklist de correcciones
+                </p>
+                <div className="grid gap-2">
+                  {correctionChecklist.map((item) => (
+                    <label
+                      className="flex cursor-pointer items-start gap-3 rounded-2xl border border-slate-100 bg-slate-50 p-3 text-sm font-semibold text-slate-700"
+                      key={item}
+                    >
+                      <input
+                        checked={rejectChecklist.includes(item)}
+                        className="mt-0.5 h-4 w-4 rounded border-slate-300 accent-brand"
+                        onChange={(event) =>
+                          setRejectChecklist((current) =>
+                            event.target.checked
+                              ? [...current, item]
+                              : current.filter((selected) => selected !== item),
+                          )
+                        }
+                        type="checkbox"
+                      />
+                      {item}
+                    </label>
+                  ))}
+                </div>
+              </div>
               <label className="grid gap-2 text-sm font-bold text-slate-800">
                 Comentario obligatorio
                 <textarea
@@ -629,7 +675,7 @@ export function AdminReviewClient() {
                   onClick={() => void confirmReject()}
                   type="button"
                 >
-                  Rechazar y notificar
+                  Devolver y notificar
                 </Button>
               </div>
             </div>

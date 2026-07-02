@@ -456,6 +456,99 @@ export type Database = {
         };
         Relationships: [];
       };
+      moderation_threads: {
+        Row: {
+          id: string;
+          business_id: string | null;
+          report_id: string | null;
+          owner_id: string | null;
+          opened_by: string | null;
+          assigned_admin_id: string | null;
+          type: ModerationThreadType;
+          status: ModerationThreadStatus;
+          priority: ModerationPriority;
+          subject: string;
+          last_message_at: string;
+          closed_at: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          business_id?: string | null;
+          report_id?: string | null;
+          owner_id?: string | null;
+          opened_by?: string | null;
+          assigned_admin_id?: string | null;
+          type: ModerationThreadType;
+          status?: ModerationThreadStatus;
+          priority?: ModerationPriority;
+          subject: string;
+          last_message_at?: string;
+          closed_at?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          business_id?: string | null;
+          report_id?: string | null;
+          owner_id?: string | null;
+          opened_by?: string | null;
+          assigned_admin_id?: string | null;
+          type?: ModerationThreadType;
+          status?: ModerationThreadStatus;
+          priority?: ModerationPriority;
+          subject?: string;
+          last_message_at?: string;
+          closed_at?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      moderation_messages: {
+        Row: {
+          id: string;
+          thread_id: string;
+          sender_id: string | null;
+          sender_role: ModerationSenderRole;
+          message: string;
+          message_type: ModerationMessageType;
+          metadata: Json;
+          read_by_owner: boolean;
+          read_by_admin: boolean;
+          is_internal_to_admin: boolean;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          thread_id: string;
+          sender_id?: string | null;
+          sender_role: ModerationSenderRole;
+          message: string;
+          message_type?: ModerationMessageType;
+          metadata?: Json;
+          read_by_owner?: boolean;
+          read_by_admin?: boolean;
+          is_internal_to_admin?: boolean;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          thread_id?: string;
+          sender_id?: string | null;
+          sender_role?: ModerationSenderRole;
+          message?: string;
+          message_type?: ModerationMessageType;
+          metadata?: Json;
+          read_by_owner?: boolean;
+          read_by_admin?: boolean;
+          is_internal_to_admin?: boolean;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
       reports: {
         Row: {
           id: string;
@@ -630,6 +723,55 @@ export type Database = {
         Args: Record<string, never>;
         Returns: Json;
       };
+      get_my_moderation_threads: {
+        Args: Record<string, never>;
+        Returns: Json;
+      };
+      get_admin_moderation_threads: {
+        Args: Record<string, never>;
+        Returns: Json;
+      };
+      owner_reply_moderation_thread: {
+        Args: {
+          thread_id: string;
+          message: string;
+        };
+        Returns: string;
+      };
+      mark_thread_read: {
+        Args: {
+          thread_id: string;
+        };
+        Returns: boolean;
+      };
+      admin_create_moderation_thread: {
+        Args: {
+          target_business_id: string;
+          target_report_id?: string | null;
+          thread_type?: ModerationThreadType;
+          thread_subject?: string;
+          initial_message?: string | null;
+          thread_priority?: ModerationPriority;
+          metadata?: Json;
+        };
+        Returns: string;
+      };
+      admin_send_moderation_message: {
+        Args: {
+          thread_id: string;
+          message: string;
+          message_type?: ModerationMessageType;
+          metadata?: Json;
+          internal_to_admin?: boolean;
+        };
+        Returns: string;
+      };
+      admin_close_moderation_thread: {
+        Args: {
+          thread_id: string;
+        };
+        Returns: boolean;
+      };
       create_initial_user_profile: {
         Args: {
           requested_role: Database["public"]["Enums"]["user_role"];
@@ -712,6 +854,10 @@ export type WhatsAppClick =
 export type Favorite = Database["public"]["Tables"]["favorites"]["Row"];
 export type UserNotification =
   Database["public"]["Tables"]["user_notifications"]["Row"];
+export type ModerationThread =
+  Database["public"]["Tables"]["moderation_threads"]["Row"];
+export type ModerationMessage =
+  Database["public"]["Tables"]["moderation_messages"]["Row"];
 export type UserNotificationType =
   | "business_approved"
   | "business_rejected"
@@ -721,6 +867,56 @@ export type UserNotificationType =
   | "business_reported"
   | "report_resolved"
   | "profile_warning";
+export type ModerationThreadType =
+  | "verification"
+  | "rejection"
+  | "needs_changes"
+  | "report"
+  | "suspension"
+  | "reactivation"
+  | "general";
+export type ModerationThreadStatus =
+  | "open"
+  | "waiting_owner"
+  | "waiting_admin"
+  | "resolved"
+  | "closed";
+export type ModerationPriority = "low" | "normal" | "high" | "critical";
+export type ModerationSenderRole = "system" | "admin" | "owner";
+export type ModerationMessageType =
+  | "message"
+  | "status_change"
+  | "rejection_reason"
+  | "admin_note"
+  | "system";
+
+export type ModerationThreadWithMessages = {
+  id: string;
+  business_id: string | null;
+  business_name: string | null;
+  report_id: string | null;
+  owner_id?: string | null;
+  owner_email?: string | null;
+  type: ModerationThreadType;
+  status: ModerationThreadStatus;
+  priority: ModerationPriority;
+  subject: string;
+  unread_count: number;
+  last_message_at: string;
+  closed_at: string | null;
+  created_at: string;
+  messages: Array<{
+    id: string;
+    sender_role: ModerationSenderRole;
+    message: string;
+    message_type: ModerationMessageType;
+    metadata: Json;
+    read_by_owner: boolean;
+    read_by_admin: boolean;
+    is_internal_to_admin?: boolean;
+    created_at: string;
+  }>;
+};
 
 export type BusinessTrustSummary = {
   business_id: string;

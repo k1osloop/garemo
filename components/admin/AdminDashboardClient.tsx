@@ -1,13 +1,19 @@
 "use client";
 
 import { useState } from "react";
-import { BarChart3, ClipboardCheck, ShieldCheck } from "lucide-react";
+import {
+  BarChart3,
+  ClipboardCheck,
+  MessageSquareText,
+  ShieldCheck,
+} from "lucide-react";
 
+import { AdminCasesClient } from "./AdminCasesClient";
 import { AdminMetricsClient } from "./AdminMetricsClient";
 import { AdminReportsClient } from "./AdminReportsClient";
 import { AdminReviewClient } from "./AdminReviewClient";
 
-type AdminTab = "businesses" | "metrics" | "reports";
+type AdminTab = "businesses" | "cases" | "metrics" | "reports";
 
 const tabs: {
   id: AdminTab;
@@ -16,6 +22,7 @@ const tabs: {
 }[] = [
   { id: "businesses", label: "Negocios por verificar", icon: ClipboardCheck },
   { id: "reports", label: "Reportes", icon: ShieldCheck },
+  { id: "cases", label: "Casos", icon: MessageSquareText },
   { id: "metrics", label: "Métricas", icon: BarChart3 },
 ];
 
@@ -61,6 +68,7 @@ export function AdminDashboardClient() {
 
       {activeTab === "businesses" ? <AdminReviewClient /> : null}
       {activeTab === "reports" ? <AdminReportsClient /> : null}
+      {activeTab === "cases" ? <AdminCasesClient /> : null}
       {activeTab === "metrics" ? <AdminMetricsClient /> : null}
     </div>
   );

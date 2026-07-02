@@ -6,6 +6,7 @@ import {
   Ban,
   CheckCircle,
   Clock,
+  MessageSquareText,
   RefreshCw,
   RotateCcw,
 } from "lucide-react";
@@ -20,6 +21,7 @@ import type { Database } from "@/types/database";
 
 type ReportStatus = Database["public"]["Enums"]["report_status"];
 type BusinessStatus = Database["public"]["Enums"]["business_status"];
+type ReportFilter = ReportStatus | "all" | "critical";
 
 type ReportBusiness = {
   id: string;
@@ -44,8 +46,9 @@ type ReportRow = {
   business?: ReportBusiness | ReportBusiness[] | null;
 };
 
-const reportStatusLabels: Record<ReportStatus | "all", string> = {
+const reportStatusLabels: Record<ReportFilter, string> = {
   all: "Todos",
+  critical: "Criticos",
   dismissed: "Descartados",
   open: "Pendientes",
   resolved: "Resueltos",
@@ -83,12 +86,26 @@ function getStatusClassName(status: ReportStatus) {
   return "bg-slate-100 text-slate-600 ring-slate-200";
 }
 
+function countUniqueOpenReporters(reports: ReportRow[], businessId: string) {
+  const reporters = new Set(
+    reports
+      .filter(
+        (report) =>
+          report.business_id === businessId &&
+          (report.status === "open" || report.status === "reviewing"),
+      )
+      .map((report) => report.reporter_id),
+  );
+
+  return reporters.size;
+}
+
 export function AdminReportsClient() {
   const supabase = useMemo(() => createSupabaseBrowserClient(), []);
   const [reports, setReports] = useState<ReportRow[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<ReportStatus | "all">("open");
+  const [activeTab, setActiveTab] = useState<ReportFilter>("open");
   const [isUpdating, setIsUpdating] = useState<string | null>(null);
   const [notesByReport, setNotesByReport] = useState<Record<string, string>>({});
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
@@ -178,6 +195,47 @@ export function AdminReportsClient() {
     setIsUpdating(null);
   }
 
+  async function createModerationCase(report: ReportRow) {
+    const business = firstOrNull(report.business);
+
+    if (!business) {
+      setError("No pudimos crear un caso porque el negocio no esta disponible.");
+      return;
+    }
+
+    setIsUpdating(report.id);
+    setError(null);
+    setStatusMessage(null);
+
+    const uniqueReporters = countUniqueOpenReporters(reports, report.business_id);
+    const { error: caseError } = await supabase.rpc(
+      "admin_create_moderation_thread",
+      {
+        target_business_id: report.business_id,
+        target_report_id: report.id,
+        thread_type: "report",
+        thread_subject: "Reporte de la comunidad",
+        initial_message:
+          notesByReport[report.id] ||
+          "Garemo esta revisando un reporte de la comunidad sobre tu negocio. Responde con contexto o corrige la informacion indicada.",
+        thread_priority: uniqueReporters >= 3 ? "high" : "normal",
+      },
+    );
+
+    if (caseError) {
+      setError("No pudimos abrir el caso interno de este reporte.");
+      setIsUpdating(null);
+      return;
+    }
+
+    setStatusMessage("Caso interno creado para seguimiento con el emprendedor.");
+    await updateStatus({
+      reportId: report.id,
+      nextStatus: "reviewing",
+      successMessage: "Caso interno creado y reporte marcado en revision.",
+    });
+  }
+
   if (isLoading) {
     return (
       <Card>
@@ -190,9 +248,14 @@ export function AdminReportsClient() {
     return <ErrorState title="No se pudieron cargar reportes" description={error} />;
   }
 
-  const filteredReports = reports.filter(
-    (report) => activeTab === "all" || report.status === activeTab,
-  );
+  const filteredReports = reports.filter((report) => {
+    if (activeTab === "all") return true;
+    if (activeTab === "critical") {
+      return countUniqueOpenReporters(reports, report.business_id) >= 3;
+    }
+
+    return report.status === activeTab;
+  });
   const openReportCount = reports.filter((report) => report.status === "open").length;
 
   return (
@@ -204,7 +267,7 @@ export function AdminReportsClient() {
       ) : null}
 
       <div className="flex gap-2 overflow-x-auto border-b border-border pb-4">
-        {(["open", "reviewing", "resolved", "dismissed", "all"] as const).map(
+        {(["open", "reviewing", "critical", "resolved", "dismissed", "all"] as const).map(
           (tab) => (
             <button
               className={cn(
@@ -243,6 +306,10 @@ export function AdminReportsClient() {
           {filteredReports.map((report) => {
             const business = firstOrNull(report.business);
             const isBusy = isUpdating === report.id;
+            const uniqueReporters = countUniqueOpenReporters(
+              reports,
+              report.business_id,
+            );
 
             return (
               <Card
@@ -264,6 +331,16 @@ export function AdminReportsClient() {
                     </span>
                     <span className="text-xs text-slate-500">
                       {new Date(report.created_at).toLocaleDateString("es-BO")}
+                    </span>
+                    <span
+                      className={cn(
+                        "rounded-full px-3 py-1 text-xs font-black ring-1",
+                        uniqueReporters >= 3
+                          ? "bg-red-50 text-red-700 ring-red-100"
+                          : "bg-slate-100 text-slate-600 ring-slate-200",
+                      )}
+                    >
+                      {uniqueReporters} reporte{uniqueReporters === 1 ? "" : "s"} unico{uniqueReporters === 1 ? "" : "s"}
                     </span>
                   </div>
 
@@ -328,6 +405,17 @@ export function AdminReportsClient() {
 
                   {report.status !== "resolved" && report.status !== "dismissed" ? (
                     <>
+                      <Button
+                        className="justify-start gap-2 border-brand/20 text-brand hover:bg-brand/5"
+                        disabled={isBusy || !business}
+                        onClick={() => void createModerationCase(report)}
+                        size="sm"
+                        type="button"
+                        variant="outline"
+                      >
+                        <MessageSquareText className="h-4 w-4" />
+                        Abrir caso interno
+                      </Button>
                       <Button
                         className="justify-start gap-2 bg-green-600 text-white hover:bg-green-700"
                         disabled={isBusy}

@@ -15,6 +15,7 @@ import {
   MapPin,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { ModerationThreadCenter } from "@/components/moderation/ModerationThreadCenter";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/EmptyState";
@@ -31,6 +32,7 @@ import { createSupabaseBrowserClient } from "@/lib/supabase/client";
 import type {
   BusinessReview,
   Favorite,
+  ModerationThreadWithMessages,
   UserNotification,
   UserProfile,
 } from "@/types/database";
@@ -164,6 +166,9 @@ export function BuyerAccountClient() {
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [reviews, setReviews] = useState<AccountReview[]>([]);
   const [notifications, setNotifications] = useState<UserNotification[]>([]);
+  const [moderationThreads, setModerationThreads] = useState<
+    ModerationThreadWithMessages[]
+  >([]);
   const [role, setRole] = useState<AppRole | null>(null);
   const [userEmail, setUserEmail] = useState("");
   const [userId, setUserId] = useState("");
@@ -205,6 +210,7 @@ export function BuyerAccountClient() {
     setRole(resolvedRole);
     setProfile(accountProfile as UserProfile);
     if (resolvedRole === "admin") {
+      setModerationThreads([]);
       setIsLoading(false);
       return;
     }
@@ -212,6 +218,7 @@ export function BuyerAccountClient() {
       { data: favoriteData, error: favoriteError },
       { data: reviewData, error: reviewError },
       { data: notificationData, error: notificationError },
+      { data: threadData, error: threadError },
     ] =
       await Promise.all([
         supabase
@@ -230,6 +237,7 @@ export function BuyerAccountClient() {
           .eq("user_id", user.id)
           .order("created_at", { ascending: false })
           .limit(20),
+        supabase.rpc("get_my_moderation_threads"),
       ]);
     if (favoriteError) {
       setError("No pudimos cargar tus favoritos. Revisa que el SQL de Sprint 3D este aplicado.");
@@ -246,6 +254,11 @@ export function BuyerAccountClient() {
       setIsLoading(false);
       return;
     }
+    if (threadError) {
+      setError("No pudimos cargar tus mensajes internos.");
+      setIsLoading(false);
+      return;
+    }
     setFavorites(
       ((favoriteData ?? []) as unknown as FavoriteRow[]).map(normalizeFavorite),
     );
@@ -253,6 +266,9 @@ export function BuyerAccountClient() {
       ((reviewData ?? []) as unknown as ReviewRow[]).map(normalizeReview),
     );
     setNotifications((notificationData ?? []) as UserNotification[]);
+    setModerationThreads(
+      (threadData ?? []) as unknown as ModerationThreadWithMessages[],
+    );
     setIsLoading(false);
   }, [router, supabase]);
   useEffect(() => {
@@ -329,6 +345,39 @@ export function BuyerAccountClient() {
       })),
     );
   }
+
+  async function replyModerationThread(threadId: string, message: string) {
+    setError(null);
+    const { error: replyError } = await supabase.rpc(
+      "owner_reply_moderation_thread",
+      {
+        thread_id: threadId,
+        message,
+      },
+    );
+
+    if (replyError) {
+      setError("No pudimos enviar tu respuesta al equipo de Garemo.");
+      return;
+    }
+
+    await loadAccount();
+  }
+
+  async function markModerationThreadRead(threadId: string) {
+    setError(null);
+    const { error: readError } = await supabase.rpc("mark_thread_read", {
+      thread_id: threadId,
+    });
+
+    if (readError) {
+      setError("No pudimos marcar el caso como leido.");
+      return;
+    }
+
+    await loadAccount();
+  }
+
   if (isLoading) {
     return (
       <Card>
@@ -515,6 +564,15 @@ export function BuyerAccountClient() {
           </div>
         )}
       </Card>
+      {role !== "admin" ? (
+        <ModerationThreadCenter
+          mode="owner"
+          onMarkRead={markModerationThreadRead}
+          onReply={replyModerationThread}
+          threads={moderationThreads}
+          title="Mensajes de Garemo"
+        />
+      ) : null}
       {role === "owner" ? (
         <Card className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between border-slate-200 bg-white shadow-sm">
           <div className="space-y-2">
