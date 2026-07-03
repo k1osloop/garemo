@@ -75,6 +75,33 @@ Before enabling real sends:
 5. Confirm Supabase Auth SMTP uses a sender from `garemo.online`, not a generic sandbox sender.
 6. Confirm SPF, DKIM, and DMARC in Resend before enabling production sends.
 
+## SPF / DKIM / DMARC Evidence Checklist
+
+Production email is not considered ready until all DNS records are verified
+from the provider dashboard and from public DNS lookups.
+
+Required checks:
+
+1. Resend domain status for `garemo.online` is `Verified`.
+2. SPF TXT record includes the exact value Resend provides for the domain.
+3. DKIM records match the hostnames and values shown by Resend.
+4. DMARC TXT record exists at `_dmarc.garemo.online`.
+5. Supabase Auth SMTP sender uses `no-reply@garemo.online` or another sender
+   under the verified domain.
+6. Password recovery sends a real email to an external mailbox.
+7. A moderation notification sends a real email and writes an `email_events`
+   row with `status = sent`.
+
+Useful verification commands:
+
+```powershell
+nslookup -type=TXT garemo.online 1.1.1.1
+nslookup -type=TXT _dmarc.garemo.online 1.1.1.1
+```
+
+If any record is pending, mark email readiness as external configuration
+pending and keep in-app notifications as the source of truth.
+
 ## Server Route Shape
 
 The Next.js route should:

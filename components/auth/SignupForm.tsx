@@ -77,27 +77,6 @@ export function SignupForm() {
       return;
     }
 
-    const { data: emailAlreadyExists, error: emailCheckError } =
-      await supabase.rpc("is_registered_email", {
-        candidate_email: email,
-      });
-
-    if (emailCheckError) {
-      setStatus({
-        type: "error",
-        message:
-          "No pudimos validar el correo en este momento. Intenta nuevamente.",
-      });
-      setIsLoading(false);
-      return;
-    }
-
-    if (emailAlreadyExists) {
-      setStatus({ type: "existing_account", email });
-      setIsLoading(false);
-      return;
-    }
-
     const { data, error } = await supabase.auth.signUp({
       email,
       password,

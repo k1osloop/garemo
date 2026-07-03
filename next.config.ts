@@ -1,6 +1,26 @@
 import type { NextConfig } from "next";
 
+const cspReportOnly = [
+  "default-src 'self'",
+  "base-uri 'self'",
+  "form-action 'self'",
+  "frame-ancestors 'none'",
+  "object-src 'none'",
+  "script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://www.clarity.ms https://accounts.google.com",
+  "style-src 'self' 'unsafe-inline'",
+  "img-src 'self' data: blob: https://placehold.co https://rggqkrqjqtjzwslgvfgq.supabase.co https://www.garemo.online https://garemo.online",
+  "font-src 'self' data:",
+  "connect-src 'self' https://rggqkrqjqtjzwslgvfgq.supabase.co https://www.google-analytics.com https://region1.google-analytics.com https://*.clarity.ms https://accounts.google.com",
+  "frame-src https://accounts.google.com",
+  "worker-src 'self' blob:",
+  "manifest-src 'self'",
+].join("; ");
+
 const securityHeaders = [
+  {
+    key: "Content-Security-Policy-Report-Only",
+    value: cspReportOnly,
+  },
   {
     key: "X-Content-Type-Options",
     value: "nosniff",

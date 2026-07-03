@@ -16,6 +16,10 @@ type QueryResult<T> = {
   error: string | null;
 };
 
+type PublicBusinessQueryOptions = {
+  limit?: number;
+};
+
 type RelatedBusinessRow = Omit<
   PublicBusiness,
   "category" | "location" | "schedules" | "images" | "contact_info"
@@ -114,6 +118,8 @@ const publicBusinessSelect = `
 const uuidPattern =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
+const publicBusinessStatuses = ["active", "approved"] as const;
+
 function safeError<T>(fallback: T): QueryResult<T> {
   return {
     data: fallback,
@@ -209,15 +215,32 @@ export async function getCategories(): Promise<QueryResult<Category[]>> {
   return { data: data ?? [], error: null };
 }
 
-export async function getActiveBusinesses(): Promise<
+function applyOptionalLimit<T>(
+  query: T,
+  limit?: number,
+): T {
+  if (!limit || limit < 1) {
+    return query;
+  }
+
+  return (query as { limit: (count: number) => T }).limit(
+    Math.min(Math.floor(limit), 50),
+  );
+}
+
+export async function getActiveBusinesses(
+  options: PublicBusinessQueryOptions = {},
+): Promise<
   QueryResult<PublicBusiness[]>
 > {
   const supabase = createSupabaseBrowserClient();
-  const { data, error } = await supabase
+  const query = supabase
     .from("businesses")
     .select(publicBusinessSelect)
-    .in("status", ["active", "approved", "pending_review"])
+    .in("status", [...publicBusinessStatuses])
     .order("name", { ascending: true });
+
+  const { data, error } = await applyOptionalLimit(query, options.limit);
 
   if (error) {
     return safeError([]);
@@ -233,6 +256,7 @@ export async function getActiveBusinesses(): Promise<
 
 export async function getBusinessesByCategory(
   categorySlug: string,
+  options: PublicBusinessQueryOptions = {},
 ): Promise<QueryResult<PublicBusiness[]>> {
   const supabase = createSupabaseBrowserClient();
 
@@ -253,12 +277,14 @@ export async function getBusinessesByCategory(
     return { data: [], error: null };
   }
 
-  const { data, error } = await supabase
+  const query = supabase
     .from("businesses")
     .select(publicBusinessSelect)
-    .in("status", ["active", "approved", "pending_review"])
+    .in("status", [...publicBusinessStatuses])
     .eq("category_id", categoryRow.id)
     .order("name", { ascending: true });
+
+  const { data, error } = await applyOptionalLimit(query, options.limit);
 
   if (error) {
     return safeError([]);
@@ -310,6 +336,7 @@ export async function searchVisibleBusinesses({
   pickup,
   hasOffers,
   isOpen,
+  limit,
 }: {
   categorySlug?: string;
   query?: string;
@@ -317,10 +344,11 @@ export async function searchVisibleBusinesses({
   pickup?: boolean;
   hasOffers?: boolean;
   isOpen?: boolean;
+  limit?: number;
 }): Promise<QueryResult<PublicBusiness[]>> {
   const result = categorySlug
-    ? await getBusinessesByCategory(categorySlug)
-    : await getActiveBusinesses();
+    ? await getBusinessesByCategory(categorySlug, { limit })
+    : await getActiveBusinesses({ limit });
 
   if (result.error) {
     return result;
@@ -369,7 +397,7 @@ export async function getBusinessById(
   const { data, error } = await supabase
     .from("businesses")
     .select(publicBusinessSelect)
-    .in("status", ["active", "approved", "pending_review"])
+    .in("status", [...publicBusinessStatuses])
     .eq("id", id)
     .maybeSingle();
 
@@ -393,7 +421,7 @@ export async function getBusinessBySlug(
   const { data, error } = await supabase
     .from("businesses")
     .select(publicBusinessSelect)
-    .in("status", ["active", "approved", "pending_review"])
+    .in("status", [...publicBusinessStatuses])
     .eq("slug", slug)
     .maybeSingle();
 

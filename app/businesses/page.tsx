@@ -63,6 +63,7 @@ export default async function BusinessesPage({
       delivery,
       hasOffers,
       isOpen,
+      limit: 24,
       pickup,
       query,
     }),
